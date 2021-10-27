@@ -9,19 +9,26 @@ namespace XIVAuras.Config
     {
         public Action? CloseAction;
 
-        public ConfigWindow(string name) : base(name)
+        public ConfigWindow() : base("XIVAuras")
         {
-            Flags = ImGuiWindowFlags.NoTitleBar |
-                ImGuiWindowFlags.NoScrollbar |
-                ImGuiWindowFlags.NoResize |
-                ImGuiWindowFlags.NoScrollWithMouse;
+            Flags = ImGuiWindowFlags.NoScrollbar |
+                    ImGuiWindowFlags.NoCollapse |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoScrollWithMouse;
 
             Size = new Vector2(1050, 750);
         }
 
         public override void Draw()
         {
+            var pos = ImGui.GetWindowPos();
 
+            if (!ImGui.BeginTabBar("##XIVAuras_Settings_TabBar"))
+            {
+                return;
+            }
+
+            ImGui.EndTabBar();
         }
 
         public override void OnClose()

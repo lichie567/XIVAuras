@@ -97,7 +97,7 @@ namespace DelvUI
             Plugin.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? Plugin.Version;
 
             this._windowSystem = new WindowSystem("XIVAuras_Windows");
-            this._configRoot = new ConfigWindow("XIVAuras_ConfigRoot");
+            this._configRoot = new ConfigWindow();
             this._windowSystem.AddWindow(this._configRoot);
 
             CommandManager.AddHandler(
