@@ -1,0 +1,1 @@
+Dalamud plugin for tracking buffs/debuffs in FFXIV.

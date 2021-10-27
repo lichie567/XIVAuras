@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{40B4B564-FF98-44CF-9E8A-9EA6A4D7A74F}") = "XIVAuras", "XIVAuras\XIVAuras.csproj", "{9905A97D-24BD-4B8A-8011-B609EF86B142}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{226FB92B-E6FD-4D1A-9D6F-C4292450B706}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9905A97D-24BD-4B8A-8011-B609EF86B142}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{9905A97D-24BD-4B8A-8011-B609EF86B142}.Debug|Any CPU.Build.0 = Debug|x64
+		{9905A97D-24BD-4B8A-8011-B609EF86B142}.Release|Any CPU.ActiveCfg = Release|x64
+		{9905A97D-24BD-4B8A-8011-B609EF86B142}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D932CF5E-10FC-4D3A-A1D9-FC39D1961D24}
+	EndGlobalSection
+EndGlobal
