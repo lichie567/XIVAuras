@@ -12,13 +12,25 @@ namespace XIVAuras.Helpers
             _actionManager = ActionManager.Instance();
         }
 
-        public unsafe uint GetSpellActionId(uint actionId) => _actionManager->GetAdjustedActionId(actionId);
+        public unsafe uint GetSpellActionId(uint actionId)
+        {
+            return _actionManager->GetAdjustedActionId(actionId);
+        }
 
-        public unsafe float GetRecastTimeElapsed(uint actionId) => _actionManager->GetRecastTimeElapsed(ActionType.Spell, GetSpellActionId(actionId));
+        public unsafe float GetRecastTimeElapsed(uint actionId)
+        {
+            return _actionManager->GetRecastTimeElapsed(ActionType.Spell, GetSpellActionId(actionId));
+        }
 
-        public unsafe float GetRecastTime(uint actionId) => _actionManager->GetRecastTime(ActionType.Spell, GetSpellActionId(actionId));
+        public unsafe float GetRecastTime(uint actionId)
+        {
+            return _actionManager->GetRecastTime(ActionType.Spell, GetSpellActionId(actionId));
+        }
 
-        public float GetSpellCooldown(uint actionId) => Math.Abs(GetRecastTime(GetSpellActionId(actionId)) - GetRecastTimeElapsed(GetSpellActionId(actionId)));
+        public float GetSpellCooldown(uint actionId)
+        {
+            return Math.Abs(GetRecastTime(GetSpellActionId(actionId)) - GetRecastTimeElapsed(GetSpellActionId(actionId)));
+        }
 
         public int GetSpellCooldownInt(uint actionId)
         {

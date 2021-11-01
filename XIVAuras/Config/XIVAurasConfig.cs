@@ -112,6 +112,20 @@ namespace XIVAuras.Config
             catch (Exception ex)
             {
                 PluginLog.Error(ex.ToString());
+
+                string backupPath = $"{path}.bak";
+                if (File.Exists(path))
+                {
+                    try
+                    {
+                        File.Copy(path, backupPath);
+                        PluginLog.Debug($"Backed up XIVAuras config to {backupPath}");
+                    }
+                    catch
+                    {
+                        PluginLog.Warning($"Unable to back up XIVAuras config");
+                    }
+                }
             }
 
             return config ?? new XIVAurasConfig();
@@ -137,6 +151,7 @@ namespace XIVAuras.Config
     /// </summary>
     public class XIVAurasSerializationBinder : ISerializationBinder
     {
+        // TODO: Make this automatic somehow?
         private static List<Type> _configTypes = new List<Type>()
         {
             typeof(AuraGroup),

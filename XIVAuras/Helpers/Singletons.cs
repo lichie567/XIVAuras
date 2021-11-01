@@ -16,7 +16,8 @@ namespace XIVAuras.Helpers
         {
             Singletons.TypeInitializers = new Dictionary<Type, Func<object>>()
             {
-                { typeof(SpellHelpers), () => new SpellHelpers() }
+                { typeof(SpellHelpers), () => new SpellHelpers() },
+                { typeof(TexturesCache), () => new TexturesCache() }
             };
         }
 
@@ -62,7 +63,7 @@ namespace XIVAuras.Helpers
                 }
             }
 
-            ActiveInstances = new ConcurrentDictionary<Type, object>();
+            ActiveInstances.Clear();
         }
     }
 }
