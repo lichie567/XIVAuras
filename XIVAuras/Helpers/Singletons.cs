@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 namespace XIVAuras.Helpers
 {
+    public interface IXIVAurasDisposable : IDisposable { }
+
     public static class Singletons
     {
         private static readonly Dictionary<Type, Func<object>> TypeInitializers;
@@ -49,11 +51,12 @@ namespace XIVAuras.Helpers
             }
         }
 
-        public static void DisposeAll()
+        public static void Dispose()
         {
             foreach (object singleton in ActiveInstances.Values)
             {
-                if (singleton is IDisposable disposable)
+                // Only dispose the disposable objects that we own
+                if (singleton is IXIVAurasDisposable disposable)
                 {
                     disposable.Dispose();
                 }

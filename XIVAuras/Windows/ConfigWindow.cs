@@ -2,6 +2,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using XIVAuras.Auras;
@@ -14,7 +15,7 @@ namespace XIVAuras.Config
         public XIVAurasConfig Config { get; private set; }
 
         private AuraType _selectedType = AuraType.Group;
-        private string _nameInput = string.Empty;
+        private string _input = string.Empty;
         private string[] _options = Enum.GetNames(typeof(AuraType));
 
         public ConfigWindow(XIVAurasConfig config) : base("XIVAuras")
@@ -24,7 +25,7 @@ namespace XIVAuras.Config
                     ImGuiWindowFlags.NoResize |
                     ImGuiWindowFlags.NoScrollWithMouse;
 
-            this.Size = new Vector2(600, 600);
+            this.Size = new Vector2(500, 500);
 
             this.Config = config;
         }
@@ -49,24 +50,24 @@ namespace XIVAuras.Config
 
         private void DrawCreateMenu()
         {
-            if (ImGui.BeginChild("##Buttons", new Vector2(584, 40), true))
+            if (ImGui.BeginChild("##Buttons", new Vector2(484, 40), true))
             {
                 ImGui.PushItemWidth(200);
-                ImGui.InputTextWithHint("##Name", "New Aura Name", ref _nameInput, 30);
+                ImGui.InputTextWithHint("##Input", "Aura Name/Import String", ref _input, 9999);
 
                 ImGui.SameLine();
+                ImGui.PushItemWidth(100);
                 ImGui.Combo("##Type", ref Unsafe.As<AuraType, int>(ref _selectedType), _options, _options.Length);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("Create", FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _nameInput), "Create new Aura or Group");
+                DrawHelpers.DrawButton("Create", FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group");
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("Import", FontAwesomeIcon.Download, () => ImportAura(string.Empty), "Import new Aura or Group");
+                DrawHelpers.DrawButton("Import", FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group");
 
                 ImGui.PopItemWidth();
                 ImGui.EndChild();
             }
-
         }
 
         private void DrawAuraTable()
@@ -79,11 +80,11 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.ScrollY |
                 ImGuiTableFlags.SizingFixedSame;
 
-            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(584, 484)))
+            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(484, 389)))
             {
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 40, 0);
-                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 25, 1);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 38, 2);
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 65, 0);
+                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 15, 1);
+                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 20, 2);
 
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
@@ -93,20 +94,23 @@ namespace XIVAuras.Config
                     IAuraListItem aura = Config.Auras[i];
 
                     ImGui.PushID(i.ToString());
-                    ImGui.TableNextRow(ImGuiTableRowFlags.None, 30);
+                    ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
 
                     if (ImGui.TableSetColumnIndex(0))
                     {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3f);
                         ImGui.Text(aura.Name);
                     }
 
                     if (ImGui.TableSetColumnIndex(1))
                     {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3f);
                         ImGui.Text(aura.Type.ToString());
                     }
 
                     if (ImGui.TableSetColumnIndex(2))
                     {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                         DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit");
 
                         ImGui.SameLine();
@@ -140,7 +144,7 @@ namespace XIVAuras.Config
                 }
             }
 
-            this._nameInput = string.Empty;
+            this._input = string.Empty;
         }
 
         private void EditAura(IAuraListItem aura)
@@ -150,18 +154,36 @@ namespace XIVAuras.Config
 
         private void ImportAura(string importString)
         {
-            IAuraListItem? newAura = XIVAurasConfig.GetAuraFromImportString(importString);
-
-            if (newAura is not null)
+            if (!string.IsNullOrEmpty(importString))
             {
-                this.Config.AddAura(newAura);
+                IAuraListItem? newAura = XIVAurasConfig.GetAuraFromImportString(importString);
+
+                if (newAura is not null)
+                {
+                    this.Config.AddAura(newAura);
+                }
+                else
+                {
+                    DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
+                }
             }
+
+            this._input = string.Empty;
         }
 
         private void ExportAura(IAuraListItem aura)
         {
-            string exportString = XIVAurasConfig.GetAuraExportString(aura);
-            ImGui.SetClipboardText(exportString);
+            string? exportString = XIVAurasConfig.GetAuraExportString(aura);
+
+            if (exportString is not null)
+            {
+                ImGui.SetClipboardText(exportString);
+                DrawHelpers.DrawNotification("Export string copied to clipboard.");
+            }
+            else
+            {
+                DrawHelpers.DrawNotification("Failed to Export Aura!", NotificationType.Error);
+            }
         }
 
         private void DeleteAura(IAuraListItem aura)

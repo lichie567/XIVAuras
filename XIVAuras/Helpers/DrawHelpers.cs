@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Dalamud.Interface;
+using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
 
 namespace XIVAuras.Helpers
@@ -12,8 +9,12 @@ namespace XIVAuras.Helpers
     {
         public static void DrawButton(string label, FontAwesomeIcon icon, Action clickAction, string? help = null)
         {
-            ImGui.Text(label);
-            ImGui.SameLine();
+            if (!string.IsNullOrEmpty(label))
+            {
+                ImGui.Text(label);
+                ImGui.SameLine();
+            }
+
             ImGui.PushFont(UiBuilder.IconFont);
             if (ImGui.Button(icon.ToIconString()))
             {
@@ -25,6 +26,15 @@ namespace XIVAuras.Helpers
             {
                 ImGui.SetTooltip(help);
             }
+        }
+
+        public static void DrawNotification(
+            string message,
+            NotificationType type = NotificationType.Success,
+            uint durationInMs = 3000,
+            string title = "XIVAuras")
+        {
+            Singletons.Get<UiBuilder>().AddNotification(message, title, type, durationInMs);
         }
     }
 }

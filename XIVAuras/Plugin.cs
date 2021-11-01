@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Numerics;
 using System.Reflection;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -11,11 +10,7 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
-using Dalamud.Interface;
-using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using ImGuiNET;
-using XIVAuras.Config;
 using XIVAuras.Helpers;
 using SigScanner = Dalamud.Game.SigScanner;
 
@@ -33,40 +28,6 @@ namespace XIVAuras
 
         public static string ConfigFilePath = "";
 
-        public ClientState ClientState { get; private set; }
-
-        public CommandManager CommandManager { get; private set; }
-
-        public Condition Condition { get; private set; }
-
-        public DalamudPluginInterface PluginInterface { get; private set; }
-
-        public DataManager DataManager { get; private set; }
-
-        public Framework Framework { get; private set; }
-
-        public GameGui GameGui { get; private set; }
-
-        public JobGauges JobGauges { get; private set; }
-
-        public ObjectTable ObjectTable { get; private set; }
-
-        public SigScanner SigScanner { get; private set; }
-
-        public TargetManager TargetManager { get; private set; }
-
-        public UiBuilder UiBuilder { get; private set; }
-
-        public PartyList PartyList { get; private set; }
-
-        private WindowSystem _windowSystem;
-
-        private ConfigWindow _configWindow;
-
-        private XIVAurasConfig _config;
-
-        private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
-
         public Plugin(
             ClientState clientState,
             CommandManager commandManager,
@@ -82,23 +43,9 @@ namespace XIVAuras
             TargetManager targetManager
         )
         {
-            this.ClientState = clientState;
-            this.CommandManager = commandManager;
-            this.Condition = condition;
-            this.PluginInterface = pluginInterface;
-            this.DataManager = dataManager;
-            this.Framework = framework;
-            this.GameGui = gameGui;
-            this.JobGauges = jobGauges;
-            this.ObjectTable = objectTable;
-            this.PartyList = partyList;
-            this.SigScanner = sigScanner;
-            this.TargetManager = targetManager;
-            this.UiBuilder = PluginInterface.UiBuilder;
-
-            if (this.PluginInterface.AssemblyLocation.DirectoryName != null)
+            if (pluginInterface.AssemblyLocation.DirectoryName != null)
             {
-                Plugin.AssemblyLocation = this.PluginInterface.AssemblyLocation.DirectoryName + "\\";
+                Plugin.AssemblyLocation = pluginInterface.AssemblyLocation.DirectoryName + "\\";
             }
             else
             {
@@ -106,65 +53,39 @@ namespace XIVAuras
             }
 
             Plugin.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? Plugin.Version;
-            Plugin.ConfigFilePath = Path.Combine(this.PluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
+            Plugin.ConfigFilePath = Path.Combine(pluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 
-            this._config = XIVAurasConfig.LoadConfig(Plugin.ConfigFilePath);
-            this._windowSystem = new WindowSystem("XIVAuras_Windows");
-            this._configWindow = new ConfigWindow(this._config);
-            this._windowSystem.AddWindow(this._configWindow);
+            // Register Dalamud APIs
+            Singletons.Register(clientState);
+            Singletons.Register(commandManager);
+            Singletons.Register(condition);
+            Singletons.Register(pluginInterface);
+            Singletons.Register(dataManager);
+            Singletons.Register(framework);
+            Singletons.Register(gameGui);
+            Singletons.Register(jobGauges);
+            Singletons.Register(objectTable);
+            Singletons.Register(partyList);
+            Singletons.Register(sigScanner);
+            Singletons.Register(targetManager);
+            Singletons.Register(pluginInterface.UiBuilder);
 
-            this.CommandManager.AddHandler(
-                "/xa",
-                new CommandInfo(PluginCommand)
-                {
-                    HelpMessage = "Opens the XIVAuras configuration window.",
-                    ShowInHelp = true
-                }
-            );
-
-            this.UiBuilder.Draw += Draw;
-            this.UiBuilder.OpenConfigUi += OpenConfigUi;
-            this.ClientState.Logout += OnLogout;
-        }
-
-        private void Draw()
-        {
-            if (this._config == null || ClientState.LocalPlayer == null) return;
-
-            this._windowSystem.Draw();
-            foreach (var aura in this._config.Auras)
-            {
-                aura.Draw(_origin);
-            }
-        }
-
-        private void OpenConfigUi()
-        {
-            this._configWindow.IsOpen = true;
-        }
-
-        private void OnLogout(object? sender, EventArgs? args)
-        {
-            XIVAurasConfig.SaveConfig(this._config);
-        }
-
-        private void PluginCommand(string command, string arguments)
-        {
-            this._configWindow.IsOpen = !this._configWindow.IsOpen;
+            // Start the plugin
+            Singletons.Register(new PluginManager(clientState, pluginInterface, commandManager));
         }
 
         public void Dispose()
         {
-            XIVAurasConfig.SaveConfig(this._config);
-
-            Singletons.DisposeAll();
-
-            this._windowSystem.RemoveAllWindows();
-            this.CommandManager.RemoveHandler("/xa");
-            this.UiBuilder.Draw -= Draw;
-            this.UiBuilder.OpenConfigUi -= OpenConfigUi;
-            this.ClientState.Logout -= OnLogout;
+            this.Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Singletons.Dispose();
+            }
         }
     }
 }

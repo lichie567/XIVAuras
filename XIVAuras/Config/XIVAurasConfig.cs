@@ -40,43 +40,52 @@ namespace XIVAuras.Config
             XIVAurasConfig.SaveConfig(this);
         }
 
-        public static string GetAuraExportString(IAuraListItem aura)
+        public static string? GetAuraExportString(IAuraListItem aura)
         {
-            string jsonString = JsonConvert.SerializeObject(aura, Formatting.None, _serializerSettings);
-            using (MemoryStream outputStream = new MemoryStream())
+            try
             {
-                using (DeflateStream compressionStream = new DeflateStream(outputStream, CompressionLevel.Optimal))
+                string jsonString = JsonConvert.SerializeObject(aura, Formatting.None, _serializerSettings);
+                using (MemoryStream outputStream = new MemoryStream())
                 {
-                    using (StreamWriter writer = new StreamWriter(compressionStream, Encoding.UTF8))
+                    using (DeflateStream compressionStream = new DeflateStream(outputStream, CompressionLevel.Optimal))
                     {
-                        writer.Write(jsonString);
+                        using (StreamWriter writer = new StreamWriter(compressionStream, Encoding.UTF8))
+                        {
+                            writer.Write(jsonString);
+                        }
                     }
-                }
 
-                return Convert.ToBase64String(outputStream.ToArray());
+                    return Convert.ToBase64String(outputStream.ToArray());
+                }
             }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex.ToString());
+            }
+
+            return null;
         }
 
         public static IAuraListItem? GetAuraFromImportString(string importString)
         {
             if (string.IsNullOrEmpty(importString)) return null;
 
-            byte[] bytes = Convert.FromBase64String(importString);
-
-            string decodedJsonString;
-            using (MemoryStream inputStream = new MemoryStream(bytes))
-            {
-                using (DeflateStream compressionStream = new DeflateStream(inputStream, CompressionMode.Decompress))
-                {
-                    using (StreamReader reader = new StreamReader(compressionStream, Encoding.UTF8))
-                    {
-                        decodedJsonString = reader.ReadToEnd();
-                    }
-                }
-            }
-
             try
             {
+                byte[] bytes = Convert.FromBase64String(importString);
+
+                string decodedJsonString;
+                using (MemoryStream inputStream = new MemoryStream(bytes))
+                {
+                    using (DeflateStream compressionStream = new DeflateStream(inputStream, CompressionMode.Decompress))
+                    {
+                        using (StreamReader reader = new StreamReader(compressionStream, Encoding.UTF8))
+                        {
+                            decodedJsonString = reader.ReadToEnd();
+                        }
+                    }
+                }
+
                 IAuraListItem? importedAura = JsonConvert.DeserializeObject<IAuraListItem>(decodedJsonString, _serializerSettings);
                 return importedAura;
             }
@@ -123,9 +132,8 @@ namespace XIVAuras.Config
     }
 
     /// <summary>
-    /// Because the game blocks the json serializer from loading assemblies at runtime,
-    /// we need to define a custom SerializationBinder to ignore the assembly name for the
-    /// types defined by this plugin.
+    /// Because the game blocks the json serializer from loading assemblies at runtime, we define
+    /// a custom SerializationBinder to ignore the assembly name for the types defined by this plugin.
     /// </summary>
     public class XIVAurasSerializationBinder : ISerializationBinder
     {
