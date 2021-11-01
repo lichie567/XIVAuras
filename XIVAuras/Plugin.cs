@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Numerics;
 using System.Reflection;
 using Dalamud.Data;
 using Dalamud.Game;
@@ -12,10 +14,12 @@ using Dalamud.Game.Gui;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using ImGuiNET;
 using XIVAuras.Config;
+using XIVAuras.Helpers;
 using SigScanner = Dalamud.Game.SigScanner;
 
-namespace DelvUI
+namespace XIVAuras
 {
     public class Plugin : IDalamudPlugin
     {
@@ -24,6 +28,10 @@ namespace DelvUI
         public static string AssemblyLocation { get; private set; } = "";
 
         public string Name => "XIVAuras";
+
+        public const string ConfigFileName = "XIVAuras.json";
+
+        public static string ConfigFilePath = "";
 
         public ClientState ClientState { get; private set; }
 
@@ -53,8 +61,11 @@ namespace DelvUI
 
         private WindowSystem _windowSystem;
 
-        private Window _configRoot;
+        private ConfigWindow _configWindow;
 
+        private XIVAurasConfig _config;
+
+        private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
 
         public Plugin(
             ClientState clientState,
@@ -85,51 +96,75 @@ namespace DelvUI
             this.TargetManager = targetManager;
             this.UiBuilder = PluginInterface.UiBuilder;
 
-            if (pluginInterface.AssemblyLocation.DirectoryName != null)
+            if (this.PluginInterface.AssemblyLocation.DirectoryName != null)
             {
-                AssemblyLocation = pluginInterface.AssemblyLocation.DirectoryName + "\\";
+                Plugin.AssemblyLocation = this.PluginInterface.AssemblyLocation.DirectoryName + "\\";
             }
             else
             {
-                AssemblyLocation = Assembly.GetExecutingAssembly().Location;
+                Plugin.AssemblyLocation = Assembly.GetExecutingAssembly().Location;
             }
 
             Plugin.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? Plugin.Version;
+            Plugin.ConfigFilePath = Path.Combine(this.PluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 
+            this._config = XIVAurasConfig.LoadConfig(Plugin.ConfigFilePath);
             this._windowSystem = new WindowSystem("XIVAuras_Windows");
-            this._configRoot = new ConfigWindow();
-            this._windowSystem.AddWindow(this._configRoot);
+            this._configWindow = new ConfigWindow(this._config);
+            this._windowSystem.AddWindow(this._configWindow);
 
-            CommandManager.AddHandler(
+            this.CommandManager.AddHandler(
                 "/xa",
                 new CommandInfo(PluginCommand)
                 {
-                    HelpMessage = "Opens the XIVAuras settings.",
+                    HelpMessage = "Opens the XIVAuras configuration window.",
                     ShowInHelp = true
                 }
             );
 
-            UiBuilder.Draw += Draw;
-            UiBuilder.OpenConfigUi += OpenConfigUi;
-        }
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-        }
-
-        private void OpenConfigUi()
-        {
-            _configRoot.IsOpen = true;
-        }
-        private void PluginCommand(string command, string arguments)
-        {
-            _configRoot.IsOpen = !_configRoot.IsOpen;
+            this.UiBuilder.Draw += Draw;
+            this.UiBuilder.OpenConfigUi += OpenConfigUi;
+            this.ClientState.Logout += OnLogout;
         }
 
         private void Draw()
         {
+            if (this._config == null || ClientState.LocalPlayer == null) return;
+
             this._windowSystem.Draw();
+            foreach (var aura in this._config.Auras)
+            {
+                aura.Draw(_origin);
+            }
+        }
+
+        private void OpenConfigUi()
+        {
+            this._configWindow.IsOpen = true;
+        }
+
+        private void OnLogout(object? sender, EventArgs? args)
+        {
+            XIVAurasConfig.SaveConfig(this._config);
+        }
+
+        private void PluginCommand(string command, string arguments)
+        {
+            this._configWindow.IsOpen = !this._configWindow.IsOpen;
+        }
+
+        public void Dispose()
+        {
+            XIVAurasConfig.SaveConfig(this._config);
+
+            Singletons.DisposeAll();
+
+            this._windowSystem.RemoveAllWindows();
+            this.CommandManager.RemoveHandler("/xa");
+            this.UiBuilder.Draw -= Draw;
+            this.UiBuilder.OpenConfigUi -= OpenConfigUi;
+            this.ClientState.Logout -= OnLogout;
+            GC.SuppressFinalize(this);
         }
     }
 }
