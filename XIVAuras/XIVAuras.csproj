@@ -86,9 +86,6 @@
         <PackageReference Include="DalamudPackager" Version="2.1.2" />
         <PackageReference Include="Colourful" Version="3.0.0" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Windows\" />
-    </ItemGroup>
 
     <!-- Dalamud Packager Task-->
     <Target Name="DalamudPackage" AfterTargets="Build">

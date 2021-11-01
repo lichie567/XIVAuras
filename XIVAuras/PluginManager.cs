@@ -5,24 +5,28 @@ using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
+using XIVAuras.Auras;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
+using XIVAuras.Windows;
 
 namespace XIVAuras
 {
     public class PluginManager : IXIVAurasDisposable
     {
-        private ClientState ClientState { get; set; }
+        private ClientState ClientState { get; init; }
 
-        private DalamudPluginInterface PluginInterface { get; set; }
+        private DalamudPluginInterface PluginInterface { get; init; }
 
-        private CommandManager CommandManager { get; set; }
+        private CommandManager CommandManager { get; init; }
 
-        private WindowSystem WindowSystem { get; set; }
+        private WindowSystem WindowSystem { get; init; }
 
-        private ConfigWindow ConfigRoot { get; set; }
+        private ConfigWindow ConfigRoot { get; init; }
 
-        private XIVAurasConfig Config { get; set; }
+        private EditAuraWindow EditAuraWindow { get; init; }
+
+        private XIVAurasConfig Config { get; init; }
 
         private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
 
@@ -36,9 +40,11 @@ namespace XIVAuras
             this.CommandManager = commandManager;
 
             this.Config = XIVAurasConfig.LoadConfig(Plugin.ConfigFilePath);
-            this.WindowSystem = new WindowSystem("XIVAuras");
             this.ConfigRoot = new ConfigWindow(this.Config);
+            this.EditAuraWindow = new EditAuraWindow();
+            this.WindowSystem = new WindowSystem("XIVAuras");
             this.WindowSystem.AddWindow(this.ConfigRoot);
+            this.WindowSystem.AddWindow(this.EditAuraWindow);
 
             this.CommandManager.AddHandler(
                 "/xa",
@@ -49,19 +55,14 @@ namespace XIVAuras
                 }
             );
 
-            this.PluginInterface.UiBuilder.Draw += Draw;
-            this.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
             this.ClientState.Logout += OnLogout;
+            this.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
+            this.PluginInterface.UiBuilder.Draw += Draw;
         }
 
-        public void AddWindow(Window newWindow)
+        public void EditAura(IAuraListItem aura)
         {
-            this.WindowSystem.AddWindow(newWindow);
-        }
-
-        public void RemoveWindow(Window toRemove)
-        {
-            this.WindowSystem.RemoveWindow(toRemove);
+            this.EditAuraWindow.DisplayAuraConfig(aura);
         }
 
         private void Draw()
@@ -100,11 +101,12 @@ namespace XIVAuras
         {
             if (disposing)
             {
+                // Don't modify order
                 this.PluginInterface.UiBuilder.Draw -= Draw;
                 this.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
                 this.ClientState.Logout -= OnLogout;
-                this.WindowSystem.RemoveAllWindows();
                 this.CommandManager.RemoveHandler("/xa");
+                this.WindowSystem.RemoveAllWindows();
             }
         }
     }

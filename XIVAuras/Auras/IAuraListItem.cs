@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using XIVAuras.Config;
 
 namespace XIVAuras.Auras
 {
@@ -7,6 +9,8 @@ namespace XIVAuras.Auras
         AuraType Type { get; }
 
         string Name { get; }
+
+        IEnumerable<IConfigPage> ConfigPages { get; }
 
         void Draw(Vector2 pos);
     }

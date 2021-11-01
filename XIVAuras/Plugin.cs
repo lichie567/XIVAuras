@@ -20,8 +20,6 @@ namespace XIVAuras
     {
         public static string Version { get; private set; } = "0.0.1.0";
 
-        public static string AssemblyLocation { get; private set; } = "";
-
         public string Name => "XIVAuras";
 
         public const string ConfigFileName = "XIVAuras.json";
@@ -43,15 +41,6 @@ namespace XIVAuras
             TargetManager targetManager
         )
         {
-            if (pluginInterface.AssemblyLocation.DirectoryName != null)
-            {
-                Plugin.AssemblyLocation = pluginInterface.AssemblyLocation.DirectoryName + "\\";
-            }
-            else
-            {
-                Plugin.AssemblyLocation = Assembly.GetExecutingAssembly().Location;
-            }
-
             Plugin.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? Plugin.Version;
             Plugin.ConfigFilePath = Path.Combine(pluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 

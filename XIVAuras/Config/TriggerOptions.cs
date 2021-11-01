@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ImGuiNET;
 
 namespace XIVAuras.Config
 {
@@ -21,8 +17,11 @@ namespace XIVAuras.Config
         Cooldown
     }
 
-    public class TriggerOptions
+    public class TriggerOptions : IConfigPage
     {
+
+        public string Name => "Trigger";
+
         public ActorType ActorType { get; set; }
 
         public uint StatusId;
@@ -32,9 +31,9 @@ namespace XIVAuras.Config
             return false;
         }
 
-        public void DrawTab()
+        public void DrawOptions()
         {
-
+            ImGui.Text("TODO");
         }
     }
 }

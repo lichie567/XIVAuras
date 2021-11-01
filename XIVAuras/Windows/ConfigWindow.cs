@@ -6,13 +6,14 @@ using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using XIVAuras.Auras;
+using XIVAuras.Config;
 using XIVAuras.Helpers;
 
-namespace XIVAuras.Config
+namespace XIVAuras.Windows
 {
     public class ConfigWindow : Window
     {
-        public XIVAurasConfig Config { get; private set; }
+        private XIVAurasConfig Config { get; init; }
 
         private AuraType _selectedType = AuraType.Group;
         private string _input = string.Empty;
@@ -26,7 +27,6 @@ namespace XIVAuras.Config
                     ImGuiWindowFlags.NoScrollWithMouse;
 
             this.Size = new Vector2(500, 500);
-
             this.Config = config;
         }
 
@@ -78,7 +78,8 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.BordersOuter |
                 ImGuiTableFlags.BordersInner |
                 ImGuiTableFlags.ScrollY |
-                ImGuiTableFlags.SizingFixedSame;
+                ImGuiTableFlags.SizingFixedSame|
+                ImGuiTableFlags.NoSavedSettings;
 
             if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(484, 389)))
             {
@@ -132,8 +133,8 @@ namespace XIVAuras.Config
                 IAuraListItem? newAura = type switch
                 {
                     AuraType.Group => new AuraGroup(name),
-                    AuraType.Icon => new IconAura(name),
-                    AuraType.Bar => new BarAura(name),
+                    AuraType.Icon => new AuraIcon(name),
+                    AuraType.Bar => new AuraBar(name),
                     _ => null
                 };
 
@@ -149,7 +150,7 @@ namespace XIVAuras.Config
 
         private void EditAura(IAuraListItem aura)
         {
-
+            Singletons.Get<PluginManager>().EditAura(aura);
         }
 
         private void ImportAura(string importString)

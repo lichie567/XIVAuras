@@ -2,9 +2,9 @@
 
 namespace XIVAuras.Config
 {
-    public class VisibilityOptions : IConfigPage
+    public class IconStyleOptions : IConfigPage
     {
-        public string Name => "Visibility";
+        public string Name => "Style";
 
         public void DrawOptions()
         {

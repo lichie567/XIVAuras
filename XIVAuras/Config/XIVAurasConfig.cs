@@ -155,12 +155,11 @@ namespace XIVAuras.Config
         private static List<Type> _configTypes = new List<Type>()
         {
             typeof(AuraGroup),
-            typeof(Aura),
-            typeof(IconAura),
-            typeof(BarAura),
+            typeof(AuraIcon),
+            typeof(AuraBar),
             typeof(VisibilityOptions),
             typeof(TriggerOptions),
-            typeof(StyleOptions)
+            typeof(IconStyleOptions)
         };
 
         private readonly Dictionary<Type, string> typeToName = new Dictionary<Type, string>();
