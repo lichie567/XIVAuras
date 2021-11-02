@@ -2,11 +2,11 @@
 
 namespace XIVAuras.Config
 {
-    public class IconStyleOptions : IConfigPage
+    public class BarStyleConfig : IConfigPage
     {
         public string Name => "Style";
 
-        public void DrawOptions()
+        public void DrawConfig()
         {
             ImGui.Text("TODO");
         }

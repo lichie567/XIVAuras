@@ -17,7 +17,7 @@ namespace XIVAuras.Config
         Cooldown
     }
 
-    public class TriggerOptions : IConfigPage
+    public class TriggerConfig : IConfigPage
     {
 
         public string Name => "Trigger";
@@ -31,7 +31,7 @@ namespace XIVAuras.Config
             return false;
         }
 
-        public void DrawOptions()
+        public void DrawConfig()
         {
             ImGui.Text("TODO");
         }

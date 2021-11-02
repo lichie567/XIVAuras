@@ -4,6 +4,6 @@
     {
         string Name { get; }
 
-        void DrawOptions();
+        void DrawConfig();
     }
 }

@@ -11,6 +11,7 @@ using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Plugin;
+using XIVAuras.Config;
 using XIVAuras.Helpers;
 using SigScanner = Dalamud.Game.SigScanner;
 
@@ -59,8 +60,12 @@ namespace XIVAuras
             Singletons.Register(targetManager);
             Singletons.Register(pluginInterface.UiBuilder);
 
+            // Load config
+            XIVAurasConfig config = ConfigHelpers.LoadConfig(Plugin.ConfigFilePath);
+            Singletons.Register(config);
+
             // Start the plugin
-            Singletons.Register(new PluginManager(clientState, pluginInterface, commandManager));
+            Singletons.Register(new PluginManager(clientState, commandManager, pluginInterface, config));
         }
 
         public void Dispose()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -24,7 +25,9 @@ namespace XIVAuras
 
         private ConfigWindow ConfigRoot { get; init; }
 
-        private EditAuraWindow EditAuraWindow { get; init; }
+        private ConfigWindow EditAuraWindow { get; init; }
+
+        private ConfigWindow EditGroupWindow { get; init; }
 
         private XIVAurasConfig Config { get; init; }
 
@@ -32,19 +35,23 @@ namespace XIVAuras
 
         public PluginManager(
             ClientState clientState,
+            CommandManager commandManager,
             DalamudPluginInterface pluginInterface,
-            CommandManager commandManager)
+            XIVAurasConfig config)
         {
             this.ClientState = clientState;
-            this.PluginInterface = pluginInterface;
             this.CommandManager = commandManager;
+            this.PluginInterface = pluginInterface;
+            this.Config = config;
 
-            this.Config = XIVAurasConfig.LoadConfig(Plugin.ConfigFilePath);
-            this.ConfigRoot = new ConfigWindow(this.Config);
-            this.EditAuraWindow = new EditAuraWindow();
+            this.ConfigRoot = new ConfigWindow(this.Config, _origin);
+            this.EditAuraWindow = new ConfigWindow("Edit Aura");
+            this.EditGroupWindow = new ConfigWindow("Edit Group");
+
             this.WindowSystem = new WindowSystem("XIVAuras");
             this.WindowSystem.AddWindow(this.ConfigRoot);
             this.WindowSystem.AddWindow(this.EditAuraWindow);
+            this.WindowSystem.AddWindow(this.EditGroupWindow);
 
             this.CommandManager.AddHandler(
                 "/xa",
@@ -60,17 +67,41 @@ namespace XIVAuras
             this.PluginInterface.UiBuilder.Draw += Draw;
         }
 
-        public void EditAura(IAuraListItem aura)
+        public void Edit(IAuraListItem aura)
         {
-            this.EditAuraWindow.DisplayAuraConfig(aura);
+            ConfigWindow window = aura.Type switch
+            {
+                AuraType.Group => this.EditGroupWindow,
+                _ => this.EditAuraWindow
+            };
+
+            window.DisplayConfig(aura, this.ConfigRoot.Position);
         }
 
         private void Draw()
         {
-            if (this.Config == null || this.ClientState.LocalPlayer == null) return;
+            if (this.ClientState.LocalPlayer == null)
+            {
+                return;
+            }
+
+            Condition condition = Singletons.Get<Condition>();
+            bool characterBusy =
+                condition[ConditionFlag.WatchingCutscene] ||
+                condition[ConditionFlag.WatchingCutscene78] ||
+                condition[ConditionFlag.OccupiedInCutSceneEvent] ||
+                condition[ConditionFlag.CreatingCharacter] ||
+                condition[ConditionFlag.BetweenAreas] ||
+                condition[ConditionFlag.BetweenAreas51] ||
+                condition[ConditionFlag.OccupiedSummoningBell];
+
+            if (characterBusy)
+            {
+                return;
+            }
 
             this.WindowSystem.Draw();
-            foreach (var aura in this.Config.Auras)
+            foreach (IAuraListItem aura in this.Config.AuraList.Auras)
             {
                 aura.Draw(_origin);
             }
@@ -83,12 +114,14 @@ namespace XIVAuras
 
         private void OnLogout(object? sender, EventArgs? args)
         {
-            XIVAurasConfig.SaveConfig(this.Config);
+            ConfigHelpers.SaveConfig();
         }
 
         private void PluginCommand(string command, string arguments)
         {
-            this.ConfigRoot.IsOpen = !this.ConfigRoot.IsOpen;
+            this.ConfigRoot.IsOpen ^= true;
+            this.EditAuraWindow.IsOpen = false;
+            this.EditGroupWindow.IsOpen = false;
         }
 
         public void Dispose()

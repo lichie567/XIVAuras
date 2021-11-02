@@ -8,18 +8,13 @@ namespace XIVAuras.Helpers
 
     public static class Singletons
     {
-        private static readonly Dictionary<Type, Func<object>> TypeInitializers;
-
-        private static ConcurrentDictionary<Type, object> ActiveInstances = new ConcurrentDictionary<Type, object>();
-
-        static Singletons()
+        private static readonly Dictionary<Type, Func<object>> TypeInitializers = new Dictionary<Type, Func<object>>()
         {
-            Singletons.TypeInitializers = new Dictionary<Type, Func<object>>()
-            {
-                { typeof(SpellHelpers), () => new SpellHelpers() },
-                { typeof(TexturesCache), () => new TexturesCache() }
-            };
-        }
+            { typeof(SpellHelpers), () => new SpellHelpers() },
+            { typeof(TexturesCache), () => new TexturesCache() }
+        };
+
+        private static readonly ConcurrentDictionary<Type, object> ActiveInstances = new ConcurrentDictionary<Type, object>();
 
         public static T Get<T>()
         {

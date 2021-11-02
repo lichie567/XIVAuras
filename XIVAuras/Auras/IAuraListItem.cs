@@ -1,16 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using XIVAuras.Config;
 
 namespace XIVAuras.Auras
 {
-    public interface IAuraListItem
+    public interface IAuraListItem : IConfigurable
     {
         AuraType Type { get; }
-
-        string Name { get; }
-
-        IEnumerable<IConfigPage> ConfigPages { get; }
 
         void Draw(Vector2 pos);
     }

@@ -2,11 +2,11 @@
 
 namespace XIVAuras.Config
 {
-    public class VisibilityOptions : IConfigPage
+    public class VisibilityConfig : IConfigPage
     {
         public string Name => "Visibility";
 
-        public void DrawOptions()
+        public void DrawConfig()
         {
             ImGui.Text("TODO");
         }
