@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
+using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Logging;
+using ImGuiNET;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using XIVAuras.Auras;
@@ -20,7 +22,22 @@ namespace XIVAuras.Helpers
             SerializationBinder = new XIVAurasSerializationBinder()
         };
 
-        public static string? GetAuraExportString(IAuraListItem aura)
+        public static void ExportAuraToClipboard(AuraListItem aura)
+        {
+            string? exportString = ConfigHelpers.GetAuraExportString(aura);
+
+            if (exportString is not null)
+            {
+                ImGui.SetClipboardText(exportString);
+                DrawHelpers.DrawNotification("Export string copied to clipboard.");
+            }
+            else
+            {
+                DrawHelpers.DrawNotification("Failed to Export Aura!", NotificationType.Error);
+            }
+        }
+
+        public static string? GetAuraExportString(AuraListItem aura)
         {
             try
             {
@@ -46,7 +63,7 @@ namespace XIVAuras.Helpers
             return null;
         }
 
-        public static IAuraListItem? GetAuraFromImportString(string importString)
+        public static AuraListItem? GetAuraFromImportString(string importString)
         {
             if (string.IsNullOrEmpty(importString)) return null;
 
@@ -66,7 +83,7 @@ namespace XIVAuras.Helpers
                     }
                 }
 
-                IAuraListItem? importedAura = JsonConvert.DeserializeObject<IAuraListItem>(decodedJsonString, _serializerSettings);
+                AuraListItem? importedAura = JsonConvert.DeserializeObject<AuraListItem>(decodedJsonString, _serializerSettings);
                 return importedAura;
             }
             catch (Exception ex)
@@ -142,8 +159,10 @@ namespace XIVAuras.Helpers
             typeof(AuraBar),
             typeof(AuraGroup),
             typeof(AuraIcon),
+            typeof(AuraListItem),
             typeof(AuraListConfig),
             typeof(BarStyleConfig),
+            typeof(FontConfig),
             typeof(IconStyleConfig),
             typeof(TriggerConfig),
             typeof(VisibilityConfig),

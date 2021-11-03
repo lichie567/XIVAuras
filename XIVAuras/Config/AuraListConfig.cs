@@ -19,22 +19,22 @@ namespace XIVAuras.Config
 
         public string Name => "Auras";
 
-        public List<IAuraListItem> Auras { get; init; }
+        public List<AuraListItem> Auras { get; init; }
 
         public AuraListConfig()
         {
-            this.Auras = new List<IAuraListItem>();
+            this.Auras = new List<AuraListItem>();
         }
 
-        public void DrawConfig()
+        public void DrawConfig(Vector2 size)
         {
-            this.DrawCreateMenu();
-            this.DrawAuraTable();
+            this.DrawCreateMenu(size);
+            this.DrawAuraTable(size);
         }
 
-        private void DrawCreateMenu()
+        private void DrawCreateMenu(Vector2 size)
         {
-            if (ImGui.BeginChild("##Buttons", new Vector2(484, 40), true))
+            if (ImGui.BeginChild("##Buttons", new Vector2(size.X - 16, 40), true))
             {
                 ImGui.PushItemWidth(200);
                 ImGui.InputTextWithHint("##Input", "Aura Name/Import String", ref _input, 10000);
@@ -55,7 +55,7 @@ namespace XIVAuras.Config
             }
         }
 
-        private void DrawAuraTable()
+        private void DrawAuraTable(Vector2 size)
         {
             ImGuiTableFlags flags =
                 ImGuiTableFlags.RowBg |
@@ -66,7 +66,7 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.SizingFixedSame |
                 ImGuiTableFlags.NoSavedSettings;
 
-            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(484, 389)))
+            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(size.X - 16, size.Y - 111)))
             {
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 65, 0);
                 ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 15, 1);
@@ -77,7 +77,13 @@ namespace XIVAuras.Config
 
                 for (int i = 0; i < this.Auras.Count; i++)
                 {
-                    IAuraListItem aura = this.Auras[i];
+                    AuraListItem aura = this.Auras[i];
+
+                    if (!string.IsNullOrEmpty(this._input) &&
+                        !aura.Name.Contains(this._input, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
 
                     ImGui.PushID(i.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
@@ -115,7 +121,7 @@ namespace XIVAuras.Config
         {
             if (!string.IsNullOrEmpty(name))
             {
-                IAuraListItem? newAura = type switch
+                AuraListItem? newAura = type switch
                 {
                     AuraType.Group => new AuraGroup(name),
                     AuraType.Icon => new AuraIcon(name),
@@ -126,19 +132,18 @@ namespace XIVAuras.Config
                 if (newAura is not null)
                 {
                     this.Auras.Add(newAura);
-                    this.EditAura(newAura);
                 }
             }
 
             this._input = string.Empty;
         }
 
-        private void EditAura(IAuraListItem aura)
+        private void EditAura(AuraListItem aura)
         {
             Singletons.Get<PluginManager>().Edit(aura);
         }
 
-        private void DeleteAura(IAuraListItem aura)
+        private void DeleteAura(AuraListItem aura)
         {
             this.Auras.Remove(aura);
         }
@@ -147,7 +152,7 @@ namespace XIVAuras.Config
         {
             if (!string.IsNullOrEmpty(importString))
             {
-                IAuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+                AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
 
                 if (newAura is not null)
                 {
@@ -162,19 +167,9 @@ namespace XIVAuras.Config
             this._input = string.Empty;
         }
 
-        private void ExportAura(IAuraListItem aura)
+        private void ExportAura(AuraListItem aura)
         {
-            string? exportString = ConfigHelpers.GetAuraExportString(aura);
-
-            if (exportString is not null)
-            {
-                ImGui.SetClipboardText(exportString);
-                DrawHelpers.DrawNotification("Export string copied to clipboard.");
-            }
-            else
-            {
-                DrawHelpers.DrawNotification("Failed to Export Aura!", NotificationType.Error);
-            }
+            ConfigHelpers.ExportAuraToClipboard(aura);
         }
     }
 }

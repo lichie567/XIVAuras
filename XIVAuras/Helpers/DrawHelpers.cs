@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
@@ -7,7 +8,12 @@ namespace XIVAuras.Helpers
 {
     public class DrawHelpers
     {
-        public static void DrawButton(string label, FontAwesomeIcon icon, Action clickAction, string? help = null)
+        public static void DrawButton(
+            string label,
+            FontAwesomeIcon icon,
+            Action clickAction,
+            string? help = null,
+            Vector2? size = null)
         {
             if (!string.IsNullOrEmpty(label))
             {
@@ -16,7 +22,7 @@ namespace XIVAuras.Helpers
             }
 
             ImGui.PushFont(UiBuilder.IconFont);
-            if (ImGui.Button(icon.ToIconString()))
+            if (ImGui.Button(icon.ToIconString(), size ?? Vector2.Zero))
             {
                 clickAction();
             }

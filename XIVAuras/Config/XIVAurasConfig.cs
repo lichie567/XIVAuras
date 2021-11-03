@@ -7,17 +7,27 @@ using XIVAuras.Helpers;
 namespace XIVAuras.Config
 {
     [JsonObject]
-    public class XIVAurasConfig : IConfigurable, IXIVAurasDisposable
+    public class XIVAurasConfig : IAuraGroup, IConfigurable, IXIVAurasDisposable
     {
-        public string Name => "XIVAuras";
+        public string Name
+        {
+            get => "XIVAuras";
+            set { }
+        }
 
         public string Version => Plugin.Version;
 
         public AuraListConfig AuraList { get; set; }
 
+        public FontConfig FontConfig { get; set; }
+
+        [JsonIgnore]
+        private AboutPage AboutPage { get; } = new AboutPage();
+
         public XIVAurasConfig()
         {
             this.AuraList = new AuraListConfig();
+            this.FontConfig = new FontConfig();
         }
 
         public void Dispose()
@@ -34,11 +44,15 @@ namespace XIVAuras.Config
             }
         }
 
+        public override string ToString() => this.Name;
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public IEnumerator<IConfigPage> GetEnumerator()
         {
             yield return this.AuraList;
+            yield return this.FontConfig;
+            yield return this.AboutPage;
         }
     }
 }

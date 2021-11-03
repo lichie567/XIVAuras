@@ -1,9 +1,11 @@
-﻿namespace XIVAuras.Config
+﻿using System.Numerics;
+
+namespace XIVAuras.Config
 {
     public interface IConfigPage
     {
         string Name { get; }
 
-        void DrawConfig();
+        void DrawConfig(Vector2 size);
     }
 }

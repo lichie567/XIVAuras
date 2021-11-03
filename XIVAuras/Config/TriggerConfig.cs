@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Numerics;
+using ImGuiNET;
 
 namespace XIVAuras.Config
 {
@@ -19,7 +20,6 @@ namespace XIVAuras.Config
 
     public class TriggerConfig : IConfigPage
     {
-
         public string Name => "Trigger";
 
         public ActorType ActorType { get; set; }
@@ -31,9 +31,14 @@ namespace XIVAuras.Config
             return false;
         }
 
-        public void DrawConfig()
+        public void DrawConfig(Vector2 size)
         {
-            ImGui.Text("TODO");
+            if (ImGui.BeginChild("##TriggerConfig", new Vector2(size.X - 16, size.Y - 67), true))
+            {
+                ImGui.Text("TODO");
+
+                ImGui.EndChild();
+            }
         }
     }
 }

@@ -25,13 +25,11 @@ namespace XIVAuras
 
         private ConfigWindow ConfigRoot { get; init; }
 
-        private ConfigWindow EditAuraWindow { get; init; }
-
-        private ConfigWindow EditGroupWindow { get; init; }
-
         private XIVAurasConfig Config { get; init; }
 
         private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
+
+        private readonly Vector2 _configSize = new Vector2(500, 500);
 
         public PluginManager(
             ClientState clientState,
@@ -44,14 +42,10 @@ namespace XIVAuras
             this.PluginInterface = pluginInterface;
             this.Config = config;
 
-            this.ConfigRoot = new ConfigWindow(this.Config, _origin);
-            this.EditAuraWindow = new ConfigWindow("Edit Aura");
-            this.EditGroupWindow = new ConfigWindow("Edit Group");
+            this.ConfigRoot = new ConfigWindow("ConfigRoot", _origin, _configSize);
 
             this.WindowSystem = new WindowSystem("XIVAuras");
             this.WindowSystem.AddWindow(this.ConfigRoot);
-            this.WindowSystem.AddWindow(this.EditAuraWindow);
-            this.WindowSystem.AddWindow(this.EditGroupWindow);
 
             this.CommandManager.AddHandler(
                 "/xa",
@@ -67,15 +61,9 @@ namespace XIVAuras
             this.PluginInterface.UiBuilder.Draw += Draw;
         }
 
-        public void Edit(IAuraListItem aura)
+        public void Edit(AuraListItem aura)
         {
-            ConfigWindow window = aura.Type switch
-            {
-                AuraType.Group => this.EditGroupWindow,
-                _ => this.EditAuraWindow
-            };
-
-            window.DisplayConfig(aura, this.ConfigRoot.Position);
+            this.ConfigRoot.PushConfig(aura);
         }
 
         private void Draw()
@@ -101,7 +89,7 @@ namespace XIVAuras
             }
 
             this.WindowSystem.Draw();
-            foreach (IAuraListItem aura in this.Config.AuraList.Auras)
+            foreach (AuraListItem aura in this.Config.AuraList.Auras)
             {
                 aura.Draw(_origin);
             }
@@ -109,7 +97,10 @@ namespace XIVAuras
 
         private void OpenConfigUi()
         {
-            this.ConfigRoot.IsOpen = true;
+            if (!this.ConfigRoot.IsOpen)
+            {
+                this.ConfigRoot.PushConfig(this.Config);
+            }
         }
 
         private void OnLogout(object? sender, EventArgs? args)
@@ -119,9 +110,14 @@ namespace XIVAuras
 
         private void PluginCommand(string command, string arguments)
         {
-            this.ConfigRoot.IsOpen ^= true;
-            this.EditAuraWindow.IsOpen = false;
-            this.EditGroupWindow.IsOpen = false;
+            if (this.ConfigRoot.IsOpen)
+            {
+                this.ConfigRoot.Close();
+            }
+            else
+            {
+                this.ConfigRoot.PushConfig(this.Config);
+            }
         }
 
         public void Dispose()

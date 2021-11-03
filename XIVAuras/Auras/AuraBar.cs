@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Newtonsoft.Json;
 using XIVAuras.Config;
@@ -7,11 +6,9 @@ using XIVAuras.Config;
 namespace XIVAuras.Auras
 {
     [JsonObject]
-    public class AuraBar : IAuraListItem
+    public class AuraBar : AuraListItem
     {
-        public AuraType Type => AuraType.Bar;
-
-        public string Name { get; init; }
+        public override AuraType Type => AuraType.Bar;
 
         public BarStyleConfig BarStyleConfig { get; init; }
 
@@ -22,7 +19,7 @@ namespace XIVAuras.Auras
         // Constuctor for deserialization
         public AuraBar() : this(string.Empty) { }
 
-        public AuraBar(string name)
+        public AuraBar(string name) : base(name)
         {
             this.Name = name;
             this.BarStyleConfig = new BarStyleConfig();
@@ -30,16 +27,14 @@ namespace XIVAuras.Auras
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerator<IConfigPage> GetEnumerator()
         {
             yield return this.BarStyleConfig;
             yield return this.TriggerConfig;
             yield return this.VisibilityConfig;
         }
 
-        public void Draw(Vector2 pos)
+        public override void Draw(Vector2 pos)
         {
 
         }

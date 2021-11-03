@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Newtonsoft.Json;
 using XIVAuras.Config;
@@ -7,33 +6,28 @@ using XIVAuras.Config;
 namespace XIVAuras.Auras
 {
     [JsonObject]
-    public class AuraGroup : IAuraListItem
+    public class AuraGroup : AuraListItem, IAuraGroup
     {
-        public AuraType Type => AuraType.Group;
-
-        public string Name { get; init; }
+        public override AuraType Type => AuraType.Group;
 
         public AuraListConfig AuraList { get; set; }
 
         // Constructor for deserialization
         public AuraGroup() : this(string.Empty) { }
 
-        public AuraGroup(string name)
+        public AuraGroup(string name) : base(name)
         {
-            this.Name = name;
             this.AuraList = new AuraListConfig();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerator<IConfigPage> GetEnumerator()
         {
             yield return this.AuraList;
         }
 
-        public void Draw(Vector2 pos)
+        public override void Draw(Vector2 pos)
         {
-            foreach (IAuraListItem aura in this.AuraList.Auras)
+            foreach (AuraListItem aura in this.AuraList.Auras)
             {
                 aura.Draw(pos);
             }
