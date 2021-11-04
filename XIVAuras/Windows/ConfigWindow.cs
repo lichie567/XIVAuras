@@ -60,7 +60,7 @@ namespace XIVAuras.Windows
 
         public override void Draw()
         {
-            if (!this.ConfigStack.Any() || !this.Position.HasValue)
+            if (!this.ConfigStack.Any())
             {
                 this.IsOpen = false;
                 return;
@@ -82,8 +82,7 @@ namespace XIVAuras.Windows
                 {
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
-                        Vector2 headerOffset = new Vector2(0, ImGui.GetCursorPosY());
-                        page.DrawConfig(size - headerOffset, spacing.X, spacing.Y);
+                        page.DrawConfig(size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
                         ImGui.EndTabItem();
                     }
                 }
