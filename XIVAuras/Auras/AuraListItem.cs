@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using Newtonsoft.Json;
 using XIVAuras.Config;
 
 namespace XIVAuras.Auras
 {
     public abstract class AuraListItem : IConfigurable
     {
+        [JsonIgnore] public bool Preview = false;
+
         public string Name { get; set; }
 
         public AuraListItem(string name)
@@ -29,6 +32,7 @@ namespace XIVAuras.Auras
     {
         Group,
         Icon,
-        Bar
+        Bar,
+        Label
     }
 }

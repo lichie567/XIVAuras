@@ -13,5 +13,28 @@ namespace XIVAuras.Helpers
         {
             return new Vector2(v.X, v.Y + offset);
         }
+
+        public static Vector4 AdjustColor(this Vector4 vec, float correctionFactor)
+        {
+            float red = vec.X;
+            float green = vec.Y;
+            float blue = vec.Z;
+
+            if (correctionFactor < 0)
+            {
+                correctionFactor = 1 + correctionFactor;
+                red *= correctionFactor;
+                green *= correctionFactor;
+                blue *= correctionFactor;
+            }
+            else
+            {
+                red = (1 - red) * correctionFactor + red;
+                green = (1 - green) * correctionFactor + green;
+                blue = (1 - blue) * correctionFactor + blue;
+            }
+
+            return new Vector4(red, green, blue, vec.W);
+        }
     }
 }

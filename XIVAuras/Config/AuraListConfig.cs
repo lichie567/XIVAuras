@@ -36,9 +36,9 @@ namespace XIVAuras.Config
 
         private void DrawCreateMenu(Vector2 size, float padX)
         {
-            Vector2 buttonsize = new Vector2(40, 0);
+            Vector2 buttonSize = new Vector2(40, 0);
             float comboWidth = 100;
-            float textInputWidth = size.X - buttonsize.X * 2 - comboWidth - padX * 5;
+            float textInputWidth = size.X - buttonSize.X * 2 - comboWidth - padX * 5;
 
             if (ImGui.BeginChild("##Buttons", new Vector2(size.X, MenuBarHeight), true))
             {
@@ -51,10 +51,10 @@ namespace XIVAuras.Config
                 ImGui.Combo("##Type", ref Unsafe.As<AuraType, int>(ref _selectedType), _options, _options.Length);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("", FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group", buttonsize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group", buttonSize);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("", FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group", buttonsize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group", buttonSize);
                 ImGui.PopItemWidth();
 
                 ImGui.EndChild();
@@ -135,6 +135,7 @@ namespace XIVAuras.Config
                     AuraType.Group => new AuraGroup(name),
                     AuraType.Icon => new AuraIcon(name),
                     AuraType.Bar => new AuraBar(name),
+                    AuraType.Label => new AuraLabel(name),
                     _ => null
                 };
 

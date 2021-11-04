@@ -114,6 +114,14 @@ namespace XIVAuras.Windows
 
                 // calculate empty horizontal space based on size of 5 buttons and text box
                 float offset = size.X - buttonsize.X * 5 - textInputWidth - padX * 7;
+
+                if (this.ConfigStack.Peek() is AuraListItem aura)
+                {
+                    offset -= 80;
+                    ImGui.Checkbox("Preview", ref aura.Preview);
+                    ImGui.SameLine();
+                }
+
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
 
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", buttonsize);
@@ -172,6 +180,11 @@ namespace XIVAuras.Windows
             else if (this._back)
             {
                 this.ConfigStack.Pop();
+            }
+
+            if (this.ConfigStack.Count > 1)
+            {
+                this._name = this.ConfigStack.Peek().Name;
             }
 
             this._home = false;
