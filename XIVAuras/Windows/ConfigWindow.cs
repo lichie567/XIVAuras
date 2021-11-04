@@ -113,7 +113,7 @@ namespace XIVAuras.Windows
                 ImGui.SameLine();
 
                 // calculate empty horizontal space based on size of 5 buttons and text box
-                float offset = size.X - buttonsize.X * 5 - textInputWidth - padX * 7;
+                float offset = size.X - buttonsize.X * 4 - textInputWidth - padX * 6;
 
                 if (this.ConfigStack.Peek() is AuraListItem aura)
                 {
@@ -124,18 +124,21 @@ namespace XIVAuras.Windows
 
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
 
+                ImGui.PushItemWidth(textInputWidth);
+                if (ImGui.InputText("##Input", ref _name, 64, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    Rename(_name);
+                }
+
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+
+
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", buttonsize);
                 ImGui.SameLine();
 
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => Delete(), "Delete", buttonsize);
                 ImGui.SameLine();
-
-                ImGui.PushItemWidth(textInputWidth);
-                ImGui.InputText("##Input", ref _name, 64);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
-
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Check, () => Rename(_name), "Rename", buttonsize);
 
                 ImGui.EndChild();
             }
@@ -182,7 +185,7 @@ namespace XIVAuras.Windows
                 this.ConfigStack.Pop();
             }
 
-            if (this.ConfigStack.Count > 1)
+            if ((this._home || this._back) && this.ConfigStack.Count > 1)
             {
                 this._name = this.ConfigStack.Peek().Name;
             }

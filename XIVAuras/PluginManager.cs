@@ -3,6 +3,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ImGuiNET;
@@ -89,10 +90,33 @@ namespace XIVAuras
             }
 
             this.WindowSystem.Draw();
+
+            ImGuiHelpers.ForceNextWindowMainViewport();
+            ImGui.SetNextWindowPos(Vector2.Zero);
+            ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
+            var begin = ImGui.Begin(
+                "XIVAuras_Root",
+                ImGuiWindowFlags.NoTitleBar
+              | ImGuiWindowFlags.NoScrollbar
+              | ImGuiWindowFlags.AlwaysAutoResize
+              | ImGuiWindowFlags.NoBackground
+              | ImGuiWindowFlags.NoInputs
+              | ImGuiWindowFlags.NoBringToFrontOnFocus
+              | ImGuiWindowFlags.NoSavedSettings
+            );
+
+            if (!begin)
+            {
+                ImGui.End();
+                return;
+            }
+
             foreach (AuraListItem aura in this.Config.AuraList.Auras)
             {
                 aura.Draw(_origin);
             }
+
+            ImGui.End();
         }
 
         private void OpenConfigUi()

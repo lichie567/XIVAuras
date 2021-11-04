@@ -6,6 +6,7 @@ using Dalamud.Logging;
 using Dalamud.Utility;
 using ImGuiScene;
 using Lumina.Data.Files;
+using Lumina.Excel;
 
 namespace XIVAuras.Helpers
 {
@@ -16,6 +17,24 @@ namespace XIVAuras.Helpers
         public TexturesCache()
         {
             this.Cache = new Dictionary<uint, TextureWrap>();
+        }
+
+        public TextureWrap? GetTexture<T>(uint rowId, uint stackCount = 0, bool hdIcon = true) where T : ExcelRow
+        {
+            var sheet = Singletons.Get<DataManager>().GetExcelSheet<T>();
+
+            return sheet == null ? null : GetTexture<T>(sheet.GetRow(rowId), stackCount, hdIcon);
+        }
+
+        public TextureWrap? GetTexture<T>(dynamic? row, uint stackCount = 0, bool hdIcon = true) where T : ExcelRow
+        {
+            if (row == null)
+            {
+                return null;
+            }
+
+            var iconId = row.Icon;
+            return GetTextureFromIconId(iconId, stackCount, hdIcon);
         }
 
         public TextureWrap? GetTextureFromIconId(uint iconId, uint stackCount = 0, bool hdIcon = true)
