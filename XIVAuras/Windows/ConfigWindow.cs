@@ -12,23 +12,33 @@ namespace XIVAuras.Windows
 {
     public class ConfigWindow : Window
     {
-        private Stack<IConfigurable> ConfigStack { get; init; }
+        private const float NavBarHeight = 40;
 
         private bool _back = false;
         private bool _home = false;
         private string _name = string.Empty;
+
+        private Vector2 WindowSize { get; set; }
+
+        private Stack<IConfigurable> ConfigStack { get; init; }
 
         public ConfigWindow(string id, Vector2 position, Vector2 size) : base(id)
         {
             this.Flags =
                 ImGuiWindowFlags.NoScrollbar |
                 ImGuiWindowFlags.NoCollapse |
-                ImGuiWindowFlags.NoResize |
+                ImGuiWindowFlags.NoScrollWithMouse |
                 ImGuiWindowFlags.NoSavedSettings;
 
-            this.Size = size;
+            this.WindowSize = size;
             this.Position = position - size / 2;
             this.PositionCondition = ImGuiCond.Appearing;
+            this.SizeConstraints = new WindowSizeConstraints()
+            {
+                MinimumSize = new(size.X, 160),
+                MaximumSize = ImGui.GetMainViewport().Size
+            };
+
             this.ConfigStack = new Stack<IConfigurable>();
         }
 
@@ -39,34 +49,31 @@ namespace XIVAuras.Windows
             this.IsOpen = true;
         }
 
-        public void Close()
-        {
-            this.IsOpen = false;
-            this.ConfigStack.Clear();
-        }
-
         public override void PreDraw()
         {
             if (this.ConfigStack.Any())
             {
                 this.WindowName = this.ConfigStack.Peek().ToString() ?? "XIVAuras";
+                ImGui.SetNextWindowSize(this.WindowSize);
             }
         }
 
         public override void Draw()
         {
-            if (!this.ConfigStack.Any())
+            if (!this.ConfigStack.Any() || !this.Position.HasValue)
             {
                 this.IsOpen = false;
                 return;
             }
 
             IConfigurable configItem = this.ConfigStack.Peek();
-            Vector2 size = this.Size ?? Vector2.Zero;
+            Vector2 spacing = ImGui.GetStyle().ItemSpacing;
+            Vector2 size = this.WindowSize - spacing * 2;
+            bool drawNavBar = this.ConfigStack.Count > 1;
 
-            if (this.ConfigStack.Count > 1)
+            if (drawNavBar)
             {
-                size -= new Vector2(0, 40);
+                size -= new Vector2(0, NavBarHeight + spacing.Y);
             }
 
             if (ImGui.BeginTabBar($"##{this.WindowName}"))
@@ -75,7 +82,8 @@ namespace XIVAuras.Windows
                 {
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
-                        page.DrawConfig(size);
+                        Vector2 headerOffset = new Vector2(0, ImGui.GetCursorPosY());
+                        page.DrawConfig(size - headerOffset, spacing.X, spacing.Y);
                         ImGui.EndTabItem();
                     }
                 }
@@ -83,37 +91,44 @@ namespace XIVAuras.Windows
                 ImGui.EndTabBar();
             }
 
-            if (this.ConfigStack.Count > 1)
+            if (drawNavBar)
             {
-                this.DrawNavBar(size);
+                this.DrawNavBar(size, spacing.X);
             }
 
             this.Position = ImGui.GetWindowPos();
+            this.WindowSize = ImGui.GetWindowSize();
         }
 
-        private void DrawNavBar(Vector2 size)
+        private void DrawNavBar(Vector2 size, float padX)
         {
-            if (ImGui.BeginChild($"##{this.WindowName}_NavBar", new Vector2(size.X - 16, 40), true))
+            Vector2 buttonsize = new Vector2(40, 0);
+            float textInputWidth = 150;
+
+            if (ImGui.BeginChild($"##{this.WindowName}_NavBar", new Vector2(size.X, NavBarHeight), true))
             {
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.LongArrowAltLeft, () => _back = true, "Back", new Vector2(40, 0));
-
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.LongArrowAltLeft, () => _back = true, "Back", buttonsize);
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Home, () => _home = true, "Home", new Vector2(40, 0));
 
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Home, () => _home = true, "Home", buttonsize);
                 ImGui.SameLine();
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + size.X - 422);
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", new Vector2(40, 0));
 
-                ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => Delete(), "Delete", new Vector2(40, 0));
+                // calculate empty horizontal space based on size of 5 buttons and text box
+                float offset = size.X - buttonsize.X * 5 - textInputWidth - padX * 7;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
 
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", buttonsize);
                 ImGui.SameLine();
-                ImGui.PushItemWidth(150);
+
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => Delete(), "Delete", buttonsize);
+                ImGui.SameLine();
+
+                ImGui.PushItemWidth(textInputWidth);
                 ImGui.InputText("##Input", ref _name, 64);
                 ImGui.PopItemWidth();
-
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Check, () => Rename(_name), "Rename", new Vector2(40, 0));
+
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Check, () => Rename(_name), "Rename", buttonsize);
 
                 ImGui.EndChild();
             }
@@ -167,7 +182,7 @@ namespace XIVAuras.Windows
         public override void OnClose()
         {
             ConfigHelpers.SaveConfig();
-            this.Close();
+            this.ConfigStack.Clear();
         }
     }
 }

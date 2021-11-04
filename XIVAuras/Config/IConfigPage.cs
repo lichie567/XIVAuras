@@ -6,6 +6,6 @@ namespace XIVAuras.Config
     {
         string Name { get; }
 
-        void DrawConfig(Vector2 size);
+        void DrawConfig(Vector2 size, float padX, float padY);
     }
 }

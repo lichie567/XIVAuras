@@ -112,7 +112,7 @@ namespace XIVAuras
         {
             if (this.ConfigRoot.IsOpen)
             {
-                this.ConfigRoot.Close();
+                this.ConfigRoot.IsOpen = false;
             }
             else
             {

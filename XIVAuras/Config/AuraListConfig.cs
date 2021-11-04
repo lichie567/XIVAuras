@@ -13,6 +13,8 @@ namespace XIVAuras.Config
 {
     public class AuraListConfig : IConfigPage
     {
+        private const float MenuBarHeight = 40;
+
         [JsonIgnore] private AuraType _selectedType = AuraType.Group;
         [JsonIgnore] private string _input = string.Empty;
         [JsonIgnore] private string[] _options = Enum.GetNames(typeof(AuraType));
@@ -26,36 +28,40 @@ namespace XIVAuras.Config
             this.Auras = new List<AuraListItem>();
         }
 
-        public void DrawConfig(Vector2 size)
+        public void DrawConfig(Vector2 size, float padX, float padY)
         {
-            this.DrawCreateMenu(size);
-            this.DrawAuraTable(size);
+            this.DrawCreateMenu(size, padX);
+            this.DrawAuraTable(size.AddY(-padY), padX);
         }
 
-        private void DrawCreateMenu(Vector2 size)
+        private void DrawCreateMenu(Vector2 size, float padX)
         {
-            if (ImGui.BeginChild("##Buttons", new Vector2(size.X - 16, 40), true))
+            Vector2 buttonsize = new Vector2(40, 0);
+            float comboWidth = 100;
+            float textInputWidth = size.X - buttonsize.X * 2 - comboWidth - padX * 5;
+
+            if (ImGui.BeginChild("##Buttons", new Vector2(size.X, MenuBarHeight), true))
             {
-                ImGui.PushItemWidth(200);
+                ImGui.PushItemWidth(textInputWidth);
                 ImGui.InputTextWithHint("##Input", "Aura Name/Import String", ref _input, 10000);
                 ImGui.PopItemWidth();
 
                 ImGui.SameLine();
-                ImGui.PushItemWidth(100);
+                ImGui.PushItemWidth(comboWidth);
                 ImGui.Combo("##Type", ref Unsafe.As<AuraType, int>(ref _selectedType), _options, _options.Length);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("Create", FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group");
+                DrawHelpers.DrawButton("", FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group", buttonsize);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton("Import", FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group");
+                DrawHelpers.DrawButton("", FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group", buttonsize);
                 ImGui.PopItemWidth();
 
                 ImGui.EndChild();
             }
         }
 
-        private void DrawAuraTable(Vector2 size)
+        private void DrawAuraTable(Vector2 size, float padX)
         {
             ImGuiTableFlags flags =
                 ImGuiTableFlags.RowBg |
@@ -63,14 +69,17 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.BordersOuter |
                 ImGuiTableFlags.BordersInner |
                 ImGuiTableFlags.ScrollY |
-                ImGuiTableFlags.SizingFixedSame |
                 ImGuiTableFlags.NoSavedSettings;
 
-            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(size.X - 16, size.Y - 111)))
+            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(size.X, size.Y - MenuBarHeight)))
             {
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 65, 0);
-                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthStretch, 15, 1);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthStretch, 20, 2);
+                Vector2 buttonsize = new Vector2(30, 0);
+                float actionsWidth = buttonsize.X * 3 + padX * 2;
+                float typeWidth = 75;
+
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 0, 0);
+                ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, typeWidth, 1);
+                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 2);
 
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
@@ -103,13 +112,13 @@ namespace XIVAuras.Config
                     if (ImGui.TableSetColumnIndex(2))
                     {
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit");
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit", buttonsize);
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export");
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export", buttonsize);
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete");
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete", buttonsize);
                     }
                 }
 

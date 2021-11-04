@@ -7,9 +7,9 @@ namespace XIVAuras.Config
     {
         public string Name => "Visibility";
 
-        public void DrawConfig(Vector2 size)
+        public void DrawConfig(Vector2 size, float padX, float padY)
         {
-            if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X - 16, size.Y - 67), true))
+            if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Text("TODO");
 
