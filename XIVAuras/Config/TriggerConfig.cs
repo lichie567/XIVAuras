@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Dalamud.Interface;
 using ImGuiNET;
 using Newtonsoft.Json;
+using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {
@@ -18,22 +22,14 @@ namespace XIVAuras.Config
         Player,
         Target,
         TargetOfTarget,
-        Focus,
+        FocusTarget,
     }
 
-    public enum TriggerJobTypes
+    public struct DataSource
     {
-        All,
-        Tanks,
-        Casters,
-        Melee,
-        Ranged,
-        DoW,
-        DoM,
-        Crafters,
-        DoH,
-        DoL,
-        Custom
+        public float Duration;
+        public uint Stacks;
+        public float Cooldown;
     }
 
     public class TriggerConfig : IConfigPage
@@ -44,15 +40,40 @@ namespace XIVAuras.Config
 
         [JsonIgnore] private int _statusIdInput = -1;
 
+        [JsonIgnore] private TriggerCondition _inputTrigger = new TriggerCondition();
+
+        [JsonIgnore] private string _triggerValueInput = string.Empty;
+
         public TriggerType TriggerType = TriggerType.Buff;
 
         public TriggerSource TriggerSource = TriggerSource.Player;
 
+        public List<TriggerCondition> TriggerConditions = new List<TriggerCondition>();
+
         public uint StatusId = 0;
 
-        public bool IsTriggered()
+        public bool IsTriggered(DataSource data)
         {
-            return false;
+            if (!this.TriggerConditions.Any())
+            {
+                return false;
+            }
+
+            bool triggered = this.TriggerConditions[0].GetResult(data);
+            for (int i = 1; i < this.TriggerConditions.Count; i++)
+            {
+                TriggerCondition current = this.TriggerConditions[i];
+
+                triggered = current.Cond switch
+                {
+                    TriggerCond.And => triggered && current.GetResult(data),
+                    TriggerCond.Or => triggered || current.GetResult(data),
+                    TriggerCond.Xor => triggered ^ current.GetResult(data),
+                    _ => false
+                };
+            }
+
+            return triggered;
         }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
@@ -79,8 +100,129 @@ namespace XIVAuras.Config
                     this.StatusId = (uint)_statusIdInput;
                 }
 
+                DrawHelpers.DrawSpacing(1);
+                ImGui.Text("Trigger Conditions");
+
+                ImGuiTableFlags tableFlags =
+                    ImGuiTableFlags.RowBg |
+                    ImGuiTableFlags.Borders |
+                    ImGuiTableFlags.BordersOuter |
+                    ImGuiTableFlags.BordersInner |
+                    ImGuiTableFlags.ScrollY |
+                    ImGuiTableFlags.NoSavedSettings;
+
+                if (ImGui.BeginTable("##Trigger_Table", 5, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
+                {
+                    ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
+                    ImGui.TableSetupColumn("Data Source", ImGuiTableColumnFlags.WidthFixed, 90, 1);
+                    ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 80, 2);
+                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 3);
+                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 45, 4);
+
+                    ImGui.TableSetupScrollFreeze(0, 1);
+                    ImGui.TableHeadersRow();
+
+                    for (int i = 0; i < this.TriggerConditions.Count + 1; i++)
+                    {
+                        ImGui.PushID(i.ToString());
+                        ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
+
+                        this.DrawTriggerRow(i);
+                    }
+
+                    ImGui.EndTable();
+                }
+
                 ImGui.EndChild();
             }
+        }
+
+        private void DrawTriggerRow(int i)
+        {
+            TriggerCondition trigger = i < this.TriggerConditions.Count ? this.TriggerConditions[i] : _inputTrigger;
+
+            if (ImGui.TableSetColumnIndex(0))
+            {
+                if (i == 0)
+                {
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3f);
+                    ImGui.Text("IF");
+                }
+                else
+                {
+                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                    ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                    string[] options = TriggerCondition.CondOptions;
+                    ImGui.Combo("##CondCombo", ref Unsafe.As<TriggerCond, int>(ref trigger.Cond), options, options.Length);
+                    ImGui.PopItemWidth();
+                }
+            }
+
+            if (ImGui.TableSetColumnIndex(1))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                string[] options = TriggerCondition.SourceOptions;
+                ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref trigger.Source), options, options.Length);
+                ImGui.PopItemWidth();
+            }
+
+
+            if (ImGui.TableSetColumnIndex(2))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                string[] options = TriggerCondition.OperatorOptions;
+                ImGui.Combo("##OpCombo", ref Unsafe.As<TriggerDataOp, int>(ref trigger.Op), options, options.Length);
+                ImGui.PopItemWidth();
+            }
+
+            if (ImGui.TableSetColumnIndex(3))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth());
+
+                _triggerValueInput = trigger.Value.ToString();
+                ImGui.InputText("##InputFloat", ref _triggerValueInput, 10);
+                if (float.TryParse(_triggerValueInput, out float value))
+                {
+                    trigger.Value = value;
+                }
+
+                ImGui.PopItemWidth();
+            }
+
+            if (ImGui.TableSetColumnIndex(4))
+            {
+                Vector2 buttonSize = new Vector2(45, 0);
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                if (i < this.TriggerConditions.Count)
+                {
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(trigger), "Remove Trigger", buttonSize);
+                }
+                else
+                {
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonSize);
+                }
+            }
+        }
+
+        private void AddTrigger()
+        {
+            if (!this.TriggerConditions.Any() ||
+                (_inputTrigger.Cond != TriggerCond.None &&
+                _inputTrigger.Op != TriggerDataOp.None &&
+                _inputTrigger.Source != TriggerDataSource.None))
+            {
+                this.TriggerConditions.Add(_inputTrigger);
+                _inputTrigger = new TriggerCondition();
+            }
+        }
+
+        private void RemoveTrigger(TriggerCondition trigger)
+        {
+            this.TriggerConditions.Remove(trigger);
         }
     }
 }

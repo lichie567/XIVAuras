@@ -82,32 +82,11 @@ namespace XIVAuras.Config
                     ImGui.TableSetupScrollFreeze(0, 1);
                     ImGui.TableHeadersRow();
 
-                    for (int i = 0; i < this.AuraLabels.Count + 1; i++)
+                    int i = 0;
+                    for (; i < this.AuraLabels.Count; i++)
                     {
                         ImGui.PushID(i.ToString());
                         ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
-
-                        if (i == this.AuraLabels.Count)
-                        {
-                            if (ImGui.TableSetColumnIndex(0))
-                            {
-                                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                                ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                                ImGui.InputTextWithHint(string.Empty, "New Label Name/Import String", ref _labelInput, 10000);
-                                ImGui.PopItemWidth();
-                            }
-
-                            if (ImGui.TableSetColumnIndex(1))
-                            {
-                                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddLabel(_labelInput), "Create Label", buttonSize);
-
-                                ImGui.SameLine();
-                                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportLabel(_labelInput), "Import Label", buttonSize);
-                            }
-
-                            break;
-                        }
 
                         AuraLabel label = this.AuraLabels[i];
 
@@ -128,6 +107,25 @@ namespace XIVAuras.Config
                             ImGui.SameLine();
                             DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteLabel(label), "Delete", buttonSize);
                         }
+                    }
+
+                    ImGui.PushID((i + 1).ToString());
+                    ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
+                    if (ImGui.TableSetColumnIndex(0))
+                    {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                        ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                        ImGui.InputTextWithHint("##LabelInput", "New Label Name/Import String", ref _labelInput, 10000);
+                        ImGui.PopItemWidth();
+                    }
+
+                    if (ImGui.TableSetColumnIndex(1))
+                    {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddLabel(_labelInput), "Create Label", buttonSize);
+
+                        ImGui.SameLine();
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportLabel(_labelInput), "Import Label", buttonSize);
                     }
 
                     ImGui.EndTable();

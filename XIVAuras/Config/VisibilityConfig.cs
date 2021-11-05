@@ -3,9 +3,29 @@ using ImGuiNET;
 
 namespace XIVAuras.Config
 {
+    public enum JobTypes
+    {
+        All,
+        Tanks,
+        Casters,
+        Melee,
+        Ranged,
+        DoW,
+        DoM,
+        Crafters,
+        DoH,
+        DoL,
+        Custom
+    }
+
     public class VisibilityConfig : IConfigPage
     {
         public string Name => "Visibility";
+
+        public bool IsVisible()
+        {
+            return true;
+        }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {

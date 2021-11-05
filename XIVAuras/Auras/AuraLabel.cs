@@ -30,5 +30,10 @@ namespace XIVAuras.Auras
         {
 
         }
+
+        public void SetData(DataSource data)
+        {
+
+        }
     }
 }

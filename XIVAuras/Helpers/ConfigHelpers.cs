@@ -168,6 +168,7 @@ namespace XIVAuras.Helpers
             typeof(IconStyleConfig),
             typeof(LabelStyleConfig),
             typeof(TriggerConfig),
+            typeof(TriggerCondition),
             typeof(VisibilityConfig),
             typeof(XIVAurasConfig)
         };

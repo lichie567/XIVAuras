@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using ImGuiNET;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -42,27 +37,28 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos)
         {
-            if (TriggerConfig.TriggerType == TriggerType.Buff &&
-                TriggerConfig.TriggerSource == TriggerSource.Player)
-            {
-                PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
-                if (player is not null)
-                {
-                    uint statusId = TriggerConfig.StatusId;
-                    float duration = player.StatusList.FirstOrDefault(o => o.StatusId == statusId && o.RemainingTime > 0f)?.RemainingTime ?? 0f;
+            uint statusId = this.TriggerConfig.StatusId;
+            DataSource? data = SpellHelpers.GetData(this.TriggerConfig.TriggerSource, statusId); 
 
-                    if (duration > 0)
+            if (data.HasValue && this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible())
+            {
+                pos += this.IconStyleConfig.Position;
+                Vector2 size = this.IconStyleConfig.Size;
+                DrawHelpers.DrawInWindow($"AuraIcon_{Name}", pos, size, false, false, (drawList) =>
+                {
+                    // draw red square until icons sorted out
+                    drawList.AddRectFilled(pos, pos + size, 0xFF0000FF);
+
+                    if (this.IconStyleConfig.ShowBorder)
                     {
-                        Vector2 position = pos + this.IconStyleConfig.Position;
-                        Vector2 size = this.IconStyleConfig.Size;
-                        DrawHelpers.DrawInWindow($"AuraIcon_{Name}", position, size, false, false, (drawList) =>
-                        {
-                            string text = $"{Math.Truncate(duration)}";
-                            Vector2 textSize = ImGui.CalcTextSize(text);
-                            drawList.AddRectFilled(position, position + size, IconStyleConfig.BorderColor.Base);
-                            DrawHelpers.DrawOutlinedText(text, position + size / 2 - textSize / 2, 0xFFFFFFFF, 0xFF000000, drawList);
-                        });
+                        drawList.AddRect(pos, pos + size, this.IconStyleConfig.BorderColor.Base);
                     }
+                });
+
+                foreach (AuraLabel label in IconStyleConfig.AuraLabels)
+                {
+                    label.SetData(data.Value);
+                    label.Draw(pos);
                 }
             }
         }
