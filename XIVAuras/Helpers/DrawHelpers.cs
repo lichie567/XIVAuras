@@ -111,15 +111,15 @@ namespace XIVAuras.Helpers
             return (uv0, uv1);
         }
 
-        public static void DrawInWindow(string name, Vector2 pos, Vector2 size, bool needsInput, bool needsFocus, Action<ImDrawListPtr> drawAction)
+        public static void DrawInWindow(
+            string name,
+            Vector2 pos,
+            Vector2 size,
+            bool preview,
+            bool lastFrameWasPreview,
+            Action<ImDrawListPtr> drawAction)
         {
-            const ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoTitleBar |
-                                                 ImGuiWindowFlags.NoScrollbar |
-                                                 ImGuiWindowFlags.NoBackground |
-                                                 ImGuiWindowFlags.NoMove |
-                                                 ImGuiWindowFlags.NoResize;
-
-            DrawInWindow(name, pos, size, needsInput, needsFocus, false, windowFlags, drawAction);
+            DrawInWindow(name, pos, size, preview, false, preview, preview && !lastFrameWasPreview, drawAction);
         }
 
         public static void DrawInWindow(
@@ -129,10 +129,29 @@ namespace XIVAuras.Helpers
             bool needsInput,
             bool needsFocus,
             bool needsWindow,
-            ImGuiWindowFlags windowFlags,
             Action<ImDrawListPtr> drawAction)
         {
-            windowFlags |= ImGuiWindowFlags.NoSavedSettings;
+            DrawInWindow(name, pos, size, needsInput, needsFocus, needsWindow, true, drawAction, ImGuiWindowFlags.NoMove);
+        }
+
+        public static void DrawInWindow(
+            string name,
+            Vector2 pos,
+            Vector2 size,
+            bool needsInput,
+            bool needsFocus,
+            bool needsWindow,
+            bool setPosition,
+            Action<ImDrawListPtr> drawAction,
+            ImGuiWindowFlags extraFlags = ImGuiWindowFlags.None)
+        {
+            ImGuiWindowFlags windowFlags =
+                ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoTitleBar |
+                ImGuiWindowFlags.NoScrollbar |
+                ImGuiWindowFlags.NoBackground |
+                ImGuiWindowFlags.NoResize |
+                extraFlags;
 
             if (!needsInput)
             {
@@ -144,27 +163,29 @@ namespace XIVAuras.Helpers
                 windowFlags |= ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus;
             }
 
-            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-
             if (!needsInput && !needsWindow)
             {
-                drawAction(drawList);
+                drawAction(ImGui.GetWindowDrawList());
                 return;
             }
 
-            ImGui.SetNextWindowPos(pos);
             ImGui.SetNextWindowSize(size);
-
-            bool begin = ImGui.Begin(name, windowFlags);
-            if (!begin)
+            if (setPosition)
             {
-                ImGui.End();
-                return;
+                ImGui.SetNextWindowPos(pos);
             }
 
-            drawAction(drawList);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
 
-            ImGui.End();
+            if (ImGui.Begin(name, windowFlags))
+            {
+                drawAction(ImGui.GetWindowDrawList());
+                ImGui.End();
+            }
+
+            ImGui.PopStyleVar(3);
         }
 
         public static void DrawOutlinedText(string text, Vector2 pos, uint color, uint outlineColor, ImDrawListPtr drawList, int thickness = 1)

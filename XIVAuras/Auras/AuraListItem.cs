@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Newtonsoft.Json;
@@ -8,13 +9,16 @@ namespace XIVAuras.Auras
 {
     public abstract class AuraListItem : IConfigurable
     {
+        [JsonIgnore] protected bool LastFrameWasPreview = false;
         [JsonIgnore] public bool Preview = false;
+        [JsonIgnore] public readonly string ID;
 
         public string Name { get; set; }
 
         public AuraListItem(string name)
         {
             this.Name = name;
+            this.ID = $"XIVAuras_{GetType().Name}_{Guid.NewGuid()}";
         }
 
         public abstract AuraType Type { get; }

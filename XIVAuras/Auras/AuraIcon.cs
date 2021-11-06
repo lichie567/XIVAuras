@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using ImGuiNET;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -38,27 +39,47 @@ namespace XIVAuras.Auras
         public override void Draw(Vector2 pos)
         {
             uint statusId = this.TriggerConfig.StatusId;
-            DataSource? data = SpellHelpers.GetData(this.TriggerConfig.TriggerSource, statusId); 
+            DataSource? data = SpellHelpers.GetData(this.TriggerConfig.TriggerSource, statusId);
 
-            if (data.HasValue && this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible())
+            if (this.Preview)
             {
-                pos += this.IconStyleConfig.Position;
-                Vector2 size = this.IconStyleConfig.Size;
-                DrawHelpers.DrawInWindow($"AuraIcon_{Name}", pos, size, false, false, (drawList) =>
+                data = new DataSource()
                 {
+                    Duration = 10
+                };
+            }
+
+            if (data.HasValue &&
+                (this.Preview ||
+                 this.TriggerConfig.IsTriggered(data.Value) &&
+                 this.VisibilityConfig.IsVisible()))
+            {
+                Vector2 localPos = pos + this.IconStyleConfig.Position;
+                Vector2 size = this.IconStyleConfig.Size;
+
+                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.LastFrameWasPreview, (drawList) =>
+                {
+                    if (this.Preview)
+                    {
+                        localPos = ImGui.GetWindowPos();
+                        this.IconStyleConfig.Position = localPos - pos;
+                    }
+
+                    this.LastFrameWasPreview = this.Preview;
+
                     // draw red square until icons sorted out
-                    drawList.AddRectFilled(pos, pos + size, 0xFF0000FF);
+                    drawList.AddRectFilled(localPos, localPos + size, 0xFF0000FF);
 
                     if (this.IconStyleConfig.ShowBorder)
                     {
-                        drawList.AddRect(pos, pos + size, this.IconStyleConfig.BorderColor.Base);
+                        drawList.AddRect(localPos, localPos + size, this.IconStyleConfig.BorderColor.Base);
                     }
                 });
 
                 foreach (AuraLabel label in IconStyleConfig.AuraLabels)
                 {
                     label.SetData(data.Value);
-                    label.Draw(pos);
+                    label.Draw(localPos);
                 }
             }
         }
