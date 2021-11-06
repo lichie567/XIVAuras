@@ -25,7 +25,7 @@ namespace XIVAuras.Auras
             yield return this.AuraList;
         }
 
-        public override void Draw(Vector2 pos)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
             foreach (AuraListItem aura in this.AuraList.Auras)
             {

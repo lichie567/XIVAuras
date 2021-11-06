@@ -23,7 +23,7 @@ namespace XIVAuras.Auras
 
         public abstract AuraType Type { get; }
 
-        public abstract void Draw(Vector2 pos);
+        public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
 
         public abstract IEnumerator<IConfigPage> GetEnumerator();
 

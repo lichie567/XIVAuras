@@ -34,7 +34,7 @@ namespace XIVAuras.Auras
             yield return this.VisibilityConfig;
         }
 
-        public override void Draw(Vector2 pos)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
 
         }
