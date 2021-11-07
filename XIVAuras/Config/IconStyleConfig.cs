@@ -22,6 +22,7 @@ namespace XIVAuras.Config
         public bool ShowBorder = true;
         public int BorderThickness = 1;
         public ConfigColor BorderColor = new ConfigColor(0, 0, 0, 1);
+        public bool CropIcon = true;
 
         public List<AuraLabel> AuraLabels { get; init; }
 
@@ -50,6 +51,8 @@ namespace XIVAuras.Config
                     ImGui.ColorEdit4("Border Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
                     this.BorderColor.Vector = vector;
                 }
+
+                ImGui.Checkbox("Crop Icon", ref this.CropIcon);
 
                 DrawHelpers.DrawSpacing(1);
                 ImGui.Text("Labels");

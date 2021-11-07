@@ -81,7 +81,7 @@ namespace XIVAuras.Auras
                         this.IconStyleConfig.Position = localPos - pos;
                     }
 
-                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, true, data.Value.Stacks, drawList);
+                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, this.IconStyleConfig.CropIcon, data.Value.Stacks, drawList);
 
                     if (this.IconStyleConfig.ShowBorder)
                     {
