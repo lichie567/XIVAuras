@@ -12,6 +12,7 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##IconStyleConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Text("Made by Lichie.");
+                ImGui.Text("NOT associated with WeakAuras in any way.");
 
                 ImGui.EndChild();
             }

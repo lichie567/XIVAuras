@@ -6,7 +6,6 @@ using Dalamud.Logging;
 using Dalamud.Utility;
 using ImGuiScene;
 using Lumina.Data.Files;
-using Lumina.Excel;
 
 namespace XIVAuras.Helpers
 {
@@ -19,24 +18,6 @@ namespace XIVAuras.Helpers
             this.Cache = new Dictionary<uint, TextureWrap>();
         }
 
-        public TextureWrap? GetTexture<T>(uint rowId, uint stackCount = 0, bool hdIcon = true) where T : ExcelRow
-        {
-            var sheet = Singletons.Get<DataManager>().GetExcelSheet<T>();
-
-            return sheet == null ? null : GetTexture<T>(sheet.GetRow(rowId), stackCount, hdIcon);
-        }
-
-        public TextureWrap? GetTexture<T>(dynamic? row, uint stackCount = 0, bool hdIcon = true) where T : ExcelRow
-        {
-            if (row == null)
-            {
-                return null;
-            }
-
-            var iconId = row.Icon;
-            return GetTextureFromIconId(iconId, stackCount, hdIcon);
-        }
-
         public TextureWrap? GetTextureFromIconId(uint iconId, uint stackCount = 0, bool hdIcon = true)
         {
             if (this.Cache.TryGetValue(iconId + stackCount, out TextureWrap? texture))
@@ -44,7 +25,7 @@ namespace XIVAuras.Helpers
                 return texture;
             }
 
-            var newTexture = LoadTexture(iconId + stackCount, hdIcon);
+            TextureWrap? newTexture = LoadTexture(iconId + stackCount, hdIcon);
             if (newTexture == null)
             {
                 return null;
@@ -54,10 +35,10 @@ namespace XIVAuras.Helpers
             return newTexture;
         }
 
-        private unsafe TextureWrap? LoadTexture(uint id, bool hdIcon)
+        private TextureWrap? LoadTexture(uint id, bool hdIcon)
         {
-            var hdString = hdIcon ? "_hr1" : "";
-            var path = $"ui/icon/{id / 1000 * 1000:000000}/{id:000000}{hdString}.tex";
+            string hdString = hdIcon ? "_hr1" : "";
+            string path = $"ui/icon/{id / 1000 * 1000:000000}/{id:000000}{hdString}.tex";
 
             return TexturesCache.LoadTexture(path);
         }

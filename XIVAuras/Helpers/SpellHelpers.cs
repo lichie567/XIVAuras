@@ -4,6 +4,7 @@ using System.Linq;
 using Dalamud.Data;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
@@ -62,7 +63,7 @@ namespace XIVAuras.Helpers
             return maxStacks - (int)Math.Ceiling(GetSpellCooldownInt(actionId) / (GetRecastTime(actionId) / maxStacks));
         }
 
-        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData)
+        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine)
         {
             if (!triggerData.Any())
             {
@@ -72,7 +73,12 @@ namespace XIVAuras.Helpers
             ClientState clientState = Singletons.Get<ClientState>();
             TargetManager targetManager = Singletons.Get<TargetManager>();
 
-            GameObject? player = clientState.LocalPlayer;
+            PlayerCharacter? player = clientState.LocalPlayer;
+            if (player is null)
+            {
+                return new DataSource();
+            }
+
             GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
 
             GameObject? actor = source switch
@@ -102,7 +108,7 @@ namespace XIVAuras.Helpers
             else
             {
                 IEnumerable<uint> ids = triggerData.Select(t => t.Id);
-                var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId));
+                var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId) && (o.SourceID == player.ObjectId || !onlyMine));
                 return new DataSource()
                 {
                     Duration = Math.Abs(status?.RemainingTime ?? 0f),

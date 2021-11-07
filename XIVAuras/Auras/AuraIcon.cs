@@ -49,7 +49,8 @@ namespace XIVAuras.Auras
             DataSource? data = SpellHelpers.GetData(
                 this.TriggerConfig.TriggerSource,
                 this.TriggerConfig.TriggerType,
-                this.TriggerConfig.TriggerList);
+                this.TriggerConfig.TriggerList,
+                this.TriggerConfig.ShowOnlyMine);
 
             if (this.Preview)
             {
@@ -66,7 +67,7 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            bool triggered = data.HasValue && (this.Preview || this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible());
+            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible();
 
             Vector2 localPos = pos + this.IconStyleConfig.Position;
             Vector2 size = this.IconStyleConfig.Size;

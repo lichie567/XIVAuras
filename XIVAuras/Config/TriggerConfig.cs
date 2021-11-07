@@ -44,6 +44,8 @@ namespace XIVAuras.Config
 
         public string TriggerName = string.Empty;
 
+        public bool ShowOnlyMine = true;
+
         public int IconPickerIndex = 0;
 
         public int IconOption = 0;
@@ -129,6 +131,11 @@ namespace XIVAuras.Config
                     }
 
                     this._triggerNameInput = this.TriggerName;
+                }
+
+                if (this.TriggerType == TriggerType.Buff || this.TriggerType == TriggerType.Debuff)
+                {
+                    ImGui.Checkbox("Only Show My Effects", ref this.ShowOnlyMine);
                 }
 
                 if (this.TriggerList.Any())

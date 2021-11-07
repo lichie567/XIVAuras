@@ -29,8 +29,19 @@ namespace XIVAuras.Auras
         {
             foreach (AuraListItem aura in this.AuraList.Auras)
             {
+                if (!this.Preview && this.LastFrameWasPreview)
+                {
+                    aura.Preview = false;
+                }
+                else
+                {
+                    aura.Preview |= this.Preview;
+                }
+
                 aura.Draw(pos);
             }
+
+            this.LastFrameWasPreview = this.Preview;
         }
     }
 }
