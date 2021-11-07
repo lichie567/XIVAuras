@@ -66,27 +66,25 @@ namespace XIVAuras.Helpers
             }
         }
 
-        public static void DrawIcon(uint iconId, Vector2 position, Vector2 size, ImDrawListPtr drawList)
+        //public static void DrawIcon(uint iconId, Vector2 position, Vector2 size, ImDrawListPtr drawList)
+        //{
+        //    TextureWrap? texture = Singletons.Get<TexturesCache>().GetTextureFromIconId(iconId);
+        //    if (texture == null) { return; }
+
+        //    drawList.AddImage(texture.ImGuiHandle, position, position + size, Vector2.Zero, Vector2.One);
+        //}
+
+        public static void DrawIcon(ushort iconId, Vector2 position, Vector2 size, bool cropIcon, int stackCount, ImDrawListPtr drawList)
         {
-            TextureWrap? texture = Singletons.Get<TexturesCache>().GetTextureFromIconId(iconId);
-            if (texture == null) { return; }
-
-            drawList.AddImage(texture.ImGuiHandle, position, position + size, Vector2.Zero, Vector2.One);
-        }
-
-        public static void DrawIcon<T>(ImDrawListPtr drawList, dynamic row, Vector2 position, Vector2 size, bool drawBorder, bool cropIcon, int stackCount = 1) where T : ExcelRow
-        {
-            TextureWrap texture = Singletons.Get<TexturesCache>().GetTexture<T>(row, (uint)Math.Max(0, stackCount - 1));
-            if (texture == null) { return; }
-
-            (Vector2 uv0, Vector2 uv1) = GetTexCoordinates(texture, size, cropIcon);
-
-            drawList.AddImage(texture.ImGuiHandle, position, position + size, uv0, uv1);
-
-            if (drawBorder)
+            TextureWrap? tex = Singletons.Get<TexturesCache>().GetTextureFromIconId(iconId, (uint)stackCount);
+            if (tex is null)
             {
-                drawList.AddRect(position, position + size, 0xFF000000);
+                return;
             }
+
+            (Vector2 uv0, Vector2 uv1) = GetTexCoordinates(tex, size, cropIcon);
+
+            drawList.AddImage(tex.ImGuiHandle, position, position + size, uv0, uv1);
         }
 
         public static (Vector2, Vector2) GetTexCoordinates(TextureWrap texture, Vector2 size, bool cropIcon = true)

@@ -33,13 +33,13 @@ namespace XIVAuras.Config
         public int FontId = 0;
         public ConfigColor TextColor = new ConfigColor(1, 1, 1, 1);
         public bool ShowOutline = true;
-        public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 0);
+        public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 1);
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##LabelStyleConfig", new Vector2(size.X, size.Y), true))
             {
-                ImGui.InputText("Text Format", ref this.TextFormat, 64);
+                ImGui.InputTextWithHint("Text Format", "[duration] or [cooldown] or [stacks]", ref this.TextFormat, 64);
                 ImGui.DragFloat2("Position", ref this.Position);
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);

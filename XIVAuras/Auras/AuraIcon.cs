@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using ImGuiScene;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -38,14 +41,23 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            uint statusId = this.TriggerConfig.StatusId;
-            DataSource? data = SpellHelpers.GetData(this.TriggerConfig.TriggerSource, statusId);
+            if (!this.TriggerConfig.TriggerList.Any())
+            {
+                return;
+            }
+
+            DataSource? data = SpellHelpers.GetData(
+                this.TriggerConfig.TriggerSource,
+                this.TriggerConfig.TriggerType,
+                this.TriggerConfig.TriggerList);
 
             if (this.Preview)
             {
                 data = new DataSource()
                 {
-                    Duration = 10
+                    Duration = 15,
+                    Cooldown = 15,
+                    Stacks = 0, // needs to be 0 to preview icon correctly
                 };
             }
 
@@ -54,13 +66,11 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            bool triggered = data.HasValue &&
-                                (this.Preview ||
-                                 this.TriggerConfig.IsTriggered(data.Value) &&
-                                 this.VisibilityConfig.IsVisible());
+            bool triggered = data.HasValue && (this.Preview || this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible());
 
             Vector2 localPos = pos + this.IconStyleConfig.Position;
             Vector2 size = this.IconStyleConfig.Size;
+
             if (triggered)
             {
                 DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.LastFrameWasPreview, (drawList) =>
@@ -71,8 +81,7 @@ namespace XIVAuras.Auras
                         this.IconStyleConfig.Position = localPos - pos;
                     }
 
-                    // draw black square until icons are sorted out
-                    drawList.AddRectFilled(localPos, localPos + size, 0xFF000000);
+                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, true, data.Value.Stacks, drawList);
 
                     if (this.IconStyleConfig.ShowBorder)
                     {

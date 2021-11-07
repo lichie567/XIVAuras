@@ -1,4 +1,4 @@
-﻿using System;
+﻿using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {

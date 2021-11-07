@@ -42,12 +42,12 @@ namespace XIVAuras.Auras
             DataSource data = this.Data.Value;
 
             string text = this.LabelStyleConfig.TextFormat.Replace("[duration]", $"{Math.Truncate(data.Duration)}");
-            text = text.Replace("[stacks]", $"{Math.Truncate(data.Duration)}");
-            text = text.Replace("[cooldown]", $"{Math.Truncate(data.Duration)}");
+            text = text.Replace("[stacks]", $"{data.Stacks}");
+            text = text.Replace("[cooldown]", $"{Math.Truncate(data.Cooldown)}");
 
             Vector2 textSize = ImGui.CalcTextSize(text);
-            Vector2 textPos = GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
-            textPos = GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
+            Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
+            textPos = Utils.GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
 
             DrawHelpers.DrawInWindow($"##{this.ID}", textPos, textSize, false, true, true, (drawList) =>
             {
@@ -68,23 +68,6 @@ namespace XIVAuras.Auras
         public void SetData(DataSource data)
         {
             this.Data = data;
-        }
-
-        public static Vector2 GetAnchoredPosition(Vector2 position, Vector2 size, DrawAnchor anchor)
-        {
-            return anchor switch
-            {
-                DrawAnchor.Center => position - size / 2f,
-                DrawAnchor.Left => position + new Vector2(0, -size.Y / 2f),
-                DrawAnchor.Right => position + new Vector2(-size.X, -size.Y / 2f),
-                DrawAnchor.Top => position + new Vector2(-size.X / 2f, 0),
-                DrawAnchor.TopLeft => position,
-                DrawAnchor.TopRight => position + new Vector2(-size.X, 0),
-                DrawAnchor.Bottom => position + new Vector2(-size.X / 2f, -size.Y),
-                DrawAnchor.BottomLeft => position + new Vector2(0, -size.Y),
-                DrawAnchor.BottomRight => position + new Vector2(-size.X, -size.Y),
-                _ => position
-            };
         }
     }
 }

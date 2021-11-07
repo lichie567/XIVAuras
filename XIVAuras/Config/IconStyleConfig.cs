@@ -19,8 +19,6 @@ namespace XIVAuras.Config
 
         public Vector2 Position = Vector2.Zero;
         public Vector2 Size = new Vector2(40, 40);
-        public bool IconOverride = false;
-        public string IconOverrideId = string.Empty;
         public bool ShowBorder = true;
         public int BorderThickness = 1;
         public ConfigColor BorderColor = new ConfigColor(0, 0, 0, 1);
@@ -40,13 +38,6 @@ namespace XIVAuras.Config
                 Vector2 screenSize = ImGui.GetMainViewport().Size;
                 ImGui.DragFloat2("Position", ref this.Position, 1, -screenSize.X / 2, screenSize.X / 2);
                 ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, screenSize.Y);
-
-                ImGui.Checkbox("Icon Override", ref this.IconOverride);
-                if (this.IconOverride)
-                {
-                    DrawHelpers.DrawNestIndicator(1);
-                    ImGui.InputTextWithHint("Icon Id", "Icon Id", ref this.IconOverrideId, 10);
-                }
 
                 ImGui.Checkbox("Show Border", ref this.ShowBorder);
                 if (this.ShowBorder)

@@ -1,10 +1,15 @@
-﻿using Dalamud.Game.ClientState;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Dalamud.Data;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using System;
-using System.Linq;
+using Lumina.Excel;
 using XIVAuras.Config;
+using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
+using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
 
 namespace XIVAuras.Helpers
 {
@@ -57,8 +62,13 @@ namespace XIVAuras.Helpers
             return maxStacks - (int)Math.Ceiling(GetSpellCooldownInt(actionId) / (GetRecastTime(actionId) / maxStacks));
         }
 
-        public static DataSource? GetData(TriggerSource source, uint statusId)
+        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData)
         {
+            if (!triggerData.Any())
+            {
+                return null;
+            }
+
             ClientState clientState = Singletons.Get<ClientState>();
             TargetManager targetManager = Singletons.Get<TargetManager>();
 
@@ -69,7 +79,7 @@ namespace XIVAuras.Helpers
             {
                 TriggerSource.Player => player,
                 TriggerSource.Target => target,
-                TriggerSource.TargetOfTarget => FindTargetOfTarget(player, target),
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
                 TriggerSource.FocusTarget => targetManager.FocusTarget,
                 _ => null
             };
@@ -79,38 +89,119 @@ namespace XIVAuras.Helpers
                 return null;
             }
 
-            return new DataSource()
+            if (type == TriggerType.Cooldown)
             {
-                Duration = Math.Abs(chara.StatusList.FirstOrDefault(o => o.StatusId == statusId)?.RemainingTime ?? 0f),
-            };
+                SpellHelpers helper = Singletons.Get<SpellHelpers>();
+                TriggerData trigger = triggerData.First();
+                return new DataSource()
+                {
+                    Cooldown = helper.GetSpellCooldown(trigger.Id),
+                    Stacks = helper.GetStackCount(trigger.MaxStacks, trigger.Id),
+                };
+            }
+            else
+            {
+                IEnumerable<uint> ids = triggerData.Select(t => t.Id);
+                var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId));
+                return new DataSource()
+                {
+                    Duration = Math.Abs(status?.RemainingTime ?? 0f),
+                    Stacks = status?.StackCount ?? 0,
+                };
+            }
         }
 
-        // TODO: move this
-        public static GameObject? FindTargetOfTarget(GameObject? player, GameObject? target)
+        public static List<TriggerData> FindStatusEntries(string input)
         {
-            if (target == null)
-            {
-                return null;
-            }
+            ExcelSheet<LuminaStatus>? sheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaStatus>();
 
-            if (target.TargetObjectId == 0 && player != null && player.TargetObjectId == 0)
+            if (!string.IsNullOrEmpty(input) && sheet is not null)
             {
-                return player;
-            }
+                List<TriggerData> statusList = new List<TriggerData>();
 
-            // only the first 200 elements in the array are relevant due to the order in which SE packs data into the array
-            // we do a step of 2 because its always an actor followed by its companion
-            ObjectTable objectTable = Singletons.Get<ObjectTable>();
-            for (int i = 0; i < 200; i += 2)
-            {
-                GameObject? actor = objectTable[i];
-                if (actor?.ObjectId == target.TargetObjectId)
+                // Add by id
+                if (uint.TryParse(input, out uint value))
                 {
-                    return actor;
+                    if (value > 0)
+                    {
+                        LuminaStatus? status = sheet.GetRow(value);
+                        if (status is not null)
+                        {
+                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
+                        }
+                    }
                 }
+
+                // Add by name
+                if (statusList.Count == 0)
+                {
+                    statusList.AddRange(
+                        sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
+                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
+                }
+
+                return statusList;
             }
 
-            return null;
+            return new List<TriggerData>();
+        }
+
+        public static List<TriggerData> FindActionEntries(string input)
+        {
+            ExcelSheet<LuminaAction>? sheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
+
+            if (!string.IsNullOrEmpty(input) && sheet is not null)
+            {
+                List<TriggerData> actionList = new List<TriggerData>();
+
+                // Add by id
+                if (uint.TryParse(input, out uint value))
+                {
+                    if (value > 0)
+                    {
+                        LuminaAction? action = sheet.GetRow(value);
+                        if (action is not null)
+                        {
+                            actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges));
+                        }
+                    }
+                }
+
+                // Add by name
+                if (actionList.Count == 0)
+                {
+                    actionList.AddRange(
+                        sheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()))
+                            .Select(action => new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges)));
+                }
+
+                return actionList;
+            }
+
+            return new List<TriggerData>();
+        }
+    }
+
+    public struct DataSource
+    {
+        public float Duration;
+        public int Stacks;
+        public float Cooldown;
+    }
+
+    public struct TriggerData
+    {
+        public string Name;
+        public uint Id;
+        public ushort Icon;
+        public byte MaxStacks;
+
+        public TriggerData(string name, uint id, ushort icon, byte maxStacks)
+        {
+            Name = name;
+            Id = id;
+            Icon = icon;
+            MaxStacks = maxStacks;
         }
     }
 }

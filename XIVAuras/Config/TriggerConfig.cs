@@ -25,24 +25,14 @@ namespace XIVAuras.Config
         FocusTarget,
     }
 
-    public struct DataSource
-    {
-        public float Duration;
-        public uint Stacks;
-        public float Cooldown;
-    }
-
     public class TriggerConfig : IConfigPage
     {
         [JsonIgnore] public string Name => "Trigger";
-
         [JsonIgnore] private string[] _options = Enum.GetNames(typeof(TriggerType));
-
-        [JsonIgnore] private int _statusIdInput = -1;
-
+        [JsonIgnore] private string _triggerNameInput = string.Empty;
         [JsonIgnore] private TriggerCondition _inputTrigger = new TriggerCondition();
-
         [JsonIgnore] private string _triggerValueInput = string.Empty;
+        [JsonIgnore] private string _iconIdInput = string.Empty;
 
         public TriggerType TriggerType = TriggerType.Buff;
 
@@ -50,7 +40,32 @@ namespace XIVAuras.Config
 
         public List<TriggerCondition> TriggerConditions = new List<TriggerCondition>();
 
-        public uint StatusId = 0;
+        public List<TriggerData> TriggerList = new List<TriggerData>();
+
+        public string TriggerName = string.Empty;
+
+        public int IconPickerIndex = 0;
+
+        public int IconOption = 0;
+
+        public ushort CustomIcon = 0;
+
+        public ushort GetIcon()
+        {
+            if (!this.TriggerList.Any())
+            {
+                return 0;
+            }
+
+            if (this.IconOption == 0)
+            {
+                return this.TriggerList[this.IconPickerIndex].Icon;
+            }
+            else
+            {
+                return this.CustomIcon;
+            }
+        }
 
         public bool IsTriggered(DataSource data)
         {
@@ -80,7 +95,10 @@ namespace XIVAuras.Config
         {
             if (ImGui.BeginChild("##TriggerConfig", new Vector2(size.X, size.Y), true))
             {
-                ImGui.Combo("Trigger Type", ref Unsafe.As<TriggerType, int>(ref this.TriggerType), _options, _options.Length);
+                if(ImGui.Combo("Trigger Type", ref Unsafe.As<TriggerType, int>(ref this.TriggerType), _options, _options.Length))
+                {
+                    this.ResetTriggers();
+                }
 
                 string[] sourceOptions = this.TriggerType switch
                 {
@@ -90,14 +108,92 @@ namespace XIVAuras.Config
 
                 ImGui.Combo("Trigger Source", ref Unsafe.As<TriggerSource, int>(ref this.TriggerSource), sourceOptions, sourceOptions.Length);
 
-                if (_statusIdInput == -1)
+                if (string.IsNullOrEmpty(this._triggerNameInput))
                 {
-                    _statusIdInput = (int)this.StatusId;
+                    this._triggerNameInput = this.TriggerName;
                 }
 
-                if (ImGui.InputInt("Ability Id", ref _statusIdInput, 0, 0, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputTextWithHint("Trigger", "Ability Name or ID", ref _triggerNameInput, 32, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
-                    this.StatusId = (uint)_statusIdInput;
+                    this.ResetTriggers();
+                    if (!string.IsNullOrEmpty(_triggerNameInput))
+                    {
+                        if (this.TriggerType == TriggerType.Cooldown)
+                        {
+                            SpellHelpers.FindActionEntries(this._triggerNameInput).ForEach(t => AddTriggerData(t));
+                        }
+                        else
+                        {
+                            SpellHelpers.FindStatusEntries(this._triggerNameInput).ForEach(t => AddTriggerData(t));
+                        }
+                    }
+
+                    this._triggerNameInput = this.TriggerName;
+                }
+
+                if (this.TriggerList.Any())
+                {
+                    ImGui.RadioButton("Icon Picker", ref this.IconOption, 0);
+                    ImGui.SameLine();
+                    ImGui.RadioButton("Custom Icon", ref this.IconOption, 1);
+
+                    if (this.IconOption == 0)
+                    {
+                        if (ImGui.BeginChild("##IconPicker", new Vector2(size.X - padX * 2, 60), true))
+                        {
+                            List<ushort> icons = this.TriggerList.Select(t => t.Icon).Distinct().ToList();
+                            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+                            for (int i = 0; i < icons.Count; i++)
+                            {
+                                Vector2 iconSize = new Vector2(40, 40);
+                                Vector2 iconPos = ImGui.GetWindowPos().AddX(10) + new Vector2(i * (40 + padX), padY);
+                                DrawHelpers.DrawIcon(icons[i], iconPos, iconSize, true, 0, drawList);
+                                string iconText = icons[i].ToString();
+                                Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
+                                drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
+
+                                if (ImGui.IsMouseHoveringRect(iconPos, iconPos + iconSize))
+                                {
+                                    if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                                    {
+                                        this.IconPickerIndex = i;
+                                    }
+                                }
+                            }
+
+                            Vector2 selectionPos = ImGui.GetWindowPos().AddX(10) + new Vector2(this.IconPickerIndex * (40 + padX), padY);
+                            drawList.AddRect(selectionPos, selectionPos + new Vector2(40, 40), 0xFF00FF00);
+
+                            ImGui.EndChild();
+                        }
+                    }
+                    else if (this.IconOption == 1)
+                    {
+                        if (string.IsNullOrEmpty(this._iconIdInput) && this.CustomIcon != 0)
+                        {
+                            this._iconIdInput = this.CustomIcon.ToString();
+                        }
+
+                        if (ImGui.InputTextWithHint("Custom Icon Id", "Custom Icon Id", ref _iconIdInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                        {
+                            if (ushort.TryParse(this._iconIdInput, out ushort value))
+                            {
+                                this.CustomIcon = value;
+                            }
+                        }
+
+                        if (this.CustomIcon != 0 && ImGui.BeginChild("##IconPicker", new Vector2(size.X - padX * 2, 60), true))
+                        {
+                            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+                            Vector2 iconSize = new Vector2(40, 40);
+                            Vector2 iconPos = ImGui.GetWindowPos() + new Vector2(0, padY);
+                            DrawHelpers.DrawIcon(this.CustomIcon, iconPos, iconSize, true, 0, drawList);
+                            string iconText = this.CustomIcon.ToString();
+                            Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
+                            drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
+                            ImGui.EndChild();
+                        }
+                    }
                 }
 
                 DrawHelpers.DrawSpacing(1);
@@ -127,7 +223,7 @@ namespace XIVAuras.Config
                         ImGui.PushID(i.ToString());
                         ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
 
-                        this.DrawTriggerRow(i);
+                        this.DrawTriggerConditionRow(i);
                     }
 
                     ImGui.EndTable();
@@ -137,7 +233,7 @@ namespace XIVAuras.Config
             }
         }
 
-        private void DrawTriggerRow(int i)
+        private void DrawTriggerConditionRow(int i)
         {
             TriggerCondition trigger = i < this.TriggerConditions.Count ? this.TriggerConditions[i] : _inputTrigger;
 
@@ -199,16 +295,29 @@ namespace XIVAuras.Config
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 if (i < this.TriggerConditions.Count)
                 {
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(trigger), "Remove Trigger", buttonSize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTriggerCondition(trigger), "Remove Trigger", buttonSize);
                 }
                 else
                 {
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonSize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTriggerCondition(), "New Trigger", buttonSize);
                 }
             }
         }
 
-        private void AddTrigger()
+        private void AddTriggerData(TriggerData triggerData)
+        {
+            this.TriggerName = triggerData.Name.ToString();
+            this._triggerNameInput = triggerData.Name.ToString();
+            this.TriggerList.Add(triggerData);
+        }
+
+        private void ResetTriggers()
+        {
+            this.TriggerName = string.Empty;
+            this.TriggerList = new List<TriggerData>();
+        }
+
+        private void AddTriggerCondition()
         {
             if (!this.TriggerConditions.Any() ||
                 (_inputTrigger.Cond != TriggerCond.None &&
@@ -220,7 +329,7 @@ namespace XIVAuras.Config
             }
         }
 
-        private void RemoveTrigger(TriggerCondition trigger)
+        private void RemoveTriggerCondition(TriggerCondition trigger)
         {
             this.TriggerConditions.Remove(trigger);
         }
