@@ -315,6 +315,9 @@ namespace XIVAuras.Config
         {
             this.TriggerName = string.Empty;
             this.TriggerList = new List<TriggerData>();
+            this.CustomIcon = 0;
+            this.IconOption = 0;
+            this.IconPickerIndex = 0;
         }
 
         private void AddTriggerCondition()
