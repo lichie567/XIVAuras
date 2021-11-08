@@ -10,6 +10,7 @@ namespace XIVAuras.Auras
     public abstract class AuraListItem : IConfigurable
     {
         [JsonIgnore] protected bool LastFrameWasPreview = false;
+        [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] public bool Preview = false;
         [JsonIgnore] public readonly string ID;
 

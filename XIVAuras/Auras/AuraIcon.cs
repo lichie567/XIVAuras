@@ -63,12 +63,19 @@ namespace XIVAuras.Auras
 
             if (triggered)
             {
-                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.LastFrameWasPreview, (drawList) =>
+                bool continueDrag = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+                bool hovered = ImGui.IsMouseHoveringRect(localPos, localPos + size);
+                bool setPos = this.Preview && !this.LastFrameWasPreview || !hovered;
+                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, false, this.Preview, setPos && !continueDrag, (drawList) =>
                 {
                     if (this.Preview)
                     {
-                        localPos = ImGui.GetWindowPos();
-                        this.IconStyleConfig.Position = localPos - pos;
+                        this.LastFrameWasDragging = hovered && ImGui.IsMouseDown(ImGuiMouseButton.Left) || continueDrag;
+                        if (this.LastFrameWasDragging)
+                        {
+                            localPos = ImGui.GetWindowPos();
+                            this.IconStyleConfig.Position = localPos - pos;
+                        }
                     }
 
                     DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, this.IconStyleConfig.CropIcon, 0, drawList);
