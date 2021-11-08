@@ -1,8 +1,8 @@
 {
     "Name": "XIVAuras",
     "Author": "Lichie",
-    "Punchline": "Customizable status tracking",
-    "Description": "Powerful and highly customizable status (buff/debuff) trackers. Inspired by WeakAuras.",
+    "Punchline": "Customizable status and cooldown tracking",
+    "Description": "Highly customizable status and cooldown trackers. Inspired by WeakAuras.",
     "RepoUrl": "https://github.com/lichie567/XIVAuras",
     "Tags": ["UI"]
 }
