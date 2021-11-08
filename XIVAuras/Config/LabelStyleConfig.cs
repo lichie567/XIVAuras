@@ -31,7 +31,7 @@ namespace XIVAuras.Config
         public DrawAnchor ParentAnchor = DrawAnchor.Center;
         public DrawAnchor TextAlign = DrawAnchor.Center;
         public int FontID = 0;
-        public string FontKey = "Default";
+        public string FontKey = FontsManager.DefaultFontKey;
         public ConfigColor TextColor = new ConfigColor(1, 1, 1, 1);
         public bool ShowOutline = true;
         public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 1);
@@ -49,7 +49,7 @@ namespace XIVAuras.Config
                 if (this.FontID > fontOptions.Length ||
                     !fontOptions[this.FontID].Equals(this.FontKey))
                 {
-                    this.FontKey = "Default";
+                    this.FontKey = FontsManager.DefaultFontKey;
                     this.FontID = 0;
                 }
 

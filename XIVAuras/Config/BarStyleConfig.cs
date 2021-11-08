@@ -11,7 +11,7 @@ namespace XIVAuras.Config
         {
             if (ImGui.BeginChild("##BarStyleConfig", new Vector2(size.X, size.Y), true))
             {
-                ImGui.Text("TODO");
+                ImGui.Text("Coming Soon");
 
                 ImGui.EndChild();
             }

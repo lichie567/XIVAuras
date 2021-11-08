@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
@@ -75,17 +74,7 @@ namespace XIVAuras
                 return;
             }
 
-            Condition condition = Singletons.Get<Condition>();
-            bool characterBusy =
-                condition[ConditionFlag.WatchingCutscene] ||
-                condition[ConditionFlag.WatchingCutscene78] ||
-                condition[ConditionFlag.OccupiedInCutSceneEvent] ||
-                condition[ConditionFlag.CreatingCharacter] ||
-                condition[ConditionFlag.BetweenAreas] ||
-                condition[ConditionFlag.BetweenAreas51] ||
-                condition[ConditionFlag.OccupiedSummoningBell];
-
-            if (characterBusy)
+            if (CharacterState.IsCharacterBusy())
             {
                 return;
             }

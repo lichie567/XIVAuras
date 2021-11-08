@@ -31,7 +31,7 @@ namespace XIVAuras.Helpers
         private Dictionary<string, ImFontPtr> ImGuiFonts { get; init; }
         private string[] FontList { get; set; }
 
-        private string DefaultFontKey = "Default";
+        public const string DefaultFontKey = "Default";
 
         public FontsManager(IEnumerable<FontData> fonts)
         {
@@ -65,7 +65,7 @@ namespace XIVAuras.Helpers
                 {
                     ImVector? ranges = this.GetCharacterRanges(font, io);
 
-                    ImFontPtr imFont = ranges == null
+                    ImFontPtr imFont = !ranges.HasValue
                         ? io.Fonts.AddFontFromFileTTF(fontPath, font.Size)
                         : io.Fonts.AddFontFromFileTTF(fontPath, font.Size, null, ranges.Value.Data);
 
