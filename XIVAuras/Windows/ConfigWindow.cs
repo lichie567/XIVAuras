@@ -133,7 +133,6 @@ namespace XIVAuras.Windows
                 ImGui.PopItemWidth();
                 ImGui.SameLine();
 
-
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", buttonsize);
                 ImGui.SameLine();
 

@@ -165,6 +165,7 @@ namespace XIVAuras.Helpers
             typeof(BarStyleConfig),
             typeof(ConfigColor),
             typeof(FontConfig),
+            typeof(FontData),
             typeof(IconStyleConfig),
             typeof(LabelStyleConfig),
             typeof(TriggerConfig),

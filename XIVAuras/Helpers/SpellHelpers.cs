@@ -63,34 +63,19 @@ namespace XIVAuras.Helpers
             return maxStacks - (int)Math.Ceiling(GetSpellCooldownInt(actionId) / (GetRecastTime(actionId) / maxStacks));
         }
 
-        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine)
+        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine, bool preview)
         {
+            if (preview)
+            {
+                return new DataSource()
+                {
+                    Duration = 15,
+                    Cooldown = 15,
+                    Stacks = 0, // needs to be 0 to preview icon correctly
+                };
+            }
+
             if (!triggerData.Any())
-            {
-                return null;
-            }
-
-            ClientState clientState = Singletons.Get<ClientState>();
-            TargetManager targetManager = Singletons.Get<TargetManager>();
-
-            PlayerCharacter? player = clientState.LocalPlayer;
-            if (player is null)
-            {
-                return new DataSource();
-            }
-
-            GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
-
-            GameObject? actor = source switch
-            {
-                TriggerSource.Player => player,
-                TriggerSource.Target => target,
-                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
-                TriggerSource.FocusTarget => targetManager.FocusTarget,
-                _ => null
-            };
-
-            if (actor is not BattleChara chara)
             {
                 return null;
             }
@@ -98,15 +83,46 @@ namespace XIVAuras.Helpers
             if (type == TriggerType.Cooldown)
             {
                 SpellHelpers helper = Singletons.Get<SpellHelpers>();
-                TriggerData trigger = triggerData.First();
+                TriggerData activeTrigger = triggerData.FirstOrDefault(t => helper.GetSpellCooldown(t.Id) > 0);
+
+                if (activeTrigger.Id == 0)
+                {
+                    return new DataSource();
+                }
+
                 return new DataSource()
                 {
-                    Cooldown = helper.GetSpellCooldown(trigger.Id),
-                    Stacks = helper.GetStackCount(trigger.MaxStacks, trigger.Id),
+                    Cooldown = helper.GetSpellCooldown(activeTrigger.Id),
+                    Stacks = helper.GetStackCount(activeTrigger.MaxStacks, activeTrigger.Id),
                 };
             }
             else
             {
+                ClientState clientState = Singletons.Get<ClientState>();
+                TargetManager targetManager = Singletons.Get<TargetManager>();
+
+                PlayerCharacter? player = clientState.LocalPlayer;
+                if (player is null)
+                {
+                    return null;
+                }
+
+                GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
+
+                GameObject? actor = source switch
+                {
+                    TriggerSource.Player => player,
+                    TriggerSource.Target => target,
+                    TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
+                    TriggerSource.FocusTarget => targetManager.FocusTarget,
+                    _ => null
+                };
+
+                if (actor is not BattleChara chara)
+                {
+                    return null;
+                }
+
                 IEnumerable<uint> ids = triggerData.Select(t => t.Id);
                 var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId) && (o.SourceID == player.ObjectId || !onlyMine));
                 return new DataSource()

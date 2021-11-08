@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using ImGuiScene;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -50,17 +48,8 @@ namespace XIVAuras.Auras
                 this.TriggerConfig.TriggerSource,
                 this.TriggerConfig.TriggerType,
                 this.TriggerConfig.TriggerList,
-                this.TriggerConfig.ShowOnlyMine);
-
-            if (this.Preview)
-            {
-                data = new DataSource()
-                {
-                    Duration = 15,
-                    Cooldown = 15,
-                    Stacks = 0, // needs to be 0 to preview icon correctly
-                };
-            }
+                this.TriggerConfig.ShowOnlyMine,
+                this.Preview);
 
             if (!data.HasValue)
             {

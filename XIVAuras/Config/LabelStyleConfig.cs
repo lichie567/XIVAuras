@@ -30,7 +30,8 @@ namespace XIVAuras.Config
         public Vector2 Position = new Vector2(0, 0);
         public DrawAnchor ParentAnchor = DrawAnchor.Center;
         public DrawAnchor TextAlign = DrawAnchor.Center;
-        public int FontId = 0;
+        public int FontID = 0;
+        public string FontKey = "Default";
         public ConfigColor TextColor = new ConfigColor(1, 1, 1, 1);
         public bool ShowOutline = true;
         public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 1);
@@ -43,7 +44,17 @@ namespace XIVAuras.Config
                 ImGui.DragFloat2("Position", ref this.Position);
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);
-                ImGui.Combo("Font", ref this.FontId, new[] { "" }, 1);
+
+                string[] fontOptions = Singletons.Get<FontsManager>().GetFontList();
+                if (this.FontID > fontOptions.Length ||
+                    !fontOptions[this.FontID].Equals(this.FontKey))
+                {
+                    this.FontKey = "Default";
+                    this.FontID = 0;
+                }
+
+                ImGui.Combo("Font", ref this.FontID, fontOptions, fontOptions.Length);
+                this.FontKey = fontOptions[this.FontID];
 
                 DrawHelpers.DrawSpacing(1);
                 Vector4 textColor = this.TextColor.Vector;

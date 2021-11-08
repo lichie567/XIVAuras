@@ -54,6 +54,7 @@
     <!-- Included Content -->
     <ItemGroup>
         <Content Include="XIVAuras.json" CopyToOutputDirectory="Always" />
+        <Content Include="Media\**" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <!-- Library References -->

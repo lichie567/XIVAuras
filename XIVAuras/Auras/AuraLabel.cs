@@ -45,11 +45,14 @@ namespace XIVAuras.Auras
             text = text.Replace("[stacks]", $"{data.Stacks}");
             text = text.Replace("[cooldown]", $"{Math.Truncate(data.Cooldown)}");
 
+            bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);
+
             Vector2 textSize = ImGui.CalcTextSize(text);
             Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
             textPos = Utils.GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
 
-            DrawHelpers.DrawInWindow($"##{this.ID}", textPos, textSize, false, true, true, (drawList) =>
+            Vector2 textPad = new Vector2(2, 2); // Add small amount of padding to avoid text getting clipped
+            DrawHelpers.DrawInWindow($"##{this.ID}", textPos - textPad, textSize + textPad, false, true, true, (drawList) =>
             {
                 uint textColor = this.LabelStyleConfig.TextColor.Base;
 
@@ -63,6 +66,11 @@ namespace XIVAuras.Auras
                     drawList.AddText(textPos, textColor, text);
                 }
             });
+
+            if (fontPushed)
+            {
+                ImGui.PopFont();
+            }
         }
 
         public void SetData(DataSource data)

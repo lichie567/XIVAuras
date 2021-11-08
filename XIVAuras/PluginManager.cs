@@ -60,6 +60,7 @@ namespace XIVAuras
             this.ClientState.Logout += OnLogout;
             this.PluginInterface.UiBuilder.OpenConfigUi += OpenConfigUi;
             this.PluginInterface.UiBuilder.Draw += Draw;
+            this.PluginInterface.UiBuilder.BuildFonts += BuildFonts;
         }
 
         public void Edit(AuraListItem aura)
@@ -144,6 +145,11 @@ namespace XIVAuras
             }
         }
 
+        private void BuildFonts()
+        {
+            Singletons.Get<FontsManager>().BuildFonts();
+        }
+
         public void Dispose()
         {
             this.Dispose(true);
@@ -155,6 +161,7 @@ namespace XIVAuras
             if (disposing)
             {
                 // Don't modify order
+                this.PluginInterface.UiBuilder.BuildFonts -= BuildFonts;
                 this.PluginInterface.UiBuilder.Draw -= Draw;
                 this.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;
                 this.ClientState.Logout -= OnLogout;

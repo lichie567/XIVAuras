@@ -64,6 +64,9 @@ namespace XIVAuras
             XIVAurasConfig config = ConfigHelpers.LoadConfig(Plugin.ConfigFilePath);
             Singletons.Register(config);
 
+            // Initialize Fonts
+            Singletons.Register(new FontsManager(config.FontConfig.Fonts.Values));
+
             // Start the plugin
             Singletons.Register(new PluginManager(clientState, commandManager, pluginInterface, config));
         }
