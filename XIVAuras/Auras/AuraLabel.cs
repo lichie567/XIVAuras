@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 using Newtonsoft.Json;
@@ -33,17 +32,17 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!parentSize.HasValue || !this.Data.HasValue)
+            Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
+            pos = parentSize.HasValue ? pos : Vector2.Zero;
+
+            string text = this.LabelStyleConfig.TextFormat;
+            if (this.Data.HasValue)
             {
-                return;
+                DataSource data = this.Data.Value;
+                text = text.Replace("[duration]", this.LabelStyleConfig.FormatNumber(data.Duration));
+                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(data.Stacks));
+                text = text.Replace("[cooldown]", this.LabelStyleConfig.FormatNumber(data.Cooldown));
             }
-
-            Vector2 size = parentSize.Value;
-            DataSource data = this.Data.Value;
-
-            string text = this.LabelStyleConfig.TextFormat.Replace("[duration]", $"{Math.Truncate(data.Duration)}");
-            text = text.Replace("[stacks]", $"{data.Stacks}");
-            text = text.Replace("[cooldown]", $"{Math.Truncate(data.Cooldown)}");
 
             bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);
 

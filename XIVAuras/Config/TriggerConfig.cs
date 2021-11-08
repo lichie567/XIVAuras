@@ -31,7 +31,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private string[] _options = Enum.GetNames(typeof(TriggerType));
         [JsonIgnore] private string _triggerNameInput = string.Empty;
         [JsonIgnore] private TriggerCondition _inputTrigger = new TriggerCondition();
-        [JsonIgnore] private string _triggerValueInput = string.Empty;
+        [JsonIgnore] private string _triggerConditionValueInput = string.Empty;
         [JsonIgnore] private string _iconIdInput = string.Empty;
 
         public TriggerType TriggerType = TriggerType.Buff;
@@ -285,9 +285,9 @@ namespace XIVAuras.Config
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
 
-                _triggerValueInput = trigger.Value.ToString();
-                ImGui.InputText("##InputFloat", ref _triggerValueInput, 10);
-                if (float.TryParse(_triggerValueInput, out float value))
+                _triggerConditionValueInput = trigger.Value.ToString();
+                ImGui.InputText("##InputFloat", ref _triggerConditionValueInput, 10);
+                if (float.TryParse(_triggerConditionValueInput, out float value))
                 {
                     trigger.Value = value;
                 }
