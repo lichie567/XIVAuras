@@ -55,6 +55,7 @@
     <ItemGroup>
         <Content Include="XIVAuras.json" CopyToOutputDirectory="Always" />
         <Content Include="Media\**" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="Media\images\icon.png" Link="images/icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
     </ItemGroup>
 
     <!-- Library References -->
