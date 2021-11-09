@@ -125,6 +125,11 @@ namespace XIVAuras.Helpers
 
                 IEnumerable<uint> ids = triggerData.Select(t => t.Id);
                 var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId) && (o.SourceID == player.ObjectId || !onlyMine));
+                if (status is null)
+                {
+                    return null;
+                }
+
                 return new DataSource()
                 {
                     Duration = Math.Abs(status?.RemainingTime ?? 0f),

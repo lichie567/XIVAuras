@@ -65,8 +65,18 @@ namespace XIVAuras.Auras
 
             if (triggered)
             {
-                this.StartData ??= data;
-                this.StartTime ??= DateTime.UtcNow;
+                float triggeredValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown
+                    ? data.Value.Cooldown
+                    : data.Value.Duration;
+
+                if (!this.StartData.HasValue || !this.StartTime.HasValue)
+                {
+                    if (triggeredValue > 0)
+                    {
+                        this.StartData = data;
+                        this.StartTime = DateTime.UtcNow;
+                    }
+                }
 
                 bool continueDrag = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
                 bool hovered = ImGui.IsMouseHoveringRect(localPos, localPos + size);
@@ -88,31 +98,37 @@ namespace XIVAuras.Auras
 
                     if (this.IconStyleConfig.ShowProgressSwipe && this.StartData.HasValue)
                     {
-                        bool invert = this.IconStyleConfig.InvertSwipe;
-                        float percent = this.TriggerConfig.TriggerType == TriggerType.Cooldown
-                            ? (invert ? 0 : 1) - (this.StartData.Value.Cooldown - data.Value.Cooldown) / this.StartData.Value.Cooldown
-                            : (invert ? 0 : 1) - (this.StartData.Value.Duration - data.Value.Duration) / this.StartData.Value.Duration;
+                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown
+                            ? this.StartData.Value.Cooldown
+                            : this.StartData.Value.Duration;
 
-                        float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
-                        float startAngle = -(float)Math.PI / 2;
-                        float endAngle = startAngle - 2f * (float)Math.PI * percent;
-
-                        ImGui.PushClipRect(localPos, localPos + size, false);
-                        drawList.PathArcTo(localPos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
-                        drawList.PathStroke((uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255) << 24, ImDrawFlags.None, radius);
-                        if (this.IconStyleConfig.ShowSwipeLines)
+                        if (startValue > 0)
                         {
-                            Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
-                            Vector2 start = localPos + size / 2;
-                            Vector2 end = start + vec * radius;
-                            float thickness = this.IconStyleConfig.ProgressLineThickness;
+                            bool invert = this.IconStyleConfig.InvertSwipe;
+                            float percent = (invert ? 0 : 1) - (startValue - triggeredValue) / startValue;
 
-                            drawList.AddLine(start, end, this.IconStyleConfig.ProgressLineColor.Base, thickness);
-                            drawList.AddLine(start, new(localPos.X + size.X / 2, localPos.Y), this.IconStyleConfig.ProgressLineColor.Base, thickness);
-                            drawList.AddCircleFilled(start + new Vector2(thickness / 4, thickness / 4), thickness / 2, this.IconStyleConfig.ProgressLineColor.Base);
+                            float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
+                            float startAngle = -(float)Math.PI / 2;
+                            float endAngle = startAngle - 2f * (float)Math.PI * percent;
+
+                            ImGui.PushClipRect(localPos, localPos + size, false);
+                            drawList.PathArcTo(localPos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
+                            drawList.PathStroke((uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255) << 24, ImDrawFlags.None, radius);
+                            if (this.IconStyleConfig.ShowSwipeLines)
+                            {
+                                Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
+                                Vector2 start = localPos + size / 2;
+                                Vector2 end = start + vec * radius;
+                                float thickness = this.IconStyleConfig.ProgressLineThickness;
+                                uint color = this.IconStyleConfig.ProgressLineColor.Base;
+
+                                drawList.AddLine(start, end, color, thickness);
+                                drawList.AddLine(start, new(localPos.X + size.X / 2, localPos.Y), color, thickness);
+                                drawList.AddCircleFilled(start + new Vector2(thickness / 4, thickness / 4), thickness / 2, color);
+                            }
+
+                            ImGui.PopClipRect();
                         }
-
-                        ImGui.PopClipRect();
                     }
 
                     if (this.IconStyleConfig.ShowBorder)
