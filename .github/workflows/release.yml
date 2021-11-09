@@ -66,7 +66,45 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: XIVAuras-debug-${{ github.sha }}
+          name: XIVAuras-release-${{ github.sha }}
           path: |
             XIVAuras/bin/x64/Release
             !XIVAuras/bin/x64/Release/XIVAuras
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: XIVAuras ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./XIVAuras/bin/x64/Release/XIVAuras/latest.zip
+          asset_name: XIVAuras.zip
+          asset_content_type: application/zip
+
+      - name: Write out repo.json
+        run: |
+          $ver = '${{ github.ref }}' -replace 'refs/tags/',''
+          $path = './base_repo.json'
+          $new_path = './repo.json'
+          $content = get-content -path $path
+          $content = $content -replace '1.0.0.0',$ver
+          set-content -Path $new_path -Value $content
+      - name: Commit repo.json
+        run: |
+          git config --global user.name "Actions User"
+          git config --global user.email "actions@github.com"
+          git fetch origin main && git checkout main
+          git add repo.json
+          git commit -m "[CI] Updating repo.json for ${{ github.ref }}" || true
+          git push origin main || true
