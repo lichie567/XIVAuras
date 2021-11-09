@@ -80,7 +80,7 @@ namespace XIVAuras.Config
 
                 if (this.ShowForJobTypes == JobType.Custom)
                 {
-                    if (ImGui.InputTextWithHint("Custom Job List", "Comma Separated List (ex: WAR, PAL, DRK)", ref _customJobInput, 100, ImGuiInputTextFlags.EnterReturnsTrue))
+                    if (ImGui.InputTextWithHint("Custom Job List", "Comma Separated List (ex: WAR, SAM, BLM)", ref _customJobInput, 100, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
                         IEnumerable<string> jobStrings = this._customJobInput.Split(',').Select(j => j.Trim());
                         List<Job> jobList = new List<Job>();
