@@ -16,6 +16,8 @@ namespace XIVAuras.Auras
 
         public LabelStyleConfig LabelStyleConfig { get; init; }
 
+        public VisibilityConfig VisibilityConfig { get; init; }
+
         // Constuctor for deserialization
         public AuraLabel() : this(string.Empty) { }
 
@@ -23,15 +25,22 @@ namespace XIVAuras.Auras
         {
             this.Name = name;
             this.LabelStyleConfig = new LabelStyleConfig();
+            this.VisibilityConfig = new VisibilityConfig();
         }
 
         public override IEnumerator<IConfigPage> GetEnumerator()
         {
             yield return this.LabelStyleConfig;
+            yield return this.VisibilityConfig;
         }
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
+            if (!this.VisibilityConfig.IsVisible())
+            {
+                return;
+            }
+
             Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 

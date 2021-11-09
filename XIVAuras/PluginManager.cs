@@ -29,7 +29,7 @@ namespace XIVAuras
 
         private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
 
-        private readonly Vector2 _configSize = new Vector2(500, 500);
+        private readonly Vector2 _configSize = new Vector2(550, 600);
 
         public PluginManager(
             ClientState clientState,

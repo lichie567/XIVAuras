@@ -23,6 +23,12 @@ namespace XIVAuras.Config
         public int BorderThickness = 1;
         public ConfigColor BorderColor = new ConfigColor(0, 0, 0, 1);
         public bool CropIcon = true;
+        public bool ShowProgressSwipe = false;
+        public float ProgressSwipeOpacity = 0.6f;
+        public bool InvertSwipe = false;
+        public bool ShowSwipeLines = false;
+        public ConfigColor ProgressLineColor = new ConfigColor(1, 1, 1, 1);
+        public int ProgressLineThickness = 2;
 
         public List<AuraLabel> AuraLabels { get; init; }
 
@@ -53,6 +59,25 @@ namespace XIVAuras.Config
                 }
 
                 ImGui.Checkbox("Crop Icon", ref this.CropIcon);
+                ImGui.Checkbox("Show Progress Swipe", ref this.ShowProgressSwipe);
+                if (this.ShowProgressSwipe)
+                {
+                    DrawHelpers.DrawNestIndicator(1);
+                    ImGui.DragFloat("Swipe Opacity", ref this.ProgressSwipeOpacity, .01f, 0, 1);
+                    DrawHelpers.DrawNestIndicator(1);
+                    ImGui.Checkbox("Invert Swipe", ref this.InvertSwipe);
+                    DrawHelpers.DrawNestIndicator(1);
+                    ImGui.Checkbox("Show Swipe Lines", ref this.ShowSwipeLines);
+                    if (this.ShowSwipeLines)
+                    {
+                        DrawHelpers.DrawNestIndicator(2);
+                        Vector4 vector = this.ProgressLineColor.Vector;
+                        ImGui.ColorEdit4("Line Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.ProgressLineColor.Vector = vector;
+                        DrawHelpers.DrawNestIndicator(2);
+                        ImGui.DragInt("Thickness", ref this.ProgressLineThickness, 1, 1, 5);
+                    }
+                }
 
                 DrawHelpers.DrawSpacing(1);
                 ImGui.Text("Labels");

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -37,6 +38,7 @@ namespace XIVAuras.Auras
             yield return this.VisibilityConfig;
         }
 
+
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
             if (!this.TriggerConfig.TriggerList.Any())
@@ -63,6 +65,9 @@ namespace XIVAuras.Auras
 
             if (triggered)
             {
+                this.StartData ??= data;
+                this.StartTime ??= DateTime.UtcNow;
+
                 bool continueDrag = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
                 bool hovered = ImGui.IsMouseHoveringRect(localPos, localPos + size);
                 bool setPos = this.Preview && !this.LastFrameWasPreview || !hovered;
@@ -70,7 +75,8 @@ namespace XIVAuras.Auras
                 {
                     if (this.Preview)
                     {
-                        this.LastFrameWasDragging = hovered && ImGui.IsMouseDown(ImGuiMouseButton.Left) || continueDrag;
+                        data = this.UpdatePreviewData(data.Value);
+                        this.LastFrameWasDragging = hovered || continueDrag;
                         if (this.LastFrameWasDragging)
                         {
                             localPos = ImGui.GetWindowPos();
@@ -79,6 +85,35 @@ namespace XIVAuras.Auras
                     }
 
                     DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, this.IconStyleConfig.CropIcon, 0, drawList);
+
+                    if (this.IconStyleConfig.ShowProgressSwipe && this.StartData.HasValue)
+                    {
+                        bool invert = this.IconStyleConfig.InvertSwipe;
+                        float percent = this.TriggerConfig.TriggerType == TriggerType.Cooldown
+                            ? (invert ? 0 : 1) - (this.StartData.Value.Cooldown - data.Value.Cooldown) / this.StartData.Value.Cooldown
+                            : (invert ? 0 : 1) - (this.StartData.Value.Duration - data.Value.Duration) / this.StartData.Value.Duration;
+
+                        float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
+                        float startAngle = -(float)Math.PI / 2;
+                        float endAngle = startAngle - 2f * (float)Math.PI * percent;
+
+                        ImGui.PushClipRect(localPos, localPos + size, false);
+                        drawList.PathArcTo(localPos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
+                        drawList.PathStroke((uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255) << 24, ImDrawFlags.None, radius);
+                        if (this.IconStyleConfig.ShowSwipeLines)
+                        {
+                            Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
+                            Vector2 start = localPos + size / 2;
+                            Vector2 end = start + vec * radius;
+                            float thickness = this.IconStyleConfig.ProgressLineThickness;
+
+                            drawList.AddLine(start, end, this.IconStyleConfig.ProgressLineColor.Base, thickness);
+                            drawList.AddLine(start, new(localPos.X + size.X / 2, localPos.Y), this.IconStyleConfig.ProgressLineColor.Base, thickness);
+                            drawList.AddCircleFilled(start + new Vector2(thickness / 4, thickness / 4), thickness / 2, this.IconStyleConfig.ProgressLineColor.Base);
+                        }
+
+                        ImGui.PopClipRect();
+                    }
 
                     if (this.IconStyleConfig.ShowBorder)
                     {
@@ -89,6 +124,11 @@ namespace XIVAuras.Auras
                         }
                     }
                 });
+            }
+            else
+            {
+                this.StartData = null;
+                this.StartTime = null;
             }
 
             foreach (AuraLabel label in IconStyleConfig.AuraLabels)
