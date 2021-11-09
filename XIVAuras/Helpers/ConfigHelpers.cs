@@ -18,7 +18,7 @@ namespace XIVAuras.Helpers
         private static readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings
         {
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-            TypeNameHandling = TypeNameHandling.Auto,
+            TypeNameHandling = TypeNameHandling.All,
             SerializationBinder = new XIVAurasSerializationBinder()
         };
 
