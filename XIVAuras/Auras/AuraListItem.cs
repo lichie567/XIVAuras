@@ -35,12 +35,12 @@ namespace XIVAuras.Auras
 
         public override string? ToString() => $"{this.Type} [{this.Name}]";
 
-        public DataSource UpdatePreviewData(DataSource data)
+        protected DataSource UpdatePreviewData(DataSource data)
         {
-            if (this.StartTime.HasValue && this.StartData.HasValue)
+            if (this.StartTime.HasValue && this.StartData is not null)
             {
                 float secondSinceStart = (float)(DateTime.UtcNow - this.StartTime.Value).TotalSeconds;
-                float resetValue = Math.Min(this.StartData.Value.Duration, this.StartData.Value.Cooldown);
+                float resetValue = Math.Min(this.StartData.Value, this.StartData.Value);
                 float newValue = resetValue - secondSinceStart;
 
                 if (newValue < 0)
@@ -51,12 +51,40 @@ namespace XIVAuras.Auras
 
                 return new DataSource()
                 {
-                    Cooldown = newValue,
-                    Duration = newValue
+                    Value = newValue,
+                    ChargeTime = data.ChargeTime,
+                    Stacks = data.Stacks
                 };
             }
 
             return data;
+        }
+
+        protected void UpdateStartData(DataSource data, TriggerType type)
+        {
+            if (this.StartData is not null)
+            {
+                float startValue = type == TriggerType.Cooldown
+                    ? this.StartData.ChargeTime
+                    : this.StartData.Value;
+
+                float value = type == TriggerType.Cooldown
+                    ? data.ChargeTime
+                    : data.Value;
+
+                if (value > startValue)
+                {
+                    this.StartData = data;
+                    this.StartTime = DateTime.UtcNow;
+                }
+            }
+
+            if (this.StartData is null || !this.StartTime.HasValue)
+            {
+                this.StartData = data;
+                this.StartTime = DateTime.UtcNow;
+                return;
+            }
         }
     }
 

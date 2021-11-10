@@ -154,7 +154,7 @@ namespace XIVAuras.Config
                             {
                                 Vector2 iconSize = new Vector2(40, 40);
                                 Vector2 iconPos = ImGui.GetWindowPos().AddX(10) + new Vector2(i * (40 + padX), padY);
-                                DrawHelpers.DrawIcon(icons[i], iconPos, iconSize, true, 0, drawList);
+                                DrawHelpers.DrawIcon(icons[i], iconPos, iconSize, this.TriggerType != TriggerType.Cooldown, 0, drawList);
                                 string iconText = icons[i].ToString();
                                 Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
                                 drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
@@ -194,7 +194,7 @@ namespace XIVAuras.Config
                             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
                             Vector2 iconSize = new Vector2(40, 40);
                             Vector2 iconPos = ImGui.GetWindowPos() + new Vector2(10, padY);
-                            DrawHelpers.DrawIcon(this.CustomIcon, iconPos, iconSize, true, 0, drawList);
+                            DrawHelpers.DrawIcon(this.CustomIcon, iconPos, iconSize, this.TriggerType != TriggerType.Cooldown, 0, drawList);
                             drawList.AddRect(iconPos, iconPos + new Vector2(40, 40), 0xFF00FF00);
                             string iconText = this.CustomIcon.ToString();
                             Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);

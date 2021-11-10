@@ -44,10 +44,8 @@ namespace XIVAuras.Config
         {
             float value = this.Source switch
             {
-                TriggerDataSource.Duration => data.Duration,
                 TriggerDataSource.Stacks => data.Stacks,
-                TriggerDataSource.Cooldown => data.Cooldown,
-                _ => 0
+                _ => data.Value
             };
 
             return this.Op switch

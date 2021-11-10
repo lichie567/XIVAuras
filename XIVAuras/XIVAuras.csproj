@@ -79,7 +79,8 @@
             <Private>false</Private>
         </Reference>
         <Reference Include="FFXIVClientStructs">
-            <Private>false</Private>
+            <Private>true</Private>
+            <HintPath>$(SolutionDir)\lib\FFXIVClientStructs\bin\$(ConfigurationName)\FFXIVClientStructs.dll</HintPath>
         </Reference>
     </ItemGroup>
 

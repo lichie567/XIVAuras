@@ -45,12 +45,11 @@ namespace XIVAuras.Auras
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
             string text = this.LabelStyleConfig.TextFormat;
-            if (this.Data.HasValue)
+            if (this.Data is not null)
             {
-                DataSource data = this.Data.Value;
-                text = text.Replace("[duration]", this.LabelStyleConfig.FormatNumber(data.Duration));
-                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(data.Stacks));
-                text = text.Replace("[cooldown]", this.LabelStyleConfig.FormatNumber(data.Cooldown));
+                text = text.Replace("[duration]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
+                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(this.Data.Stacks));
+                text = text.Replace("[cooldown]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
             }
 
             bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);
