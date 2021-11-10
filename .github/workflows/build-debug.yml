@@ -10,10 +10,9 @@ jobs:
       DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
     steps:
-      - name: Checkout and initialise
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
-          submodules: recursive
+          submodules: 'true'
 
       - name: Extract Dalamud version
         id: dalamud-version
