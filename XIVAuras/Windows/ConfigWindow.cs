@@ -78,7 +78,7 @@ namespace XIVAuras.Windows
 
             if (ImGui.BeginTabBar($"##{this.WindowName}"))
             {
-                foreach (IConfigPage page in configItem)
+                foreach (IConfigPage page in configItem.GetConfigPages())
                 {
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {

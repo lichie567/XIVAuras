@@ -28,10 +28,8 @@ namespace XIVAuras.Auras
         public abstract AuraType Type { get; }
 
         public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
-
-        public abstract IEnumerator<IConfigPage> GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
+        public abstract IEnumerable<IConfigPage> GetConfigPages();
 
         public override string? ToString() => $"{this.Type} [{this.Name}]";
 

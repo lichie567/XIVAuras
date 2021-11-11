@@ -7,7 +7,6 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraLabel : AuraListItem
     {
         [JsonIgnore] private DataSource? Data { get; set; }
@@ -28,7 +27,7 @@ namespace XIVAuras.Auras
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.LabelStyleConfig;
             yield return this.VisibilityConfig;

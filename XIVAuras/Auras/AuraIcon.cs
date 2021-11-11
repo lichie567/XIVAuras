@@ -9,7 +9,6 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraIcon : AuraListItem
     {
         public override AuraType Type => AuraType.Icon;
@@ -31,7 +30,7 @@ namespace XIVAuras.Auras
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.IconStyleConfig;
             yield return this.TriggerConfig;
@@ -92,7 +91,7 @@ namespace XIVAuras.Auras
                             ? data.Value % this.StartData.ChargeTime
                             : data.Value;
 
-                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown
+                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown && this.StartData.ChargeTime > 0
                             ? this.StartData.ChargeTime
                             : this.StartData.Value;
 

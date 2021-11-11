@@ -2,8 +2,10 @@
 
 namespace XIVAuras.Config
 {
-    public interface IConfigurable : IEnumerable<IConfigPage>
+    public interface IConfigurable
     {
         string Name { get; set; }
+
+        IEnumerable<IConfigPage> GetConfigPages();
     }
 }

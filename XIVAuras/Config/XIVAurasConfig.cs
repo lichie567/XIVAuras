@@ -46,9 +46,7 @@ namespace XIVAuras.Config
 
         public override string ToString() => this.Name;
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-        public IEnumerator<IConfigPage> GetEnumerator()
+        public IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.AuraList;
             yield return this.FontConfig;

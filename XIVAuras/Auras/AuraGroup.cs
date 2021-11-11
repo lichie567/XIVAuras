@@ -5,7 +5,6 @@ using XIVAuras.Config;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraGroup : AuraListItem, IAuraGroup
     {
         public override AuraType Type => AuraType.Group;
@@ -20,7 +19,7 @@ namespace XIVAuras.Auras
             this.AuraList = new AuraListConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.AuraList;
         }
