@@ -192,7 +192,16 @@ namespace XIVAuras.Auras
             stacksLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
             stacksLabel.VisibilityConfig.HideIfValue = 1;
 
-            return new AuraIcon(name, valueLabel, stacksLabel);
+            AuraIcon newIcon = new AuraIcon(name, valueLabel, stacksLabel);
+            newIcon.TriggerConfig.TriggerConditions.Add(new TriggerCondition()
+            {
+                Cond = TriggerCond.None,
+                Source = TriggerDataSource.Value,
+                Op = TriggerDataOp.GreaterThan,
+                Value = 0
+            });
+
+            return newIcon;
         }
     }
 }
