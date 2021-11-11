@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using Newtonsoft.Json;
 using XIVAuras.Config;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraBar : AuraListItem
     {
         public override AuraType Type => AuraType.Bar;
@@ -27,7 +25,7 @@ namespace XIVAuras.Auras
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.BarStyleConfig;
             yield return this.TriggerConfig;

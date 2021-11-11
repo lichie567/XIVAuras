@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Newtonsoft.Json;
@@ -29,18 +28,21 @@ namespace XIVAuras.Auras
 
         public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
 
-        public abstract IEnumerator<IConfigPage> GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public abstract IEnumerable<IConfigPage> GetConfigPages();
 
         public override string? ToString() => $"{this.Type} [{this.Name}]";
 
-        public DataSource UpdatePreviewData(DataSource data)
+        public virtual void StopPreview()
         {
-            if (this.StartTime.HasValue && this.StartData.HasValue)
+            this.Preview = false;
+        }
+
+        protected DataSource UpdatePreviewData(DataSource data)
+        {
+            if (this.StartTime.HasValue && this.StartData is not null)
             {
                 float secondSinceStart = (float)(DateTime.UtcNow - this.StartTime.Value).TotalSeconds;
-                float resetValue = Math.Min(this.StartData.Value.Duration, this.StartData.Value.Cooldown);
+                float resetValue = Math.Min(this.StartData.Value, this.StartData.Value);
                 float newValue = resetValue - secondSinceStart;
 
                 if (newValue < 0)
@@ -51,12 +53,46 @@ namespace XIVAuras.Auras
 
                 return new DataSource()
                 {
-                    Cooldown = newValue,
-                    Duration = newValue
+                    Value = newValue,
+                    ChargeTime = data.ChargeTime,
+                    Stacks = data.Stacks
                 };
             }
 
             return data;
+        }
+
+        protected void UpdateStartData(DataSource data, TriggerType type)
+        {
+            if (this.LastFrameWasPreview && !this.Preview)
+            {
+                this.StartData = null;
+                this.StartTime = null;
+            }
+
+            if (this.StartData is not null)
+            {
+                float startValue = type == TriggerType.Cooldown
+                    ? this.StartData.ChargeTime
+                    : this.StartData.Value;
+
+                float value = type == TriggerType.Cooldown
+                    ? data.ChargeTime
+                    : data.Value;
+
+                if (value > startValue)
+                {
+                    this.StartData = data;
+                    this.StartTime = DateTime.UtcNow;
+                }
+            }
+
+            if (this.StartData is null || !this.StartTime.HasValue)
+            {
+                this.StartData = data;
+                this.StartTime = DateTime.UtcNow;
+                return;
+            }
         }
     }
 

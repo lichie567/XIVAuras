@@ -22,8 +22,7 @@ namespace XIVAuras.Config
         public bool ShowBorder = true;
         public int BorderThickness = 1;
         public ConfigColor BorderColor = new ConfigColor(0, 0, 0, 1);
-        public bool CropIcon = true;
-        public bool ShowProgressSwipe = false;
+        public bool ShowProgressSwipe = true;
         public float ProgressSwipeOpacity = 0.6f;
         public bool InvertSwipe = false;
         public bool ShowSwipeLines = false;
@@ -32,9 +31,9 @@ namespace XIVAuras.Config
 
         public List<AuraLabel> AuraLabels { get; init; }
 
-        public IconStyleConfig()
+        public IconStyleConfig(params AuraLabel[] labels)
         {
-            this.AuraLabels = new List<AuraLabel>();
+            this.AuraLabels = new List<AuraLabel>(labels);
         }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
@@ -58,7 +57,6 @@ namespace XIVAuras.Config
                     this.BorderColor.Vector = vector;
                 }
 
-                ImGui.Checkbox("Crop Icon", ref this.CropIcon);
                 ImGui.Checkbox("Show Progress Swipe", ref this.ShowProgressSwipe);
                 if (this.ShowProgressSwipe)
                 {

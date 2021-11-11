@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraIcon : AuraListItem
     {
         public override AuraType Type => AuraType.Icon;
@@ -23,15 +21,15 @@ namespace XIVAuras.Auras
         // Constructor for deserialization
         public AuraIcon() : this(string.Empty) { }
 
-        public AuraIcon(string name) : base(name)
+        public AuraIcon(string name, params AuraLabel[] labels) : base(name)
         {
             this.Name = name;
-            this.IconStyleConfig = new IconStyleConfig();
+            this.IconStyleConfig = new IconStyleConfig(labels);
             this.TriggerConfig = new TriggerConfig();
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.IconStyleConfig;
             yield return this.TriggerConfig;
@@ -53,30 +51,19 @@ namespace XIVAuras.Auras
                 this.TriggerConfig.ShowOnlyMine,
                 this.Preview);
 
-            if (!data.HasValue)
+            if (data is null)
             {
                 return;
             }
 
-            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data.Value) && this.VisibilityConfig.IsVisible();
+            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data) && this.VisibilityConfig.IsVisible(data);
 
             Vector2 localPos = pos + this.IconStyleConfig.Position;
             Vector2 size = this.IconStyleConfig.Size;
 
             if (triggered)
             {
-                float triggeredValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown
-                    ? data.Value.Cooldown
-                    : data.Value.Duration;
-
-                if (!this.StartData.HasValue || !this.StartTime.HasValue)
-                {
-                    if (triggeredValue > 0)
-                    {
-                        this.StartData = data;
-                        this.StartTime = DateTime.UtcNow;
-                    }
-                }
+                this.UpdateStartData(data, this.TriggerConfig.TriggerType);
 
                 bool continueDrag = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
                 bool hovered = ImGui.IsMouseHoveringRect(localPos, localPos + size);
@@ -85,7 +72,7 @@ namespace XIVAuras.Auras
                 {
                     if (this.Preview)
                     {
-                        data = this.UpdatePreviewData(data.Value);
+                        data = this.UpdatePreviewData(data);
                         this.LastFrameWasDragging = hovered || continueDrag;
                         if (this.LastFrameWasDragging)
                         {
@@ -94,40 +81,28 @@ namespace XIVAuras.Auras
                         }
                     }
 
-                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, this.IconStyleConfig.CropIcon, 0, drawList);
+                    bool crop = this.TriggerConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
+                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, drawList);
 
-                    if (this.IconStyleConfig.ShowProgressSwipe && this.StartData.HasValue)
+                    if (this.StartData is not null)
                     {
-                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown
-                            ? this.StartData.Value.Cooldown
-                            : this.StartData.Value.Duration;
+                        float triggeredValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown && this.StartData.ChargeTime > 0
+                            ? data.Value % this.StartData.ChargeTime
+                            : data.Value;
 
-                        if (startValue > 0)
+                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown && this.StartData.ChargeTime > 0
+                            ? this.StartData.ChargeTime
+                            : this.StartData.Value;
+
+                        data.Value = triggeredValue;
+                        if (this.TriggerConfig.TriggerType == TriggerType.Cooldown && triggeredValue == 0)
                         {
-                            bool invert = this.IconStyleConfig.InvertSwipe;
-                            float percent = (invert ? 0 : 1) - (startValue - triggeredValue) / startValue;
+                            data.Stacks = this.StartData.MaxStacks;
+                        }
 
-                            float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
-                            float startAngle = -(float)Math.PI / 2;
-                            float endAngle = startAngle - 2f * (float)Math.PI * percent;
-
-                            ImGui.PushClipRect(localPos, localPos + size, false);
-                            drawList.PathArcTo(localPos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
-                            drawList.PathStroke((uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255) << 24, ImDrawFlags.None, radius);
-                            if (this.IconStyleConfig.ShowSwipeLines)
-                            {
-                                Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
-                                Vector2 start = localPos + size / 2;
-                                Vector2 end = start + vec * radius;
-                                float thickness = this.IconStyleConfig.ProgressLineThickness;
-                                uint color = this.IconStyleConfig.ProgressLineColor.Base;
-
-                                drawList.AddLine(start, end, color, thickness);
-                                drawList.AddLine(start, new(localPos.X + size.X / 2, localPos.Y), color, thickness);
-                                drawList.AddCircleFilled(start + new Vector2(thickness / 4, thickness / 4), thickness / 2, color);
-                            }
-
-                            ImGui.PopClipRect();
+                        if (this.IconStyleConfig.ShowProgressSwipe)
+                        {
+                            this.DrawProgressSwipe(localPos, size, triggeredValue, startValue, drawList);
                         }
                     }
 
@@ -160,12 +135,73 @@ namespace XIVAuras.Auras
 
                 if (triggered || label.Preview)
                 {
-                    label.SetData(data.Value);
+                    label.SetData(data);
                     label.Draw(localPos, size);
                 }
             }
 
             this.LastFrameWasPreview = this.Preview;
+        }
+
+        private void DrawProgressSwipe(Vector2 pos, Vector2 size, float triggeredValue, float startValue, ImDrawListPtr drawList)
+        {
+            if (startValue > 0)
+            {
+                bool invert = this.IconStyleConfig.InvertSwipe;
+                float percent = (invert ? 0 : 1) - (startValue - triggeredValue) / startValue;
+
+                float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
+                float startAngle = -(float)Math.PI / 2;
+                float endAngle = startAngle - 2f * (float)Math.PI * percent;
+
+                ImGui.PushClipRect(pos, pos + size, false);
+                drawList.PathArcTo(pos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
+                drawList.PathStroke((uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255) << 24, ImDrawFlags.None, radius);
+                if (this.IconStyleConfig.ShowSwipeLines)
+                {
+                    Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
+                    Vector2 start = pos + size / 2;
+                    Vector2 end = start + vec * radius;
+                    float thickness = this.IconStyleConfig.ProgressLineThickness;
+                    uint color = this.IconStyleConfig.ProgressLineColor.Base;
+
+                    drawList.AddLine(start, end, color, thickness);
+                    drawList.AddLine(start, new(pos.X + size.X / 2, pos.Y), color, thickness);
+                    drawList.AddCircleFilled(start + new Vector2(thickness / 4, thickness / 4), thickness / 2, color);
+                }
+
+                ImGui.PopClipRect();
+            }
+        }
+
+        public static AuraIcon GetDefaultAuraIcon(string name)
+        {
+            AuraLabel valueLabel = new AuraLabel("Value", "[value]");
+            valueLabel.VisibilityConfig.HideIf = true;
+            valueLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.Value;
+            valueLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
+            valueLabel.VisibilityConfig.HideIfValue = 0;
+
+            AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
+            stacksLabel.LabelStyleConfig.ParentAnchor = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
+            stacksLabel.LabelStyleConfig.OutlineColor = new ConfigColor(1, 1, 1, 1);
+            stacksLabel.VisibilityConfig.HideIf = true;
+            stacksLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.MaxStacks;
+            stacksLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
+            stacksLabel.VisibilityConfig.HideIfValue = 1;
+
+            AuraIcon newIcon = new AuraIcon(name, valueLabel, stacksLabel);
+            newIcon.TriggerConfig.TriggerConditions.Add(new TriggerCondition()
+            {
+                Cond = TriggerCond.None,
+                Source = TriggerDataSource.Value,
+                Op = TriggerDataOp.GreaterThan,
+                Value = 0
+            });
+
+            return newIcon;
         }
     }
 }

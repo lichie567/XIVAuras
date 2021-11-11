@@ -176,6 +176,7 @@ namespace XIVAuras.Helpers
     public enum JobType
     {
         All,
+        Custom,
         Tanks,
         Casters,
         Melee,
@@ -185,7 +186,6 @@ namespace XIVAuras.Helpers
         DoM,
         Crafters,
         DoH,
-        DoL,
-        Custom
+        DoL
     }
 }

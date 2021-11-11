@@ -9,7 +9,7 @@ namespace XIVAuras.Config
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
-            if (ImGui.BeginChild("##IconStyleConfig", new Vector2(size.X, size.Y), true))
+            if (ImGui.BeginChild("##AboutPage", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Text("Made by Lichie.");
                 ImGui.Text("XIVAuras is NOT associated with WeakAuras in any way.");

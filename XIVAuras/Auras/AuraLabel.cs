@@ -7,7 +7,6 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
-    [JsonObject]
     public class AuraLabel : AuraListItem
     {
         [JsonIgnore] private DataSource? Data { get; set; }
@@ -21,14 +20,14 @@ namespace XIVAuras.Auras
         // Constuctor for deserialization
         public AuraLabel() : this(string.Empty) { }
 
-        public AuraLabel(string name) : base(name)
+        public AuraLabel(string name, string textFormat = "") : base(name)
         {
             this.Name = name;
-            this.LabelStyleConfig = new LabelStyleConfig();
+            this.LabelStyleConfig = new LabelStyleConfig(textFormat);
             this.VisibilityConfig = new VisibilityConfig();
         }
 
-        public override IEnumerator<IConfigPage> GetEnumerator()
+        public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.LabelStyleConfig;
             yield return this.VisibilityConfig;
@@ -36,7 +35,7 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.VisibilityConfig.IsVisible())
+            if (!this.VisibilityConfig.IsVisible(this.Data))
             {
                 return;
             }
@@ -45,12 +44,10 @@ namespace XIVAuras.Auras
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
             string text = this.LabelStyleConfig.TextFormat;
-            if (this.Data.HasValue)
+            if (this.Data is not null)
             {
-                DataSource data = this.Data.Value;
-                text = text.Replace("[duration]", this.LabelStyleConfig.FormatNumber(data.Duration));
-                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(data.Stacks));
-                text = text.Replace("[cooldown]", this.LabelStyleConfig.FormatNumber(data.Cooldown));
+                text = text.Replace("[value]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
+                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(this.Data.Stacks));
             }
 
             bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);

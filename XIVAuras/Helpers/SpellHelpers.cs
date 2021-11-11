@@ -8,6 +8,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using XIVAuras.Config;
 using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
 using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
@@ -43,24 +44,20 @@ namespace XIVAuras.Helpers
             return Math.Abs(GetRecastTime(GetSpellActionId(actionId)) - GetRecastTimeElapsed(GetSpellActionId(actionId)));
         }
 
-        public int GetSpellCooldownInt(uint actionId)
-        {
-            if ((int)Math.Ceiling(GetSpellCooldown(actionId) % GetRecastTime(actionId)) <= 0)
-            {
-                return 0;
-            }
-
-            return (int)Math.Ceiling(GetSpellCooldown(actionId) % GetRecastTime(actionId));
-        }
-
         public int GetStackCount(int maxStacks, uint actionId)
         {
-            if (GetSpellCooldownInt(actionId) == 0 || GetSpellCooldownInt(actionId) < 0)
+            float cooldown = this.GetSpellCooldown(actionId);
+            if (cooldown <= 0)
             {
                 return maxStacks;
             }
 
-            return maxStacks - (int)Math.Ceiling(GetSpellCooldownInt(actionId) / (GetRecastTime(actionId) / maxStacks));
+            return maxStacks - (int)Math.Ceiling(cooldown / (this.GetRecastTime(actionId) / maxStacks));
+        }
+
+        public unsafe ushort GetMaxCharges(uint actionId, uint level)
+        {
+            return ActionManager.GetMaxCharges(actionId, level);
         }
 
         public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine, bool preview)
@@ -69,9 +66,9 @@ namespace XIVAuras.Helpers
             {
                 return new DataSource()
                 {
-                    Duration = 15,
-                    Cooldown = 15,
-                    Stacks = 0, // needs to be 0 to preview icon correctly
+                    Value = 10,
+                    ChargeTime = 10,
+                    Stacks = 2
                 };
             }
 
@@ -80,35 +77,36 @@ namespace XIVAuras.Helpers
                 return null;
             }
 
+            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (player is null)
+            {
+                return null;
+            }
+
             if (type == TriggerType.Cooldown)
             {
                 SpellHelpers helper = Singletons.Get<SpellHelpers>();
-                TriggerData activeTrigger = triggerData.FirstOrDefault(t => helper.GetSpellCooldown(t.Id) > 0);
+                TriggerData activeTrigger = triggerData.First();
 
-                if (activeTrigger.Id == 0)
-                {
-                    return new DataSource();
-                }
+                int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
+                int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
+                float cooldown = helper.GetSpellCooldown(activeTrigger.Id);
+                float chargeTime = maxCharges == stacks
+                    ? cooldown
+                    : cooldown / (maxCharges - stacks);
 
                 return new DataSource()
                 {
-                    Cooldown = helper.GetSpellCooldown(activeTrigger.Id),
-                    Stacks = helper.GetStackCount(activeTrigger.MaxStacks, activeTrigger.Id),
+                    Value = cooldown,
+                    ChargeTime = chargeTime,
+                    Stacks = stacks,
+                    MaxStacks = maxCharges
                 };
             }
             else
             {
-                ClientState clientState = Singletons.Get<ClientState>();
                 TargetManager targetManager = Singletons.Get<TargetManager>();
-
-                PlayerCharacter? player = clientState.LocalPlayer;
-                if (player is null)
-                {
-                    return null;
-                }
-
                 GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
-
                 GameObject? actor = source switch
                 {
                     TriggerSource.Player => player,
@@ -123,18 +121,25 @@ namespace XIVAuras.Helpers
                     return null;
                 }
 
-                IEnumerable<uint> ids = triggerData.Select(t => t.Id);
-                var status = chara.StatusList.FirstOrDefault(o => ids.Contains(o.StatusId) && (o.SourceID == player.ObjectId || !onlyMine));
-                if (status is null)
+                foreach (TriggerData trigger in triggerData)
                 {
-                    return null;
+                    foreach (var status in chara.StatusList)
+                    {
+                        if (status is not null &&
+                            status.StatusId == trigger.Id &&
+                            (status.SourceID == player.ObjectId || !onlyMine))
+                        {
+                            return new DataSource()
+                            {
+                                Value = Math.Abs(status.RemainingTime),
+                                Stacks = status.StackCount,
+                                MaxStacks = trigger.MaxStacks
+                            };
+                        }
+                    }
                 }
 
-                return new DataSource()
-                {
-                    Duration = Math.Abs(status?.RemainingTime ?? 0f),
-                    Stacks = status?.StackCount ?? 0,
-                };
+                return null;
             }
         }
 
@@ -175,45 +180,65 @@ namespace XIVAuras.Helpers
 
         public static List<TriggerData> FindActionEntries(string input)
         {
-            ExcelSheet<LuminaAction>? sheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
+            List<TriggerData> actionList = new List<TriggerData>();
 
-            if (!string.IsNullOrEmpty(input) && sheet is not null)
+            if (!string.IsNullOrEmpty(input))
             {
-                List<TriggerData> actionList = new List<TriggerData>();
-
-                // Add by id
-                if (uint.TryParse(input, out uint value))
+                ExcelSheet<LuminaAction>? actionSheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
+                if (actionSheet is not null)
                 {
-                    if (value > 0)
+                    // Add by id
+                    if (uint.TryParse(input, out uint value))
                     {
-                        LuminaAction? action = sheet.GetRow(value);
-                        if (action is not null)
+                        if (value > 0)
                         {
-                            actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges));
+                            LuminaAction? action = actionSheet.GetRow(value);
+                            if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
+                            {
+                                actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                            }
                         }
+                    }
+
+                    // Add by name
+                    if (actionList.Count == 0)
+                    {
+                        actionList.AddRange(
+                            actionSheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
+                                .Select(action => new TriggerData(action.Name, action.RowId, action.Icon, 0)));
                     }
                 }
 
-                // Add by name
-                if (actionList.Count == 0)
+                ExcelSheet<GeneralAction>? generalSheet = Singletons.Get<DataManager>().GetExcelSheet<GeneralAction>();
+                if (generalSheet is not null && actionList.Count == 0)
                 {
                     actionList.AddRange(
-                        sheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()))
-                            .Select(action => new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges)));
+                        generalSheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()))
+                            .Select(action => new TriggerData(action.Name, action.Action.Value?.RowId ?? 0, (ushort)action.Icon, 0)));
                 }
-
-                return actionList;
             }
 
-            return new List<TriggerData>();
+            return actionList;
         }
     }
 
-    public struct DataSource
+    public class DataSource
     {
-        public float Duration;
+        public float Value;
+        public float ChargeTime;
         public int Stacks;
-        public float Cooldown;
+        public int MaxStacks;
+
+        public float GetDataForSourceType(TriggerDataSource sourcetype)
+        {
+            return sourcetype switch
+            {
+                TriggerDataSource.Value => this.Value,
+                TriggerDataSource.Stacks => this.Stacks,
+                TriggerDataSource.MaxStacks => this.MaxStacks,
+                _ => 0
+            };
+        }
     }
 
     public struct TriggerData

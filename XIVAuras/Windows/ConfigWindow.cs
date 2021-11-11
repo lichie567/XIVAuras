@@ -78,7 +78,7 @@ namespace XIVAuras.Windows
 
             if (ImGui.BeginTabBar($"##{this.WindowName}"))
             {
-                foreach (IConfigPage page in configItem)
+                foreach (IConfigPage page in configItem.GetConfigPages())
                 {
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
@@ -196,6 +196,13 @@ namespace XIVAuras.Windows
         public override void OnClose()
         {
             ConfigHelpers.SaveConfig();
+
+            var config = Singletons.Get<XIVAurasConfig>();
+            foreach (AuraListItem aura in config.AuraList.Auras)
+            {
+                aura.StopPreview();
+            }
+
             this.ConfigStack.Clear();
         }
     }

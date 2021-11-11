@@ -60,6 +60,9 @@ namespace XIVAuras
             Singletons.Register(targetManager);
             Singletons.Register(pluginInterface.UiBuilder);
 
+            // Initialize FFXIVClientStructs
+            FFXIVClientStructs.Resolver.Initialize(sigScanner.SearchBase);
+
             // Load config
             XIVAurasConfig config = ConfigHelpers.LoadConfig(Plugin.ConfigFilePath);
             Singletons.Register(config);

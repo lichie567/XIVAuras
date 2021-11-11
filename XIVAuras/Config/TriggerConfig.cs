@@ -35,22 +35,15 @@ namespace XIVAuras.Config
         [JsonIgnore] private string _iconIdInput = string.Empty;
 
         public TriggerType TriggerType = TriggerType.Buff;
-
         public TriggerSource TriggerSource = TriggerSource.Player;
-
         public List<TriggerCondition> TriggerConditions = new List<TriggerCondition>();
-
         public List<TriggerData> TriggerList = new List<TriggerData>();
-
         public string TriggerName = string.Empty;
-
         public bool ShowOnlyMine = true;
-
         public int IconPickerIndex = 0;
-
         public int IconOption = 0;
-
         public ushort CustomIcon = 0;
+        public bool CropIcon = true;
 
         public ushort GetIcon()
         {
@@ -152,12 +145,9 @@ namespace XIVAuras.Config
                             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
                             for (int i = 0; i < icons.Count; i++)
                             {
-                                Vector2 iconSize = new Vector2(40, 40);
                                 Vector2 iconPos = ImGui.GetWindowPos().AddX(10) + new Vector2(i * (40 + padX), padY);
-                                DrawHelpers.DrawIcon(icons[i], iconPos, iconSize, true, 0, drawList);
-                                string iconText = icons[i].ToString();
-                                Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
-                                drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
+                                Vector2 iconSize = new Vector2(40, 40);
+                                this.DrawIconPreview(iconPos, iconSize, icons[i], this.IconPickerIndex == i);
 
                                 if (ImGui.IsMouseHoveringRect(iconPos, iconPos + iconSize))
                                 {
@@ -191,16 +181,16 @@ namespace XIVAuras.Config
 
                         if (this.CustomIcon != 0 && ImGui.BeginChild("##IconPicker", new Vector2(size.X - padX * 2, 60), true))
                         {
-                            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-                            Vector2 iconSize = new Vector2(40, 40);
                             Vector2 iconPos = ImGui.GetWindowPos() + new Vector2(10, padY);
-                            DrawHelpers.DrawIcon(this.CustomIcon, iconPos, iconSize, true, 0, drawList);
-                            drawList.AddRect(iconPos, iconPos + new Vector2(40, 40), 0xFF00FF00);
-                            string iconText = this.CustomIcon.ToString();
-                            Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
-                            drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
+                            Vector2 iconSize = new Vector2(40, 40);
+                            this.DrawIconPreview(iconPos, iconSize, this.CustomIcon, true);
                             ImGui.EndChild();
                         }
+                    }
+                    
+                    if (this.TriggerType != TriggerType.Cooldown)
+                    {
+                        ImGui.Checkbox("Crop Icon", ref this.CropIcon);
                     }
                 }
 
@@ -241,6 +231,22 @@ namespace XIVAuras.Config
             }
         }
 
+        private void DrawIconPreview(Vector2 iconPos, Vector2 iconSize, ushort icon, bool selected)
+        {
+            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+            bool crop = this.CropIcon && this.TriggerType != TriggerType.Cooldown;
+            int heightOffset = this.TriggerType == TriggerType.Cooldown ? 0 : 8;
+            DrawHelpers.DrawIcon(icon, iconPos, iconSize.AddY(crop ? 0 : heightOffset), crop, 0, drawList);
+            if (selected)
+            {
+                drawList.AddRect(iconPos, iconPos + new Vector2(40, 40), 0xFF00FF00);
+            }
+
+            string iconText = icon.ToString();
+            Vector2 iconTextPos = iconPos + new Vector2(20 - ImGui.CalcTextSize(iconText).X / 2, 38);
+            drawList.AddText(iconTextPos, 0xFFFFFFFF, iconText);
+        }
+
         private void DrawTriggerConditionRow(int i)
         {
             TriggerCondition trigger = i < this.TriggerConditions.Count ? this.TriggerConditions[i] : _inputTrigger;
@@ -270,7 +276,6 @@ namespace XIVAuras.Config
                 ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref trigger.Source), options, options.Length);
                 ImGui.PopItemWidth();
             }
-
 
             if (ImGui.TableSetColumnIndex(2))
             {

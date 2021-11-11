@@ -78,15 +78,17 @@
         <Reference Include="Lumina.Excel">
             <Private>false</Private>
         </Reference>
-        <Reference Include="FFXIVClientStructs">
-            <Private>false</Private>
-        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="$(SolutionDir)\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj">
+            <Name>FFXIVClientStructs</Name>
+        </ProjectReference>
     </ItemGroup>
 
     <!-- NuGet Packages -->
     <ItemGroup>
         <PackageReference Include="DalamudPackager" Version="2.1.2" />
-        <PackageReference Include="Colourful" Version="3.0.0" />
     </ItemGroup>
 
     <!-- Dalamud Packager Task-->
