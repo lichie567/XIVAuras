@@ -43,6 +43,11 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
+            if (!this.VisibilityConfig.IsVisible())
+            {
+                return;
+            }
+
             foreach (AuraListItem aura in this.AuraList.Auras)
             {
                 if (!this.Preview && this.LastFrameWasPreview)
