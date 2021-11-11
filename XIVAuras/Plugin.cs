@@ -19,7 +19,7 @@ namespace XIVAuras
 {
     public class Plugin : IDalamudPlugin
     {
-        public static string Version { get; private set; } = "0.1.1.2";
+        public static string Version { get; private set; } = "0.1.2.0";
 
         public string Name => "XIVAuras";
 
