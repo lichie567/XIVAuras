@@ -196,6 +196,13 @@ namespace XIVAuras.Windows
         public override void OnClose()
         {
             ConfigHelpers.SaveConfig();
+
+            var config = Singletons.Get<XIVAurasConfig>();
+            foreach (AuraListItem aura in config.AuraList.Auras)
+            {
+                aura.StopPreview();
+            }
+
             this.ConfigStack.Clear();
         }
     }

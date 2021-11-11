@@ -38,11 +38,16 @@ namespace XIVAuras.Config
         public bool ShowOutline = true;
         public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 1);
 
+        public LabelStyleConfig(string textFormat)
+        {
+            this.TextFormat = textFormat;
+        }
+
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##LabelStyleConfig", new Vector2(size.X, size.Y), true))
             {
-                ImGui.InputTextWithHint("Text Format", "[duration] or [cooldown] or [stacks]", ref this.TextFormat, 64);
+                ImGui.InputTextWithHint("Text Format", "[value] or [stacks]", ref this.TextFormat, 64);
                 ImGui.DragFloat2("Position", ref this.Position);
                 ImGui.Combo("Number Format", ref this.NumberFormat, new[] { "No Decimals", "One Decimal", "Two Decimals" }, 3);
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
 
@@ -22,10 +21,10 @@ namespace XIVAuras.Auras
         // Constructor for deserialization
         public AuraIcon() : this(string.Empty) { }
 
-        public AuraIcon(string name) : base(name)
+        public AuraIcon(string name, params AuraLabel[] labels) : base(name)
         {
             this.Name = name;
-            this.IconStyleConfig = new IconStyleConfig();
+            this.IconStyleConfig = new IconStyleConfig(labels);
             this.TriggerConfig = new TriggerConfig();
             this.VisibilityConfig = new VisibilityConfig();
         }
@@ -57,7 +56,7 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data) && this.VisibilityConfig.IsVisible();
+            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data) && this.VisibilityConfig.IsVisible(data);
 
             Vector2 localPos = pos + this.IconStyleConfig.Position;
             Vector2 size = this.IconStyleConfig.Size;
@@ -82,7 +81,7 @@ namespace XIVAuras.Auras
                         }
                     }
 
-                    bool crop = this.IconStyleConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
+                    bool crop = this.TriggerConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
                     DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, drawList);
 
                     if (this.StartData is not null)
@@ -173,6 +172,27 @@ namespace XIVAuras.Auras
 
                 ImGui.PopClipRect();
             }
+        }
+
+        public static AuraIcon GetDefaultAuraIcon(string name)
+        {
+            AuraLabel valueLabel = new AuraLabel("Value", "[value]");
+            valueLabel.VisibilityConfig.HideIf = true;
+            valueLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.Value;
+            valueLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
+            valueLabel.VisibilityConfig.HideIfValue = 0;
+
+            AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
+            stacksLabel.LabelStyleConfig.ParentAnchor = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
+            stacksLabel.LabelStyleConfig.OutlineColor = new ConfigColor(1, 1, 1, 1);
+            stacksLabel.VisibilityConfig.HideIf = true;
+            stacksLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.MaxStacks;
+            stacksLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
+            stacksLabel.VisibilityConfig.HideIfValue = 1;
+
+            return new AuraIcon(name, valueLabel, stacksLabel);
         }
     }
 }

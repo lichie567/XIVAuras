@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using Newtonsoft.Json;
 using XIVAuras.Config;
 
 namespace XIVAuras.Auras

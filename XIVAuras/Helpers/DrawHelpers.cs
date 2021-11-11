@@ -4,7 +4,6 @@ using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
 using ImGuiScene;
-using Lumina.Excel;
 
 namespace XIVAuras.Helpers
 {

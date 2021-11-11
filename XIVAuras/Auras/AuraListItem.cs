@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Newtonsoft.Json;
@@ -28,10 +27,15 @@ namespace XIVAuras.Auras
         public abstract AuraType Type { get; }
 
         public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
-        
+
         public abstract IEnumerable<IConfigPage> GetConfigPages();
 
         public override string? ToString() => $"{this.Type} [{this.Name}]";
+
+        public virtual void StopPreview()
+        {
+            this.Preview = false;
+        }
 
         protected DataSource UpdatePreviewData(DataSource data)
         {
@@ -60,6 +64,12 @@ namespace XIVAuras.Auras
 
         protected void UpdateStartData(DataSource data, TriggerType type)
         {
+            if (this.LastFrameWasPreview && !this.Preview)
+            {
+                this.StartData = null;
+                this.StartTime = null;
+            }
+
             if (this.StartData is not null)
             {
                 float startValue = type == TriggerType.Cooldown

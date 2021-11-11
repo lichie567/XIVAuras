@@ -228,6 +228,17 @@ namespace XIVAuras.Helpers
         public float ChargeTime;
         public int Stacks;
         public int MaxStacks;
+
+        public float GetDataForSourceType(TriggerDataSource sourcetype)
+        {
+            return sourcetype switch
+            {
+                TriggerDataSource.Value => this.Value,
+                TriggerDataSource.Stacks => this.Stacks,
+                TriggerDataSource.MaxStacks => this.MaxStacks,
+                _ => 0
+            };
+        }
     }
 
     public struct TriggerData

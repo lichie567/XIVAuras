@@ -133,7 +133,7 @@ namespace XIVAuras.Config
                 AuraListItem? newAura = type switch
                 {
                     AuraType.Group => new AuraGroup(name),
-                    AuraType.Icon => new AuraIcon(name),
+                    AuraType.Icon => AuraIcon.GetDefaultAuraIcon(name),
                     AuraType.Bar => new AuraBar(name),
                     AuraType.Label => new AuraLabel(name),
                     _ => null

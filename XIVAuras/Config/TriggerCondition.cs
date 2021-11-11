@@ -13,9 +13,9 @@ namespace XIVAuras.Config
     public enum TriggerDataSource
     {
         None,
-        Duration,
+        Value,
         Stacks,
-        Cooldown
+        MaxStacks
     }
 
     public enum TriggerDataOp
@@ -32,7 +32,7 @@ namespace XIVAuras.Config
     public class TriggerCondition
     {
         public static readonly string[] CondOptions = new string[] { "", "AND", "OR", "XOR" };
-        public static readonly string[] SourceOptions = new string[] { "", "Duration", "Stacks", "Cooldown" };
+        public static readonly string[] SourceOptions = new string[] { "", "Value", "Stacks", "MaxStacks" };
         public static readonly string[] OperatorOptions = new string[] { "", "==", "!=", "<", ">", "<=", ">=" };
 
         public TriggerCond Cond = TriggerCond.None;
@@ -42,11 +42,7 @@ namespace XIVAuras.Config
 
         public bool GetResult(DataSource data)
         {
-            float value = this.Source switch
-            {
-                TriggerDataSource.Stacks => data.Stacks,
-                _ => data.Value
-            };
+            float value = data.GetDataForSourceType(this.Source);
 
             return this.Op switch
             {

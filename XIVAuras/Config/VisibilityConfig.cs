@@ -15,17 +15,24 @@ namespace XIVAuras.Config
         public string Name => "Visibility";
 
         [JsonIgnore] private string _customJobInput = string.Empty;
+        [JsonIgnore] private string _hideIfValueInput = string.Empty;
 
         public bool AlwaysHide = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
+
+        public bool HideIf = false;
+        public TriggerDataSource HideIfDataSource = TriggerDataSource.None;
+        public TriggerDataOp HideIfOp = TriggerDataOp.None;
+        public float HideIfValue = 0;
+
         public JobType ShowForJobTypes = JobType.All;
         public string CustomJobString = string.Empty;
         public List<Job> CustomJobList = new List<Job>();
 
-        public bool IsVisible()
+        public bool IsVisible(DataSource? data)
         {
             if (this.AlwaysHide)
             {
@@ -52,6 +59,34 @@ namespace XIVAuras.Config
                 return false;
             }
 
+            if (this.HideIf &&
+                this.HideIfDataSource != TriggerDataSource.None &&
+                this.HideIfOp != TriggerDataOp.None)
+            {
+                if (data is not null ||
+                    (this.HideIfDataSource != TriggerDataSource.Value &&
+                    this.HideIfDataSource != TriggerDataSource.Stacks &&
+                    this.HideIfDataSource != TriggerDataSource.MaxStacks))
+                {
+                    float value = data?.GetDataForSourceType(this.HideIfDataSource) ?? 0;
+                    bool result = this.HideIfOp switch
+                    {
+                        TriggerDataOp.Equals => value == this.HideIfValue,
+                        TriggerDataOp.NotEquals => value != this.HideIfValue,
+                        TriggerDataOp.LessThan => value < this.HideIfValue,
+                        TriggerDataOp.GreaterThan => value > this.HideIfValue,
+                        TriggerDataOp.LessThanEq => value <= this.HideIfValue,
+                        TriggerDataOp.GreaterThanEq => value >= this.HideIfValue,
+                        _ => false
+                    };
+
+                    if (result)
+                    {
+                        return false;
+                    }
+                }
+            }
+
             if (this.ShowForJobTypes == JobType.All)
             {
                 return true;
@@ -75,6 +110,38 @@ namespace XIVAuras.Config
                 ImGui.Checkbox("Hide While Performing", ref this.HideWhilePerforming);
                 ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
 
+                DrawHelpers.DrawSpacing(1);
+                ImGui.Checkbox("Hide If:", ref this.HideIf);
+                ImGui.SameLine();
+                string[] sourceOptions = TriggerCondition.SourceOptions;
+                ImGui.PushItemWidth(90);
+                ImGui.Combo("##HideIfSourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref this.HideIfDataSource), sourceOptions, sourceOptions.Length);
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+                string[] operatorOptions = TriggerCondition.OperatorOptions;
+                ImGui.PushItemWidth(80);
+                ImGui.Combo("##HideIfOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.HideIfOp), operatorOptions, operatorOptions.Length);
+                ImGui.PopItemWidth();
+                ImGui.SameLine();
+
+                if (string.IsNullOrEmpty(this._hideIfValueInput))
+                {
+                    this._hideIfValueInput = this.HideIfValue.ToString();
+                }
+
+                float width = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() + padX;
+                ImGui.PushItemWidth(width);
+                if (ImGui.InputText("##HideIfValue", ref this._hideIfValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                {
+                    if (float.TryParse(this._hideIfValueInput, out float value))
+                    {
+                        this.HideIfValue = value;
+                    }
+                }
+
+                ImGui.PopItemWidth();
+                
+                DrawHelpers.DrawSpacing(1);
                 string[] jobTypeOptions = Enum.GetNames(typeof(JobType));
                 ImGui.Combo("Show for Jobs", ref Unsafe.As<JobType, int>(ref this.ShowForJobTypes), jobTypeOptions, jobTypeOptions.Length);
 

@@ -103,7 +103,7 @@ namespace XIVAuras
 
             foreach (AuraListItem aura in this.Config.AuraList.Auras)
             {
-                aura.Draw(_origin);
+                aura.Draw(_origin + this.Config.GroupConfig.Position);
             }
 
             ImGui.End();

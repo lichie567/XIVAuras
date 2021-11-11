@@ -20,10 +20,10 @@ namespace XIVAuras.Auras
         // Constuctor for deserialization
         public AuraLabel() : this(string.Empty) { }
 
-        public AuraLabel(string name) : base(name)
+        public AuraLabel(string name, string textFormat = "") : base(name)
         {
             this.Name = name;
-            this.LabelStyleConfig = new LabelStyleConfig();
+            this.LabelStyleConfig = new LabelStyleConfig(textFormat);
             this.VisibilityConfig = new VisibilityConfig();
         }
 
@@ -35,7 +35,7 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.VisibilityConfig.IsVisible())
+            if (!this.VisibilityConfig.IsVisible(this.Data))
             {
                 return;
             }
@@ -46,9 +46,8 @@ namespace XIVAuras.Auras
             string text = this.LabelStyleConfig.TextFormat;
             if (this.Data is not null)
             {
-                text = text.Replace("[duration]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
+                text = text.Replace("[value]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
                 text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(this.Data.Stacks));
-                text = text.Replace("[cooldown]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
             }
 
             bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);
