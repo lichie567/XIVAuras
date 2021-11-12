@@ -86,25 +86,11 @@ namespace XIVAuras.Auras
 
                     DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, desaturate, alpha, drawList);
 
-                    if (this.StartData is not null)
+                    if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
                     {
-                        float triggeredValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown && this.StartData.ChargeTime > 0
-                            ? data.Value % this.StartData.ChargeTime
-                            : data.Value;
-
-                        float startValue = this.TriggerConfig.TriggerType == TriggerType.Cooldown && this.StartData.ChargeTime > 0
-                            ? this.StartData.ChargeTime
-                            : this.StartData.Value;
-
-                        data.Value = triggeredValue;
-                        if (this.TriggerConfig.TriggerType == TriggerType.Cooldown && triggeredValue == 0)
-                        {
-                            data.Stacks = this.StartData.MaxStacks;
-                        }
-
                         if (this.IconStyleConfig.ShowProgressSwipe)
                         {
-                            this.DrawProgressSwipe(localPos, size, triggeredValue, startValue, alpha, drawList);
+                            this.DrawProgressSwipe(localPos, size, data.Value, this.StartData.Value, alpha, drawList);
                         }
                     }
 

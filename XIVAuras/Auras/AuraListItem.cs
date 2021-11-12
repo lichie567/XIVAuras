@@ -56,7 +56,6 @@ namespace XIVAuras.Auras
                 return new DataSource()
                 {
                     Value = newValue,
-                    ChargeTime = data.ChargeTime,
                     Stacks = data.Stacks
                 };
             }
@@ -80,21 +79,11 @@ namespace XIVAuras.Auras
                 this.StartTime = null;
             }
 
-            if (this.StartData is not null)
+            if (this.StartData is not null &&
+                data.Value > this.StartData.Value)
             {
-                float startValue = type == TriggerType.Cooldown
-                    ? this.StartData.ChargeTime
-                    : this.StartData.Value;
-
-                float value = type == TriggerType.Cooldown
-                    ? data.ChargeTime
-                    : data.Value;
-
-                if (value > startValue)
-                {
-                    this.StartData = data;
-                    this.StartTime = DateTime.UtcNow;
-                }
+                this.StartData = data;
+                this.StartTime = DateTime.UtcNow;
             }
 
             if (this.StartData is null || !this.StartTime.HasValue)

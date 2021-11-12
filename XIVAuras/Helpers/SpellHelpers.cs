@@ -67,8 +67,7 @@ namespace XIVAuras.Helpers
                 return new DataSource()
                 {
                     Value = 10,
-                    ChargeTime = 10,
-                    Stacks = 2
+                    Stacks = 2,
                 };
             }
 
@@ -90,15 +89,14 @@ namespace XIVAuras.Helpers
 
                 int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
                 int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
-                float cooldown = helper.GetSpellCooldown(activeTrigger.Id);
-                float chargeTime = maxCharges == stacks
-                    ? cooldown
-                    : cooldown / (maxCharges - stacks);
+                float chargeTime = helper.GetRecastTime(activeTrigger.Id) / maxCharges;
+                float cooldown = chargeTime != 0 
+                    ? helper.GetSpellCooldown(activeTrigger.Id) % chargeTime
+                    : chargeTime;
 
                 return new DataSource()
                 {
                     Value = cooldown,
-                    ChargeTime = chargeTime,
                     Stacks = stacks,
                     MaxStacks = maxCharges
                 };
@@ -225,7 +223,6 @@ namespace XIVAuras.Helpers
     public class DataSource
     {
         public float Value;
-        public float ChargeTime;
         public int Stacks;
         public int MaxStacks;
 
