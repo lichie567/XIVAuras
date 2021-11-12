@@ -65,9 +65,17 @@ namespace XIVAuras.Helpers
             }
         }
 
-        public static void DrawIcon(ushort iconId, Vector2 position, Vector2 size, bool cropIcon, int stackCount, ImDrawListPtr drawList)
+        public static void DrawIcon(
+            ushort iconId,
+            Vector2 position,
+            Vector2 size,
+            bool cropIcon,
+            int stackCount,
+            bool desaturate,
+            float opacity,
+            ImDrawListPtr drawList)
         {
-            TextureWrap? tex = Singletons.Get<TexturesCache>().GetTextureFromIconId(iconId, (uint)stackCount);
+            TextureWrap? tex = Singletons.Get<TexturesCache>().GetTextureFromIconId(iconId, (uint)stackCount, true, desaturate, opacity);
 
             if (tex is null)
             {

@@ -14,6 +14,11 @@ namespace XIVAuras.Helpers
             return new Vector2(v.X, v.Y + offset);
         }
 
+        public static Vector4 AddTransparency(this Vector4 vec, float opacity)
+        {
+            return new Vector4(vec.X, vec.Y, vec.Z, vec.W * opacity);
+        }
+
         public static Vector4 AdjustColor(this Vector4 vec, float correctionFactor)
         {
             float red = vec.X;

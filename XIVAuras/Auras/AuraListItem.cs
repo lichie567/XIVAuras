@@ -15,6 +15,8 @@ namespace XIVAuras.Auras
         [JsonIgnore] public bool Preview = false;
         [JsonIgnore] protected DataSource? StartData = null;
         [JsonIgnore] protected DateTime? StartTime = null;
+        [JsonIgnore] protected DataSource? OldStartData = null;
+        [JsonIgnore] protected DateTime? OldStartTime = null;
 
         public string Name { get; set; }
 
@@ -66,6 +68,14 @@ namespace XIVAuras.Auras
         {
             if (this.LastFrameWasPreview && !this.Preview)
             {
+                this.StartData = this.OldStartData;
+                this.StartTime = this.OldStartTime;
+            }
+            
+            if (!this.LastFrameWasPreview && this.Preview)
+            {
+                this.OldStartData = this.StartData;
+                this.OldStartTime = this.StartTime;
                 this.StartData = null;
                 this.StartTime = null;
             }
@@ -91,7 +101,6 @@ namespace XIVAuras.Auras
             {
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
-                return;
             }
         }
     }

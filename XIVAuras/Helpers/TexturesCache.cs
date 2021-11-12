@@ -11,47 +11,68 @@ namespace XIVAuras.Helpers
 {
     public class TexturesCache : IXIVAurasDisposable
     {
-        private Dictionary<uint, TextureWrap> Cache { get; init; }
+        private Dictionary<string, TextureWrap> TextureCache { get; init; }
+        private Dictionary<string, IconData> IconCache { get; init; }
 
         public TexturesCache()
         {
-            this.Cache = new Dictionary<uint, TextureWrap>();
+            this.TextureCache = new Dictionary<string, TextureWrap>();
+            this.IconCache = new Dictionary<string, IconData>();
         }
 
-        public TextureWrap? GetTextureFromIconId(uint iconId, uint stackCount = 0, bool hdIcon = true)
+        public TextureWrap? GetTextureFromIconId(
+            uint iconId,
+            uint stackCount = 0,
+            bool hdIcon = true,
+            bool greyScale = false,
+            float opacity = 1f)
         {
-            if (this.Cache.TryGetValue(iconId + stackCount, out TextureWrap? texture))
+            if (opacity < 1f)
+            {
+                return this.LoadTexture(iconId + stackCount, hdIcon, greyScale, opacity);
+            }
+
+            string key = $"{iconId}{(greyScale ? "_g" : "")}";
+            if (this.TextureCache.TryGetValue(key, out TextureWrap? texture))
             {
                 return texture;
             }
 
-            TextureWrap? newTexture = LoadTexture(iconId + stackCount, hdIcon);
+            TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale);
             if (newTexture == null)
             {
                 return null;
             }
 
-            this.Cache.Add(iconId + stackCount, newTexture);
+            this.TextureCache.Add(key, newTexture);
             return newTexture;
         }
 
-        private TextureWrap? LoadTexture(uint id, bool hdIcon)
+        private TextureWrap? LoadTexture(uint id, bool hdIcon, bool greyScale, float opacity = 1f)
         {
             string hdString = hdIcon ? "_hr1" : "";
             string path = $"ui/icon/{id / 1000 * 1000:000000}/{id:000000}{hdString}.tex";
-
-            return TexturesCache.LoadTexture(path);
+            return this.LoadTexture(path, greyScale, opacity);
         }
 
-        public static TextureWrap? LoadTexture(string path)
+        private TextureWrap? LoadTexture(string path, bool greyScale, float opacity = 1f)
         {
             try
             {
-                TexFile? iconFile = Singletons.Get<DataManager>().GetFile<TexFile>(path);
-                if (iconFile != null)
+                if (this.IconCache.TryGetValue(path, out IconData? iconData))
                 {
-                    return Singletons.Get<UiBuilder>().LoadImageRaw(iconFile.GetRgbaImageData(), iconFile.Header.Width, iconFile.Header.Height, 4);
+                    return iconData.GetTextureWrap(greyScale, opacity);
                 }
+                
+                TexFile? iconFile = Singletons.Get<DataManager>().GetFile<TexFile>(path);
+                if (iconFile is null)
+                {
+                    return null;
+                }
+
+                IconData newIcon = new IconData(iconFile);
+                this.IconCache.Add(path, newIcon);
+                return newIcon.GetTextureWrap(greyScale, opacity);
             }
             catch (Exception ex)
             {
@@ -71,13 +92,81 @@ namespace XIVAuras.Helpers
         {
             if (disposing)
             {
-                foreach (TextureWrap tex in this.Cache.Values)
+                foreach (TextureWrap tex in this.TextureCache.Values)
                 {
                     tex.Dispose();
                 }
 
-                this.Cache.Clear();
+                this.TextureCache.Clear();
+                this.IconCache.Clear();
             }
+        }
+    }
+
+    public class IconData
+    {
+        public byte[] Bytes { get; init; }
+        public ushort Width { get; init; }
+        public ushort Height { get; init; }
+
+        public IconData(byte[] bytes, ushort width, ushort height)
+        {
+            this.Bytes = bytes;
+            this.Width = width;
+            this.Height = height;
+        }
+
+        public IconData(TexFile tex)
+        {
+            this.Bytes = tex.GetRgbaImageData();
+            this.Width = tex.Header.Width;
+            this.Height = tex.Header.Height;
+        }
+
+        public TextureWrap GetTextureWrap(bool greyScale, float opacity)
+        {
+            UiBuilder uiBuilder = Singletons.Get<UiBuilder>();
+            byte[] bytes = this.Bytes;
+            if (greyScale || opacity < 1f)
+            {
+                bytes = this.ConvertBytes(bytes, greyScale, opacity);
+            }
+
+            return uiBuilder.LoadImageRaw(bytes, this.Width, this.Height, 4);
+        }
+
+        public byte[] ConvertBytes(byte[] bytes, bool greyScale, float opacity)
+        {
+            if (bytes.Length % 4 != 0)
+            {
+                return bytes;
+            }
+            
+            byte[] newBytes = new byte[bytes.Length];
+            for (int i = 0; i < bytes.Length; i += 4)
+            {
+                if (greyScale)
+                {
+                    int r = bytes[i] >> 2;
+                    int g = bytes[i + 1] >> 1;
+                    int b = bytes[i + 2] >> 3;
+                    byte lum = (byte)(r + g + b / 3);
+                    
+                    newBytes[i] = lum;
+                    newBytes[i + 1] = lum;
+                    newBytes[i + 2] = lum;
+                }
+                else
+                {
+                    newBytes[i] = bytes[i];
+                    newBytes[i + 1] = bytes[i + 1];
+                    newBytes[i + 2] = bytes[i + 2];
+                }
+
+                newBytes[i + 3] = (byte)(bytes[i + 3] * opacity);
+            }
+
+            return newBytes;
         }
     }
 }

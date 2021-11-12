@@ -236,7 +236,7 @@ namespace XIVAuras.Config
             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
             bool crop = this.CropIcon && this.TriggerType != TriggerType.Cooldown;
             int heightOffset = this.TriggerType == TriggerType.Cooldown ? 0 : 8;
-            DrawHelpers.DrawIcon(icon, iconPos, iconSize.AddY(crop ? 0 : heightOffset), crop, 0, drawList);
+            DrawHelpers.DrawIcon(icon, iconPos, iconSize.AddY(crop ? 0 : heightOffset), crop, 0, false, 1f, drawList);
             if (selected)
             {
                 drawList.AddRect(iconPos, iconPos + new Vector2(40, 40), 0xFF00FF00);

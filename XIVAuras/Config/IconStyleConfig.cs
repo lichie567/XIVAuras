@@ -28,6 +28,8 @@ namespace XIVAuras.Config
         public bool ShowSwipeLines = false;
         public ConfigColor ProgressLineColor = new ConfigColor(1, 1, 1, 1);
         public int ProgressLineThickness = 2;
+        public bool DesaturateIcon = false;
+        public float Opacity = 1f;
 
         public List<AuraLabel> AuraLabels { get; init; }
 
@@ -44,6 +46,8 @@ namespace XIVAuras.Config
                 Vector2 screenSize = ImGui.GetMainViewport().Size;
                 ImGui.DragFloat2("Position", ref this.Position, 1, -screenSize.X / 2, screenSize.X / 2);
                 ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, screenSize.Y);
+                ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
+                ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
 
                 ImGui.Checkbox("Show Border", ref this.ShowBorder);
                 if (this.ShowBorder)

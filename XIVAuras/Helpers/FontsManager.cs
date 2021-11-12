@@ -30,15 +30,19 @@ namespace XIVAuras.Helpers
         private IEnumerable<FontData> FontData { get; set; }
         private Dictionary<string, ImFontPtr> ImGuiFonts { get; init; }
         private string[] FontList { get; set; }
+        private UiBuilder UiBuilder { get; init; }
 
         public const string DefaultFontKey = "Default";
 
-        public FontsManager(IEnumerable<FontData> fonts)
+        public FontsManager(UiBuilder uiBuilder, IEnumerable<FontData> fonts)
         {
             this.FontData = fonts;
             this.FontList = new string[0];
             this.ImGuiFonts = new Dictionary<string, ImFontPtr>();
-            Singletons.Get<UiBuilder>().RebuildFonts();
+
+            this.UiBuilder = uiBuilder;
+            this.UiBuilder.BuildFonts += BuildFonts;
+            this.UiBuilder.RebuildFonts();
         }
 
         public void BuildFonts()
@@ -188,6 +192,8 @@ namespace XIVAuras.Helpers
             if (disposing)
             {
                 this.ImGuiFonts.Clear();
+                this.UiBuilder.BuildFonts -= BuildFonts;
+                this.UiBuilder.RebuildFonts();
             }
         }
     }
