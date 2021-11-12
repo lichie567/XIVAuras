@@ -147,7 +147,7 @@ namespace XIVAuras.Auras
                 drawList.PathArcTo(pos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
                 uint progressAlpha = (uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255 * alpha) << 24;
                 drawList.PathStroke(progressAlpha, ImDrawFlags.None, radius);
-                if (this.IconStyleConfig.ShowSwipeLines)
+                if (this.IconStyleConfig.ShowSwipeLines && triggeredValue != 0)
                 {
                     Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
                     Vector2 start = pos + size / 2;
