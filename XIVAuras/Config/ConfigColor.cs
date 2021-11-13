@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Newtonsoft.Json;
-using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {

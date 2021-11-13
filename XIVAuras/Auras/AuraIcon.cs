@@ -63,16 +63,13 @@ namespace XIVAuras.Auras
             if (triggered)
             {
                 this.UpdateStartData(data, this.TriggerConfig.TriggerType);
+                this.UpdateDragData(localPos, size);
 
-                bool continueDrag = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
-                bool hovered = ImGui.IsMouseHoveringRect(localPos, localPos + size);
-                bool setPos = this.Preview && !this.LastFrameWasPreview || !hovered;
-                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, false, this.Preview, setPos && !continueDrag, (drawList) =>
+                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.SetPosition, (drawList) =>
                 {
                     if (this.Preview)
                     {
                         data = this.UpdatePreviewData(data);
-                        this.LastFrameWasDragging = hovered || continueDrag;
                         if (this.LastFrameWasDragging)
                         {
                             localPos = ImGui.GetWindowPos();

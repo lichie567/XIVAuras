@@ -114,10 +114,10 @@ namespace XIVAuras.Helpers
             Vector2 pos,
             Vector2 size,
             bool preview,
-            bool lastFrameWasPreview,
+            bool setPosition,
             Action<ImDrawListPtr> drawAction)
         {
-            DrawInWindow(name, pos, size, preview, false, preview, preview && !lastFrameWasPreview, drawAction);
+            DrawInWindow(name, pos, size, preview, false, preview, setPosition, drawAction);
         }
 
         public static void DrawInWindow(

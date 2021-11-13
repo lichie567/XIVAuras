@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ImGuiNET;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -13,6 +14,9 @@ namespace XIVAuras.Auras
         [JsonIgnore] protected bool LastFrameWasPreview = false;
         [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] public bool Preview = false;
+        [JsonIgnore] public bool Hovered = false;
+        [JsonIgnore] public bool Dragging = false;
+        [JsonIgnore] public bool SetPosition = false;
         [JsonIgnore] protected DataSource? StartData = null;
         [JsonIgnore] protected DateTime? StartTime = null;
         [JsonIgnore] protected DataSource? OldStartData = null;
@@ -61,6 +65,15 @@ namespace XIVAuras.Auras
             }
 
             return data;
+        }
+
+        // Dont ask
+        protected void UpdateDragData(Vector2 pos, Vector2 size)
+        {
+            this.Hovered = ImGui.IsMouseHoveringRect(pos, pos + size);
+            this.Dragging = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+            this.SetPosition = (this.Preview && !this.LastFrameWasPreview || !this.Hovered) && !this.Dragging;
+            this.LastFrameWasDragging = this.Hovered || this.Dragging;
         }
 
         protected void UpdateStartData(DataSource data, TriggerType type)
