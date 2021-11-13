@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 using Newtonsoft.Json;
-using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {
@@ -51,9 +50,9 @@ namespace XIVAuras.Config
         private void Update()
         {
             Base = ImGui.ColorConvertFloat4ToU32(_vector);
-            Background = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[0]));
-            TopGradient = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[1]));
-            BottomGradient = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[2]));
+            // Background = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[0]));
+            // TopGradient = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[1]));
+            // BottomGradient = ImGui.ColorConvertFloat4ToU32(_vector.AdjustColor(_colorMapRatios[2]));
         }
     }
 }

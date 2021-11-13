@@ -67,8 +67,7 @@ namespace XIVAuras.Helpers
                 return new DataSource()
                 {
                     Value = 10,
-                    ChargeTime = 10,
-                    Stacks = 2
+                    Stacks = 2,
                 };
             }
 
@@ -90,15 +89,14 @@ namespace XIVAuras.Helpers
 
                 int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
                 int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
-                float cooldown = helper.GetSpellCooldown(activeTrigger.Id);
-                float chargeTime = maxCharges == stacks
-                    ? cooldown
-                    : cooldown / (maxCharges - stacks);
+                float chargeTime = helper.GetRecastTime(activeTrigger.Id) / maxCharges;
+                float cooldown = chargeTime != 0 
+                    ? helper.GetSpellCooldown(activeTrigger.Id) % chargeTime
+                    : chargeTime;
 
                 return new DataSource()
                 {
                     Value = cooldown,
-                    ChargeTime = chargeTime,
                     Stacks = stacks,
                     MaxStacks = maxCharges
                 };
@@ -184,37 +182,120 @@ namespace XIVAuras.Helpers
 
             if (!string.IsNullOrEmpty(input))
             {
-                ExcelSheet<LuminaAction>? actionSheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
-                if (actionSheet is not null)
-                {
-                    // Add by id
-                    if (uint.TryParse(input, out uint value))
-                    {
-                        if (value > 0)
-                        {
-                            LuminaAction? action = actionSheet.GetRow(value);
-                            if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
-                            {
-                                actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
-                            }
-                        }
-                    }
+                actionList.AddRange(FindEntriesFromActionSheet(input));
 
-                    // Add by name
-                    if (actionList.Count == 0)
-                    {
-                        actionList.AddRange(
-                            actionSheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
-                                .Select(action => new TriggerData(action.Name, action.RowId, action.Icon, 0)));
-                    }
+                if (!actionList.Any())
+                {
+                    actionList.AddRange(FindEntriesFromActionIndirectionSheet(input));
                 }
 
-                ExcelSheet<GeneralAction>? generalSheet = Singletons.Get<DataManager>().GetExcelSheet<GeneralAction>();
-                if (generalSheet is not null && actionList.Count == 0)
+                if (!actionList.Any())
                 {
-                    actionList.AddRange(
-                        generalSheet.Where(action => input.ToLower().Equals(action.Name.ToString().ToLower()))
-                            .Select(action => new TriggerData(action.Name, action.Action.Value?.RowId ?? 0, (ushort)action.Icon, 0)));
+                    actionList.AddRange(FindEntriesFromGeneralActionSheet(input));
+                }
+            }
+
+            return actionList;
+        }
+
+        public static List<TriggerData> FindEntriesFromActionSheet(string input)
+        {
+            List<TriggerData> actionList = new List<TriggerData>();
+            ExcelSheet<LuminaAction>? actionSheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
+
+            if (actionSheet is null)
+            {
+                return actionList;
+            }
+            
+            // Add by id
+            if (uint.TryParse(input, out uint value))
+            {
+                if (value > 0)
+                {
+                    LuminaAction? action = actionSheet.GetRow(value);
+                    if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
+                    {
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                    }
+                }
+            }
+
+            // Add by name
+            if (!actionList.Any())
+            {
+                foreach(LuminaAction action in actionSheet)
+                {
+                    if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
+                    {
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                    }
+                }
+            }
+            
+            return actionList;
+        }
+
+        public static List<TriggerData> FindEntriesFromActionIndirectionSheet(string input)
+        {
+            List<TriggerData> actionList = new List<TriggerData>();
+            ExcelSheet<ActionIndirection>? actionIndirectionSheet = Singletons.Get<DataManager>().GetExcelSheet<ActionIndirection>();
+
+            if (actionIndirectionSheet is null)
+            {
+                return actionList;
+            }
+
+            // Add by id
+            if (uint.TryParse(input, out uint value))
+            {
+                foreach (ActionIndirection iAction in actionIndirectionSheet)
+                {
+                    LuminaAction? action = iAction.Name.Value;
+                    if (action is not null && action.RowId == value)
+                    {
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        break;
+                    }
+                }
+            }
+            
+            // Add by name
+            if (!actionList.Any())
+            {
+                foreach (ActionIndirection indirectAction in actionIndirectionSheet)
+                {
+                    LuminaAction? action = indirectAction.Name.Value;
+                    if (action is not null && input.ToLower().Equals(action.Name.ToString().ToLower()))
+                    {
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                    }
+                }
+            }
+
+            return actionList;
+        }
+
+        public static List<TriggerData> FindEntriesFromGeneralActionSheet(string input)
+        {
+            List<TriggerData> actionList = new List<TriggerData>();
+            ExcelSheet<GeneralAction>? generalSheet = Singletons.Get<DataManager>().GetExcelSheet<GeneralAction>();
+
+            if (generalSheet is null)
+            {
+                return actionList;
+            }
+
+            // Add by name (Add by id doesn't really work, these sheets are a mess)
+            if (!actionList.Any())
+            {
+                foreach (GeneralAction generalAction in generalSheet)
+                {
+                    LuminaAction? action = generalAction.Action.Value;
+                    if (action is not null && input.ToLower().Equals(generalAction.Name.ToString().ToLower()))
+                    {
+                        actionList.Add(new TriggerData(generalAction.Name, action.RowId, (ushort)generalAction.Icon, 0));
+                    }
                 }
             }
 
@@ -225,7 +306,6 @@ namespace XIVAuras.Helpers
     public class DataSource
     {
         public float Value;
-        public float ChargeTime;
         public int Stacks;
         public int MaxStacks;
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ImGuiNET;
 using Newtonsoft.Json;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
@@ -13,8 +14,13 @@ namespace XIVAuras.Auras
         [JsonIgnore] protected bool LastFrameWasPreview = false;
         [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] public bool Preview = false;
+        [JsonIgnore] public bool Hovered = false;
+        [JsonIgnore] public bool Dragging = false;
+        [JsonIgnore] public bool SetPosition = false;
         [JsonIgnore] protected DataSource? StartData = null;
         [JsonIgnore] protected DateTime? StartTime = null;
+        [JsonIgnore] protected DataSource? OldStartData = null;
+        [JsonIgnore] protected DateTime? OldStartTime = null;
 
         public string Name { get; set; }
 
@@ -54,7 +60,6 @@ namespace XIVAuras.Auras
                 return new DataSource()
                 {
                     Value = newValue,
-                    ChargeTime = data.ChargeTime,
                     Stacks = data.Stacks
                 };
             }
@@ -62,36 +67,42 @@ namespace XIVAuras.Auras
             return data;
         }
 
+        // Dont ask
+        protected void UpdateDragData(Vector2 pos, Vector2 size)
+        {
+            this.Hovered = ImGui.IsMouseHoveringRect(pos, pos + size);
+            this.Dragging = this.LastFrameWasDragging && ImGui.IsMouseDown(ImGuiMouseButton.Left);
+            this.SetPosition = (this.Preview && !this.LastFrameWasPreview || !this.Hovered) && !this.Dragging;
+            this.LastFrameWasDragging = this.Hovered || this.Dragging;
+        }
+
         protected void UpdateStartData(DataSource data, TriggerType type)
         {
             if (this.LastFrameWasPreview && !this.Preview)
             {
+                this.StartData = this.OldStartData;
+                this.StartTime = this.OldStartTime;
+            }
+            
+            if (!this.LastFrameWasPreview && this.Preview)
+            {
+                this.OldStartData = this.StartData;
+                this.OldStartTime = this.StartTime;
                 this.StartData = null;
                 this.StartTime = null;
             }
 
-            if (this.StartData is not null)
+            if (this.StartData is not null &&
+                data.Value > this.StartData.Value)
             {
-                float startValue = type == TriggerType.Cooldown
-                    ? this.StartData.ChargeTime
-                    : this.StartData.Value;
-
-                float value = type == TriggerType.Cooldown
-                    ? data.ChargeTime
-                    : data.Value;
-
-                if (value > startValue)
-                {
-                    this.StartData = data;
-                    this.StartTime = DateTime.UtcNow;
-                }
+                this.StartData = data;
+                this.StartTime = DateTime.UtcNow;
             }
 
             if (this.StartData is null || !this.StartTime.HasValue)
             {
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
-                return;
             }
         }
     }
