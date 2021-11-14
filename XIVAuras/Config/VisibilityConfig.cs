@@ -147,6 +147,11 @@ namespace XIVAuras.Config
 
                 if (this.ShowForJobTypes == JobType.Custom)
                 {
+                    if (string.IsNullOrEmpty(this._customJobInput))
+                    {
+                        this._customJobInput = this.CustomJobString.ToUpper();
+                    }
+
                     if (ImGui.InputTextWithHint("Custom Job List", "Comma Separated List (ex: WAR, SAM, BLM)", ref _customJobInput, 100, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
                         IEnumerable<string> jobStrings = this._customJobInput.Split(',').Select(j => j.Trim());
@@ -165,6 +170,7 @@ namespace XIVAuras.Config
                             }
                         }
 
+                        this._customJobInput = this._customJobInput.ToUpper();
                         this.CustomJobString = this._customJobInput;
                         this.CustomJobList = jobList;
                     }

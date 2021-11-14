@@ -12,12 +12,10 @@ namespace XIVAuras.Helpers
     public class TexturesCache : IXIVAurasDisposable
     {
         private Dictionary<string, Tuple<TextureWrap, float>> TextureCache { get; init; }
-        private Dictionary<string, IconData> IconCache { get; init; }
 
         public TexturesCache()
         {
             this.TextureCache = new Dictionary<string, Tuple<TextureWrap, float>>();
-            this.IconCache = new Dictionary<string, IconData>();
         }
 
         public TextureWrap? GetTextureFromIconId(
@@ -40,7 +38,7 @@ namespace XIVAuras.Helpers
                 this.TextureCache.Remove(key);
             }
 
-            TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale);
+            TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale, opacity);
             if (newTexture == null)
             {
                 return null;
@@ -61,11 +59,6 @@ namespace XIVAuras.Helpers
         {
             try
             {
-                if (this.IconCache.TryGetValue(path, out IconData? iconData))
-                {
-                    return iconData.GetTextureWrap(greyScale, opacity);
-                }
-                
                 TexFile? iconFile = Singletons.Get<DataManager>().GetFile<TexFile>(path);
                 if (iconFile is null)
                 {
@@ -73,7 +66,6 @@ namespace XIVAuras.Helpers
                 }
 
                 IconData newIcon = new IconData(iconFile);
-                this.IconCache.Add(path, newIcon);
                 return newIcon.GetTextureWrap(greyScale, opacity);
             }
             catch (Exception ex)
@@ -100,7 +92,6 @@ namespace XIVAuras.Helpers
                 }
 
                 this.TextureCache.Clear();
-                this.IconCache.Clear();
             }
         }
     }
@@ -139,7 +130,7 @@ namespace XIVAuras.Helpers
 
         public byte[] ConvertBytes(byte[] bytes, bool greyScale, float opacity)
         {
-            if (bytes.Length % 4 != 0)
+            if (bytes.Length % 4 != 0 || opacity > 1f || opacity < 0)
             {
                 return bytes;
             }
