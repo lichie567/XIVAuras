@@ -11,13 +11,11 @@ namespace XIVAuras.Helpers
 {
     public class TexturesCache : IXIVAurasDisposable
     {
-        private Dictionary<string, TextureWrap> TextureCache { get; init; }
-        private Dictionary<string, IconData> IconCache { get; init; }
+        private Dictionary<string, Tuple<TextureWrap, float>> TextureCache { get; init; }
 
         public TexturesCache()
         {
-            this.TextureCache = new Dictionary<string, TextureWrap>();
-            this.IconCache = new Dictionary<string, IconData>();
+            this.TextureCache = new Dictionary<string, Tuple<TextureWrap, float>>();
         }
 
         public TextureWrap? GetTextureFromIconId(
@@ -27,24 +25,26 @@ namespace XIVAuras.Helpers
             bool greyScale = false,
             float opacity = 1f)
         {
-            if (opacity < 1f)
+            string key = $"{iconId}{(greyScale ? "_g" : string.Empty)}{(opacity != 1f ? "_t" : string.Empty)}";
+            if (this.TextureCache.TryGetValue(key, out var tuple))
             {
-                return this.LoadTexture(iconId + stackCount, hdIcon, greyScale, opacity);
+                TextureWrap texture = tuple.Item1;
+                float cachedOpacity = tuple.Item2;
+                if (cachedOpacity == opacity)
+                {
+                    return texture;
+                }
+
+                this.TextureCache.Remove(key);
             }
 
-            string key = $"{iconId}{(greyScale ? "_g" : "")}";
-            if (this.TextureCache.TryGetValue(key, out TextureWrap? texture))
-            {
-                return texture;
-            }
-
-            TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale);
+            TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale, opacity);
             if (newTexture == null)
             {
                 return null;
             }
 
-            this.TextureCache.Add(key, newTexture);
+            this.TextureCache.Add(key, new Tuple<TextureWrap, float>(newTexture, opacity));
             return newTexture;
         }
 
@@ -59,11 +59,6 @@ namespace XIVAuras.Helpers
         {
             try
             {
-                if (this.IconCache.TryGetValue(path, out IconData? iconData))
-                {
-                    return iconData.GetTextureWrap(greyScale, opacity);
-                }
-                
                 TexFile? iconFile = Singletons.Get<DataManager>().GetFile<TexFile>(path);
                 if (iconFile is null)
                 {
@@ -71,7 +66,6 @@ namespace XIVAuras.Helpers
                 }
 
                 IconData newIcon = new IconData(iconFile);
-                this.IconCache.Add(path, newIcon);
                 return newIcon.GetTextureWrap(greyScale, opacity);
             }
             catch (Exception ex)
@@ -92,13 +86,12 @@ namespace XIVAuras.Helpers
         {
             if (disposing)
             {
-                foreach (TextureWrap tex in this.TextureCache.Values)
+                foreach (var tuple in this.TextureCache.Values)
                 {
-                    tex.Dispose();
+                    tuple.Item1.Dispose();
                 }
 
                 this.TextureCache.Clear();
-                this.IconCache.Clear();
             }
         }
     }
@@ -137,7 +130,7 @@ namespace XIVAuras.Helpers
 
         public byte[] ConvertBytes(byte[] bytes, bool greyScale, float opacity)
         {
-            if (bytes.Length % 4 != 0)
+            if (bytes.Length % 4 != 0 || opacity > 1f || opacity < 0)
             {
                 return bytes;
             }
