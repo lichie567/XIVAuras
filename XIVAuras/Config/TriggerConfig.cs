@@ -147,7 +147,8 @@ namespace XIVAuras.Config
                             {
                                 Vector2 iconPos = ImGui.GetWindowPos().AddX(10) + new Vector2(i * (40 + padX), padY);
                                 Vector2 iconSize = new Vector2(40, 40);
-                                this.DrawIconPreview(iconPos, iconSize, icons[i], this.IconPickerIndex == i);
+                                bool crop = this.CropIcon && this.TriggerType != TriggerType.Cooldown;
+                                this.DrawIconPreview(iconPos, iconSize, icons[i], this.IconPickerIndex == i, crop);
 
                                 if (ImGui.IsMouseHoveringRect(iconPos, iconPos + iconSize))
                                 {
@@ -183,7 +184,7 @@ namespace XIVAuras.Config
                         {
                             Vector2 iconPos = ImGui.GetWindowPos() + new Vector2(10, padY);
                             Vector2 iconSize = new Vector2(40, 40);
-                            this.DrawIconPreview(iconPos, iconSize, this.CustomIcon, true);
+                            this.DrawIconPreview(iconPos, iconSize, this.CustomIcon, true, true);
                             ImGui.EndChild();
                         }
                     }
@@ -231,10 +232,9 @@ namespace XIVAuras.Config
             }
         }
 
-        private void DrawIconPreview(Vector2 iconPos, Vector2 iconSize, ushort icon, bool selected)
+        private void DrawIconPreview(Vector2 iconPos, Vector2 iconSize, ushort icon, bool selected, bool crop)
         {
             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-            bool crop = this.CropIcon && this.TriggerType != TriggerType.Cooldown;
             int heightOffset = this.TriggerType == TriggerType.Cooldown ? 0 : 8;
             DrawHelpers.DrawIcon(icon, iconPos, iconSize.AddY(crop ? 0 : heightOffset), crop, 0, false, 1f, drawList);
             if (selected)
