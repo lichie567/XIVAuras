@@ -71,18 +71,18 @@
         </Reference>
         <Reference Include="ImGuiScene">
             <Private>false</Private>
+        </Reference>        
+        <Reference Include="Lumina">
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Lumina.Excel">
+            <Private>false</Private>
         </Reference>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="$(SolutionDir)\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj">
             <Name>FFXIVClientStructs</Name>
-        </ProjectReference>
-        <ProjectReference Include="$(SolutionDir)\lib\Lumina\src\Lumina\Lumina.csproj">
-            <Name>Lumina</Name>
-        </ProjectReference>
-        <ProjectReference Include="$(SolutionDir)\lib\Lumina\src\Lumina.Excel\Lumina.Excel.csproj">
-            <Name>Lumina.Excel</Name>
         </ProjectReference>
     </ItemGroup>
 

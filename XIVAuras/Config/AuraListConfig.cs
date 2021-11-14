@@ -158,20 +158,22 @@ namespace XIVAuras.Config
             this.Auras.Remove(aura);
         }
 
-        private void ImportAura(string importString)
+        private void ImportAura(string input)
         {
-            if (!string.IsNullOrEmpty(importString))
+            string importString = input;
+            if (string.IsNullOrEmpty(importString))
             {
-                AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+                importString = ImGui.GetClipboardText();
+            }
 
-                if (newAura is not null)
-                {
-                    this.Auras.Add(newAura);
-                }
-                else
-                {
-                    DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
-                }
+            AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+            if (newAura is not null)
+            {
+                this.Auras.Add(newAura);
+            }
+            else
+            {
+                DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
             }
 
             this._input = string.Empty;
