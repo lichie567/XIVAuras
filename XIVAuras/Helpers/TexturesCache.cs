@@ -11,12 +11,12 @@ namespace XIVAuras.Helpers
 {
     public class TexturesCache : IXIVAurasDisposable
     {
-        private Dictionary<string, TextureWrap> TextureCache { get; init; }
+        private Dictionary<string, Tuple<TextureWrap, float>> TextureCache { get; init; }
         private Dictionary<string, IconData> IconCache { get; init; }
 
         public TexturesCache()
         {
-            this.TextureCache = new Dictionary<string, TextureWrap>();
+            this.TextureCache = new Dictionary<string, Tuple<TextureWrap, float>>();
             this.IconCache = new Dictionary<string, IconData>();
         }
 
@@ -27,15 +27,17 @@ namespace XIVAuras.Helpers
             bool greyScale = false,
             float opacity = 1f)
         {
-            if (opacity < 1f)
+            string key = $"{iconId}{(greyScale ? "_g" : string.Empty)}{(opacity != 1f ? "_t" : string.Empty)}";
+            if (this.TextureCache.TryGetValue(key, out var tuple))
             {
-                return this.LoadTexture(iconId + stackCount, hdIcon, greyScale, opacity);
-            }
+                TextureWrap texture = tuple.Item1;
+                float cachedOpacity = tuple.Item2;
+                if (cachedOpacity == opacity)
+                {
+                    return texture;
+                }
 
-            string key = $"{iconId}{(greyScale ? "_g" : "")}";
-            if (this.TextureCache.TryGetValue(key, out TextureWrap? texture))
-            {
-                return texture;
+                this.TextureCache.Remove(key);
             }
 
             TextureWrap? newTexture = this.LoadTexture(iconId + stackCount, hdIcon, greyScale);
@@ -44,7 +46,7 @@ namespace XIVAuras.Helpers
                 return null;
             }
 
-            this.TextureCache.Add(key, newTexture);
+            this.TextureCache.Add(key, new Tuple<TextureWrap, float>(newTexture, opacity));
             return newTexture;
         }
 
@@ -92,9 +94,9 @@ namespace XIVAuras.Helpers
         {
             if (disposing)
             {
-                foreach (TextureWrap tex in this.TextureCache.Values)
+                foreach (var tuple in this.TextureCache.Values)
                 {
-                    tex.Dispose();
+                    tuple.Item1.Dispose();
                 }
 
                 this.TextureCache.Clear();
