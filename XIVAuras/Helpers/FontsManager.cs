@@ -32,7 +32,12 @@ namespace XIVAuras.Helpers
         private string[] FontList { get; set; }
         private UiBuilder UiBuilder { get; init; }
 
-        public const string DefaultFontKey = "Default";
+        public const string DalamudFontKey = "Dalamud Font";
+
+        public static readonly List<string> DefaultFontKeys = new List<string>() { "big-noodle-too_24", "big-noodle-too_20", "big-noodle-too_16" };
+        public static string DefaultBigFontKey => DefaultFontKeys[0];
+        public static string DefaultMediumFontKey => DefaultFontKeys[1];
+        public static string DefaultSmallFontKey => DefaultFontKeys[2];
 
         public FontsManager(UiBuilder uiBuilder, IEnumerable<FontData> fonts)
         {
@@ -47,9 +52,9 @@ namespace XIVAuras.Helpers
 
         public void BuildFonts()
         {
-            string? fontDir = GetFontPath();
+            string fontDir = GetUserFontPath();
 
-            if (fontDir is null)
+            if (string.IsNullOrEmpty(fontDir))
             {
                 return;
             }
@@ -82,7 +87,7 @@ namespace XIVAuras.Helpers
                 }
             }
 
-            List<string> fontList = new List<string>() { DefaultFontKey };
+            List<string> fontList = new List<string>() { DalamudFontKey };
             fontList.AddRange(this.ImGuiFonts.Keys);
             this.FontList = fontList.ToArray();
         }
@@ -90,7 +95,7 @@ namespace XIVAuras.Helpers
         public bool PushFont(string fontKey)
         {
             if (string.IsNullOrEmpty(fontKey) ||
-                fontKey.Equals(DefaultFontKey) ||
+                fontKey.Equals(DalamudFontKey) ||
                 !this.ImGuiFonts.Keys.Contains(fontKey))
             {
                 return false;
@@ -109,6 +114,19 @@ namespace XIVAuras.Helpers
         public string[] GetFontList()
         {
             return this.FontList;
+        }
+
+        public int GetFontIndex(string fontKey)
+        {
+            for (int i = 0; i < this.FontList.Length; i++)
+            {
+                if (this.FontList[i].Equals(fontKey))
+                {
+                    return i;
+                }
+            }
+
+            return 0;
         }
 
         private unsafe ImVector? GetCharacterRanges(FontData font, ImGuiIOPtr io)
@@ -145,7 +163,65 @@ namespace XIVAuras.Helpers
             return key;
         }
 
-        public static string? GetFontPath()
+        public static void CopyPluginFontsToUserPath()
+        {
+            string? pluginFontPath = GetPluginFontPath();
+            string? userFontPath = GetUserFontPath();
+
+            if (string.IsNullOrEmpty(pluginFontPath) || string.IsNullOrEmpty(userFontPath))
+            {
+                return;
+            }
+
+            if (!Directory.Exists(userFontPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(userFontPath);
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Warning($"Failed to create User Font Directory {ex.ToString()}");
+                }
+            }
+
+            if (!Directory.Exists(userFontPath))
+            {
+                return;
+            }
+            
+            string[] pluginFonts;
+            try
+            {
+                pluginFonts = Directory.GetFiles(pluginFontPath, "*.ttf");
+            }
+            catch
+            {
+                pluginFonts = new string[0];
+            }
+
+            foreach (string font in pluginFonts)
+            {
+                try
+                {
+                    if (!string.IsNullOrEmpty(font))
+                    {
+                        string fileName = font.Replace(pluginFontPath, string.Empty);
+                        string copyPath = Path.Combine(userFontPath, fileName);
+                        if (!File.Exists(copyPath))
+                        {
+                            File.Copy(font, copyPath, false);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    PluginLog.Warning($"Failed to copy font {font} to User Font Directory: {ex.ToString()}");
+                }
+            }
+        }
+
+        public static string GetPluginFontPath()
         {
             string? path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
@@ -154,12 +230,17 @@ namespace XIVAuras.Helpers
                 return $"{path}\\Media\\Fonts\\";
             }
 
-            return null;
+            return string.Empty;
+        }
+        
+        public static string GetUserFontPath()
+        {
+            return $"{Plugin.ConfigFileDir}\\Fonts\\";
         }
 
         public static string[] GetFontNamesFromPath(string? path)
         {
-            if (path is null)
+            if (string.IsNullOrEmpty(path))
             {
                 return new string[0];
             }

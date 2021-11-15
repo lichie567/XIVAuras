@@ -68,6 +68,7 @@ namespace XIVAuras.Helpers
                 {
                     Value = 10,
                     Stacks = 2,
+                    MaxStacks = 2
                 };
             }
 

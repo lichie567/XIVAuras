@@ -165,12 +165,17 @@ namespace XIVAuras.Auras
         public static AuraIcon GetDefaultAuraIcon(string name)
         {
             AuraLabel valueLabel = new AuraLabel("Value", "[value]");
+            valueLabel.LabelStyleConfig.FontKey = FontsManager.DefaultBigFontKey;
+            valueLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultBigFontKey);
             valueLabel.VisibilityConfig.HideIf = true;
             valueLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.Value;
             valueLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
             valueLabel.VisibilityConfig.HideIfValue = 0;
 
             AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
+            stacksLabel.LabelStyleConfig.FontKey = FontsManager.DefaultMediumFontKey;
+            stacksLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultMediumFontKey);
+            stacksLabel.LabelStyleConfig.Position = new Vector2(-1, 0);
             stacksLabel.LabelStyleConfig.ParentAnchor = DrawAnchor.BottomRight;
             stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
             stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
