@@ -53,7 +53,7 @@ namespace XIVAuras.Windows
         {
             if (this.ConfigStack.Any())
             {
-                this.WindowName = this.ConfigStack.Peek().ToString() ?? "XIVAuras";
+                this.WindowName = this.GetWindowTitle();
                 ImGui.SetNextWindowSize(this.WindowSize);
             }
         }
@@ -112,7 +112,7 @@ namespace XIVAuras.Windows
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Home, () => _home = true, "Home", buttonsize);
                 ImGui.SameLine();
 
-                // calculate empty horizontal space based on size of 5 buttons and text box
+                // calculate empty horizontal space based on size of 4 buttons and text box
                 float offset = size.X - buttonsize.X * 4 - textInputWidth - padX * 6;
 
                 if (this.ConfigStack.Peek() is AuraListItem aura)
@@ -141,6 +141,13 @@ namespace XIVAuras.Windows
 
                 ImGui.EndChild();
             }
+        }
+
+        private string GetWindowTitle()
+        {
+            string title = string.Empty;
+            title = string.Join("  >  ", this.ConfigStack.Reverse().Select(c => c.ToString()));
+            return title;
         }
 
         private void Export()
