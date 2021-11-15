@@ -25,7 +25,7 @@ namespace XIVAuras
     {
         public const string ConfigFileName = "XIVAuras.json";
 
-        public static string Version { get; private set; } = "0.1.3.2";
+        public static string Version { get; private set; } = "0.1.4.0";
 
         public static string ConfigFileDir { get; private set; } = "";
 
