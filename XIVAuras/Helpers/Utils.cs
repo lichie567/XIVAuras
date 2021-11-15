@@ -1,6 +1,10 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Diagnostics;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Logging;
 using XIVAuras.Config;
 
 namespace XIVAuras.Helpers
@@ -50,6 +54,34 @@ namespace XIVAuras.Helpers
             }
 
             return null;
+        }
+        
+        public static void OpenUrl(string url)
+        {
+            try
+            {
+                Process.Start(url);
+            }
+            catch
+            {
+                try
+                {
+                    // hack because of this: https://github.com/dotnet/corefx/issues/10361
+                    if (RuntimeInformation.IsOSPlatform(osPlatform: OSPlatform.Windows))
+                    {
+                        url = url.Replace("&", "^&");
+                        Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        Process.Start("xdg-open", url);
+                    }
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error("Error trying to open url: " + e.Message);
+                }
+            }
         }
     }
 }
