@@ -166,20 +166,23 @@ namespace XIVAuras.Config
             this._labelInput = string.Empty;
         }
 
-        private void ImportLabel(string importString)
+        private void ImportLabel(string input)
         {
-            if (!string.IsNullOrEmpty(importString))
+            string importString = input;
+            if (string.IsNullOrEmpty(importString))
             {
-                AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+                importString = ImGui.GetClipboardText();
+            }
+            
+            AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
 
-                if (newAura is AuraLabel label)
-                {
-                    this.AuraLabels.Add(label);
-                }
-                else
-                {
-                    DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
-                }
+            if (newAura is AuraLabel label)
+            {
+                this.AuraLabels.Add(label);
+            }
+            else
+            {
+                DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
             }
 
             this._labelInput = string.Empty;

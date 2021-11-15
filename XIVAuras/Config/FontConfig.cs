@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface;
@@ -12,18 +13,40 @@ namespace XIVAuras.Config
     {
         public string Name => "Fonts";
 
-        [JsonIgnore] private static string? _fontPath = FontsManager.GetFontPath();
+        [JsonIgnore] private static string? _fontPath = FontsManager.GetUserFontPath();
         [JsonIgnore] private int _selectedFont = 0;
         [JsonIgnore] private int _selectedSize = 23;
-        [JsonIgnore] private string[] _fonts = FontsManager.GetFontNamesFromPath(_fontPath);
+        [JsonIgnore] private string[] _fonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
         [JsonIgnore] private string[] _sizes = Enumerable.Range(1, 40).Select(i => i.ToString()).ToArray();
         [JsonIgnore] private bool _chinese = false;
         [JsonIgnore] private bool _korean = false;
 
-        public Dictionary<string, FontData> Fonts { get; set; } = new Dictionary<string, FontData>();
+        public Dictionary<string, FontData> Fonts { get; private set; }
+
+        public FontConfig()
+        {
+            RefreshFontList();
+            this.Fonts = new Dictionary<string, FontData>();
+
+            foreach (string fontKey in FontsManager.DefaultFontKeys)
+            {
+                string[] splits = fontKey.Split("_", StringSplitOptions.RemoveEmptyEntries);
+                if (splits.Length == 2 && int.TryParse(splits[1], out int size))
+                {
+                    FontData newFont = new FontData(splits[0], size, false, false);
+                    string key = FontsManager.GetFontKey(newFont);
+                    this.Fonts.Add(key, newFont);
+                }
+            }
+        }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
+            if (this._fonts.Length == 0)
+            {
+                RefreshFontList();
+            }
+
             if (ImGui.BeginChild("##FontConfig", new Vector2(size.X, size.Y), true))
             {
                 if (_fontPath is not null)
@@ -39,7 +62,7 @@ namespace XIVAuras.Config
 
                     ImGui.Combo("Font", ref _selectedFont, _fonts, _fonts.Length);
                     ImGui.SameLine();
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Sync, () => _fonts = FontsManager.GetFontNamesFromPath(_fontPath), "Reload Font List", buttonSize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Sync, () => RefreshFontList(), "Reload Font List", buttonSize);
 
                     ImGui.Combo("Size", ref _selectedSize, _sizes, _sizes.Length);
                     ImGui.SameLine();
@@ -106,8 +129,11 @@ namespace XIVAuras.Config
 
                             if (ImGui.TableSetColumnIndex(4))
                             {
-                                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveFont(key), "Remove Font", new Vector2(45, 0));
+                                if (!FontsManager.DefaultFontKeys.Contains(key))
+                                {
+                                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveFont(key), "Remove Font", new Vector2(45, 0));
+                                }
                             }
                         }
 
@@ -119,12 +145,21 @@ namespace XIVAuras.Config
             }
         }
 
+        public void RefreshFontList()
+        {
+            this._fonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
+        }
+
         private void AddFont(int fontIndex, int size)
         {
             FontData newFont = new FontData(_fonts[fontIndex], size + 1, _chinese, _korean);
             string key = FontsManager.GetFontKey(newFont);
-            this.Fonts.Add(key, newFont);
-            Singletons.Get<FontsManager>().UpdateFonts(this.Fonts.Values);
+
+            if (!this.Fonts.ContainsKey(key))
+            {
+                this.Fonts.Add(key, newFont);
+                Singletons.Get<FontsManager>().UpdateFonts(this.Fonts.Values);
+            }
         }
 
         private void RemoveFont(string key)

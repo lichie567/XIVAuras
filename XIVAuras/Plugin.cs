@@ -21,11 +21,13 @@ namespace XIVAuras
     {
         public static string Version { get; private set; } = "0.1.3.2";
 
+        public static string ConfigFileDir { get; private set; } = "";
+
+        public static string ConfigFilePath { get; private set; } = "";
+
         public string Name => "XIVAuras";
 
         public const string ConfigFileName = "XIVAuras.json";
-
-        public static string ConfigFilePath = "";
 
         public Plugin(
             ClientState clientState,
@@ -43,6 +45,7 @@ namespace XIVAuras
         )
         {
             Plugin.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? Plugin.Version;
+            Plugin.ConfigFileDir = pluginInterface.GetPluginConfigDirectory();
             Plugin.ConfigFilePath = Path.Combine(pluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 
             // Register Dalamud APIs
@@ -68,6 +71,7 @@ namespace XIVAuras
             Singletons.Register(config);
 
             // Initialize Fonts
+            FontsManager.CopyPluginFontsToUserPath();
             Singletons.Register(new FontsManager(pluginInterface.UiBuilder, config.FontConfig.Fonts.Values));
 
             // Start the plugin
