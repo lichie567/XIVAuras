@@ -81,6 +81,14 @@ namespace XIVAuras.Auras
                     bool desaturate = this.IconStyleConfig.DesaturateIcon;
                     float alpha = this.IconStyleConfig.Opacity;
 
+                    if (alpha == 1f)
+                    {
+                        // Game icon textures are slightly transparent and are meant to be drawn with a black background.
+                        // Only draw it at max opacity because the icon will be too dark at lower opacity even if you
+                        // adjust the background opacity.
+                        drawList.AddRectFilled(localPos, localPos + size, 0xFF000000);
+                    }
+
                     DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, desaturate, alpha, drawList);
 
                     if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)

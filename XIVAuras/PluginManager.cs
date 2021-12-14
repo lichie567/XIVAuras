@@ -31,6 +31,15 @@ namespace XIVAuras
 
         private readonly Vector2 _configSize = new Vector2(550, 600);
 
+        private readonly ImGuiWindowFlags _mainWindowFlags = 
+            ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoScrollbar |
+            ImGuiWindowFlags.AlwaysAutoResize |
+            ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.NoInputs |
+            ImGuiWindowFlags.NoBringToFrontOnFocus |
+            ImGuiWindowFlags.NoSavedSettings;
+
         public PluginManager(
             ClientState clientState,
             CommandManager commandManager,
@@ -68,12 +77,7 @@ namespace XIVAuras
 
         private void Draw()
         {
-            if (this.ClientState.LocalPlayer == null)
-            {
-                return;
-            }
-
-            if (CharacterState.IsCharacterBusy())
+            if (this.ClientState.LocalPlayer == null || CharacterState.IsCharacterBusy())
             {
                 return;
             }
@@ -83,26 +87,12 @@ namespace XIVAuras
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
             ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
-            var begin = ImGui.Begin(
-                "XIVAuras_Root",
-                ImGuiWindowFlags.NoTitleBar
-              | ImGuiWindowFlags.NoScrollbar
-              | ImGuiWindowFlags.AlwaysAutoResize
-              | ImGuiWindowFlags.NoBackground
-              | ImGuiWindowFlags.NoInputs
-              | ImGuiWindowFlags.NoBringToFrontOnFocus
-              | ImGuiWindowFlags.NoSavedSettings
-            );
-
-            if (!begin)
+            if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
             {
-                ImGui.End();
-                return;
-            }
-
-            foreach (AuraListItem aura in this.Config.AuraList.Auras)
-            {
-                aura.Draw(_origin + this.Config.GroupConfig.Position);
+                foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                {
+                    aura.Draw(_origin + this.Config.GroupConfig.Position);
+                }
             }
 
             ImGui.End();
