@@ -53,7 +53,7 @@ namespace XIVAuras.Config
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);
 
-                string[] fontOptions = Singletons.Get<FontsManager>().GetFontList();
+                string[] fontOptions = FontsManager.GetFontList();
                 if (this.FontID > fontOptions.Length ||
                     !fontOptions[this.FontID].Equals(this.FontKey))
                 {

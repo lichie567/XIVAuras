@@ -132,7 +132,7 @@ namespace XIVAuras.Helpers
                             {
                                 Value = Math.Abs(status.RemainingTime),
                                 Stacks = status.StackCount,
-                                MaxStacks = trigger.MaxStacks
+                                MaxStacks = status.GameData.MaxStacks
                             };
                         }
                     }
@@ -158,7 +158,7 @@ namespace XIVAuras.Helpers
                         LuminaStatus? status = sheet.GetRow(value);
                         if (status is not null)
                         {
-                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
+                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon));
                         }
                     }
                 }
@@ -168,7 +168,7 @@ namespace XIVAuras.Helpers
                 {
                     statusList.AddRange(
                         sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
-                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
+                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon)));
                 }
 
                 return statusList;
@@ -217,7 +217,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = actionSheet.GetRow(value);
                     if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon));
                     }
                 }
             }
@@ -229,7 +229,7 @@ namespace XIVAuras.Helpers
                 {
                     if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon));
                     }
                 }
             }
@@ -255,7 +255,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = iAction.Name.Value;
                     if (action is not null && action.RowId == value)
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon));
                         break;
                     }
                 }
@@ -269,7 +269,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = indirectAction.Name.Value;
                     if (action is not null && input.ToLower().Equals(action.Name.ToString().ToLower()))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon));
                     }
                 }
             }
@@ -295,7 +295,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = generalAction.Action.Value;
                     if (action is not null && input.ToLower().Equals(generalAction.Name.ToString().ToLower()))
                     {
-                        actionList.Add(new TriggerData(generalAction.Name, action.RowId, (ushort)generalAction.Icon, 0));
+                        actionList.Add(new TriggerData(generalAction.Name, action.RowId, (ushort)generalAction.Icon));
                     }
                 }
             }
@@ -327,14 +327,12 @@ namespace XIVAuras.Helpers
         public string Name;
         public uint Id;
         public ushort Icon;
-        public byte MaxStacks;
 
-        public TriggerData(string name, uint id, ushort icon, byte maxStacks)
+        public TriggerData(string name, uint id, ushort icon)
         {
             Name = name;
             Id = id;
             Icon = icon;
-            MaxStacks = maxStacks;
         }
     }
 }

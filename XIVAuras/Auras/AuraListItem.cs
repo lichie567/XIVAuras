@@ -10,17 +10,19 @@ namespace XIVAuras.Auras
 {
     public abstract class AuraListItem : IConfigurable
     {
-        [JsonIgnore] public readonly string ID;
-        [JsonIgnore] protected bool LastFrameWasPreview = false;
-        [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] public bool Preview = false;
         [JsonIgnore] public bool Hovered = false;
         [JsonIgnore] public bool Dragging = false;
         [JsonIgnore] public bool SetPosition = false;
+
+        [JsonIgnore] protected bool LastFrameWasPreview = false;
+        [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] protected DataSource? StartData = null;
         [JsonIgnore] protected DateTime? StartTime = null;
         [JsonIgnore] protected DataSource? OldStartData = null;
         [JsonIgnore] protected DateTime? OldStartTime = null;
+
+        [JsonIgnore] public string ID { get; }
 
         public string Name { get; set; }
 
@@ -110,9 +112,9 @@ namespace XIVAuras.Auras
 
     public enum AuraType
     {
-        Group,
         Icon,
         Bar,
-        Label
+        Label,
+        Group
     }
 }

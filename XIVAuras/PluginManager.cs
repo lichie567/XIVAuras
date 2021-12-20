@@ -13,7 +13,7 @@ using XIVAuras.Windows;
 
 namespace XIVAuras
 {
-    public class PluginManager : IXIVAurasDisposable
+    public class PluginManager : IPluginDisposable
     {
         private ClientState ClientState { get; init; }
 

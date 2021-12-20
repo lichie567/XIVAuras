@@ -12,6 +12,8 @@ namespace XIVAuras.Config
     public class FontConfig : IConfigPage
     {
         public string Name => "Fonts";
+        
+        public IConfigPage GetDefault() => new FontConfig();
 
         [JsonIgnore] private static string? _fontPath = FontsManager.GetUserFontPath();
         [JsonIgnore] private int _selectedFont = 0;
@@ -42,7 +44,7 @@ namespace XIVAuras.Config
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
-            if (this._fonts.Length == 0)
+            if (_fonts.Length == 0)
             {
                 RefreshFontList();
             }
@@ -69,9 +71,9 @@ namespace XIVAuras.Config
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 3f);
                     DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddFont(_selectedFont, _selectedSize), "Add Font", buttonSize);
 
-                    ImGui.Checkbox("Support Chinese/Japanese", ref this._chinese);
+                    ImGui.Checkbox("Support Chinese/Japanese", ref _chinese);
                     ImGui.SameLine();
-                    ImGui.Checkbox("Support Korean", ref this._korean);
+                    ImGui.Checkbox("Support Korean", ref _korean);
 
                     DrawHelpers.DrawSpacing(1);
                     ImGui.Text("Font List");
@@ -140,14 +142,14 @@ namespace XIVAuras.Config
                         ImGui.EndTable();
                     }
                 }
-
-                ImGui.EndChild();
             }
+
+            ImGui.EndChild();
         }
 
         public void RefreshFontList()
         {
-            this._fonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
+            _fonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
         }
 
         private void AddFont(int fontIndex, int size)

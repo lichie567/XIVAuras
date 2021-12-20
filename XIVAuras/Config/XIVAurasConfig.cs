@@ -6,7 +6,7 @@ using XIVAuras.Helpers;
 namespace XIVAuras.Config
 {
     [JsonObject]
-    public class XIVAurasConfig : IAuraGroup, IConfigurable, IXIVAurasDisposable
+    public class XIVAurasConfig : IAuraGroup, IConfigurable, IPluginDisposable
     {
         public string Name
         {

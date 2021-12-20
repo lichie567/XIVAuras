@@ -20,6 +20,7 @@ namespace XIVAuras.Config
         public bool AlwaysHide = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
+        public bool HideOutsideDuty = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
 
@@ -40,6 +41,11 @@ namespace XIVAuras.Config
             }
 
             if (this.HideInCombat && CharacterState.IsInCombat())
+            {
+                return false;
+            }
+
+            if (this.HideOutsideDuty && !CharacterState.IsInDuty())
             {
                 return false;
             }
@@ -107,6 +113,7 @@ namespace XIVAuras.Config
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
+                ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
                 ImGui.Checkbox("Hide While Performing", ref this.HideWhilePerforming);
                 ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
 

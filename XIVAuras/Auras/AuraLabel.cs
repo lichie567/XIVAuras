@@ -50,7 +50,7 @@ namespace XIVAuras.Auras
                 text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(this.Data.Stacks));
             }
 
-            bool fontPushed = Singletons.Get<FontsManager>().PushFont(this.LabelStyleConfig.FontKey);
+            bool fontPushed = FontsManager.PushFont(this.LabelStyleConfig.FontKey);
 
             Vector2 textSize = ImGui.CalcTextSize(text);
             Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);

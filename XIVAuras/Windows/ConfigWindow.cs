@@ -45,7 +45,7 @@ namespace XIVAuras.Windows
         public void PushConfig(IConfigurable configItem)
         {
             this.ConfigStack.Push(configItem);
-            this._name = configItem.Name;
+            _name = configItem.Name;
             this.IsOpen = true;
         }
 
@@ -179,25 +179,25 @@ namespace XIVAuras.Windows
 
         public override void PostDraw()
         {
-            if (this._home)
+            if (_home)
             {
                 while (this.ConfigStack.Count > 1)
                 {
                     this.ConfigStack.Pop();
                 }
             }
-            else if (this._back)
+            else if (_back)
             {
                 this.ConfigStack.Pop();
             }
 
-            if ((this._home || this._back) && this.ConfigStack.Count > 1)
+            if ((_home || _back) && this.ConfigStack.Count > 1)
             {
-                this._name = this.ConfigStack.Peek().Name;
+                _name = this.ConfigStack.Peek().Name;
             }
 
-            this._home = false;
-            this._back = false;
+            _home = false;
+            _back = false;
         }
 
         public override void OnClose()

@@ -15,7 +15,7 @@ namespace XIVAuras.Config
     {
         private const float MenuBarHeight = 40;
 
-        [JsonIgnore] private AuraType _selectedType = AuraType.Group;
+        [JsonIgnore] private AuraType _selectedType = AuraType.Icon;
         [JsonIgnore] private string _input = string.Empty;
         [JsonIgnore] private string[] _options = Enum.GetNames(typeof(AuraType));
 
@@ -88,8 +88,8 @@ namespace XIVAuras.Config
                 {
                     AuraListItem aura = this.Auras[i];
 
-                    if (!string.IsNullOrEmpty(this._input) &&
-                        !aura.Name.Contains(this._input, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(_input) &&
+                        !aura.Name.Contains(_input, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -145,7 +145,7 @@ namespace XIVAuras.Config
                 }
             }
 
-            this._input = string.Empty;
+            _input = string.Empty;
         }
 
         private void EditAura(AuraListItem aura)
@@ -176,7 +176,7 @@ namespace XIVAuras.Config
                 DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
             }
 
-            this._input = string.Empty;
+            _input = string.Empty;
         }
 
         private void ExportAura(AuraListItem aura)
