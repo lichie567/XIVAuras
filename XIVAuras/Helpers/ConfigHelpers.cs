@@ -171,6 +171,9 @@ namespace XIVAuras.Helpers
             typeof(TriggerConfig),
             typeof(TriggerCondition),
             typeof(TriggerData),
+            typeof(TriggerOptions),
+            typeof(StatusTrigger),
+            typeof(CooldownTrigger),
             typeof(VisibilityConfig),
             typeof(XIVAurasConfig)
         };

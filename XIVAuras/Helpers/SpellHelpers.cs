@@ -60,7 +60,62 @@ namespace XIVAuras.Helpers
             return ActionManager.GetMaxCharges(actionId, level);
         }
 
-        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine, bool preview)
+        public static DataSource? GetStatusData(TriggerSource source, IEnumerable<TriggerData> triggerData, bool onlyMine, bool preview)
+        {
+            if (preview)
+            {
+                return new DataSource()
+                {
+                    Value = 10,
+                    Stacks = 2,
+                    MaxStacks = 2
+                };
+            }
+
+            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (player is null)
+            {
+                return null;
+            }
+
+            TargetManager targetManager = Singletons.Get<TargetManager>();
+            GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
+            GameObject? actor = source switch
+            {
+                TriggerSource.Player => player,
+                TriggerSource.Target => target,
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
+                TriggerSource.FocusTarget => targetManager.FocusTarget,
+                _ => null
+            };
+
+            if (actor is not BattleChara chara)
+            {
+                return null;
+            }
+
+            foreach (TriggerData trigger in triggerData)
+            {
+                foreach (var status in chara.StatusList)
+                {
+                    if (status is not null &&
+                        status.StatusId == trigger.Id &&
+                        (status.SourceID == player.ObjectId || !onlyMine))
+                    {
+                        return new DataSource()
+                        {
+                            Value = Math.Abs(status.RemainingTime),
+                            Stacks = status.StackCount,
+                            MaxStacks = trigger.MaxStacks
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static DataSource? GetCooldownData(IEnumerable<TriggerData> triggerData, bool preview)
         {
             if (preview)
             {
@@ -83,63 +138,22 @@ namespace XIVAuras.Helpers
                 return null;
             }
 
-            if (type == TriggerType.Cooldown)
+            SpellHelpers helper = Singletons.Get<SpellHelpers>();
+            TriggerData activeTrigger = triggerData.First();
+
+            int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
+            int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
+            float chargeTime = helper.GetRecastTime(activeTrigger.Id) / maxCharges;
+            float cooldown = chargeTime != 0 
+                ? helper.GetSpellCooldown(activeTrigger.Id) % chargeTime
+                : chargeTime;
+
+            return new DataSource()
             {
-                SpellHelpers helper = Singletons.Get<SpellHelpers>();
-                TriggerData activeTrigger = triggerData.First();
-
-                int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
-                int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
-                float chargeTime = helper.GetRecastTime(activeTrigger.Id) / maxCharges;
-                float cooldown = chargeTime != 0 
-                    ? helper.GetSpellCooldown(activeTrigger.Id) % chargeTime
-                    : chargeTime;
-
-                return new DataSource()
-                {
-                    Value = cooldown,
-                    Stacks = stacks,
-                    MaxStacks = maxCharges
-                };
-            }
-            else
-            {
-                TargetManager targetManager = Singletons.Get<TargetManager>();
-                GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
-                GameObject? actor = source switch
-                {
-                    TriggerSource.Player => player,
-                    TriggerSource.Target => target,
-                    TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
-                    TriggerSource.FocusTarget => targetManager.FocusTarget,
-                    _ => null
-                };
-
-                if (actor is not BattleChara chara)
-                {
-                    return null;
-                }
-
-                foreach (TriggerData trigger in triggerData)
-                {
-                    foreach (var status in chara.StatusList)
-                    {
-                        if (status is not null &&
-                            status.StatusId == trigger.Id &&
-                            (status.SourceID == player.ObjectId || !onlyMine))
-                        {
-                            return new DataSource()
-                            {
-                                Value = Math.Abs(status.RemainingTime),
-                                Stacks = status.StackCount,
-                                MaxStacks = status.GameData.MaxStacks
-                            };
-                        }
-                    }
-                }
-
-                return null;
-            }
+                Value = cooldown,
+                Stacks = stacks,
+                MaxStacks = maxCharges
+            };
         }
 
         public static List<TriggerData> FindStatusEntries(string input)
@@ -158,7 +172,7 @@ namespace XIVAuras.Helpers
                         LuminaStatus? status = sheet.GetRow(value);
                         if (status is not null)
                         {
-                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon));
+                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
                         }
                     }
                 }
@@ -168,7 +182,7 @@ namespace XIVAuras.Helpers
                 {
                     statusList.AddRange(
                         sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
-                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon)));
+                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
                 }
 
                 return statusList;
@@ -310,9 +324,9 @@ namespace XIVAuras.Helpers
         public int Stacks;
         public int MaxStacks;
 
-        public float GetDataForSourceType(TriggerDataSource sourcetype)
+        public float GetDataForSourceType(TriggerDataSource source)
         {
-            return sourcetype switch
+            return source switch
             {
                 TriggerDataSource.Value => this.Value,
                 TriggerDataSource.Stacks => this.Stacks,
@@ -327,12 +341,14 @@ namespace XIVAuras.Helpers
         public string Name;
         public uint Id;
         public ushort Icon;
+        public byte MaxStacks;
 
-        public TriggerData(string name, uint id, ushort icon)
+        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0)
         {
             Name = name;
             Id = id;
             Icon = icon;
+            MaxStacks = maxStacks;
         }
     }
 }

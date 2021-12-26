@@ -38,95 +38,95 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.TriggerConfig.TriggerList.Any())
-            {
-                return;
-            }
+            // if (!this.TriggerConfig.TriggerList.Any())
+            // {
+            //     return;
+            // }
 
-            DataSource? data = SpellHelpers.GetData(
-                this.TriggerConfig.TriggerSource,
-                this.TriggerConfig.TriggerType,
-                this.TriggerConfig.TriggerList,
-                this.TriggerConfig.ShowOnlyMine,
-                this.Preview);
+            // DataSource? data = SpellHelpers.GetData(
+            //     this.TriggerConfig.TriggerSource,
+            //     this.TriggerConfig.TriggerType,
+            //     this.TriggerConfig.TriggerList,
+            //     this.TriggerConfig.ShowOnlyMine,
+            //     this.Preview);
 
-            if (data is null)
-            {
-                return;
-            }
+            // if (data is null)
+            // {
+            //     return;
+            // }
 
-            bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data) && this.VisibilityConfig.IsVisible(data);
+            // bool triggered = this.Preview || this.TriggerConfig.IsTriggered(data) && this.VisibilityConfig.IsVisible(data);
 
-            Vector2 localPos = pos + this.IconStyleConfig.Position;
-            Vector2 size = this.IconStyleConfig.Size;
+            // Vector2 localPos = pos + this.IconStyleConfig.Position;
+            // Vector2 size = this.IconStyleConfig.Size;
 
-            if (triggered)
-            {
-                this.UpdateStartData(data, this.TriggerConfig.TriggerType);
-                this.UpdateDragData(localPos, size);
+            // if (triggered)
+            // {
+            //     this.UpdateStartData(data, this.TriggerConfig.TriggerType);
+            //     this.UpdateDragData(localPos, size);
 
-                DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.SetPosition, (drawList) =>
-                {
-                    if (this.Preview)
-                    {
-                        data = this.UpdatePreviewData(data);
-                        if (this.LastFrameWasDragging)
-                        {
-                            localPos = ImGui.GetWindowPos();
-                            this.IconStyleConfig.Position = localPos - pos;
-                        }
-                    }
+            //     DrawHelpers.DrawInWindow($"##{this.ID}", localPos, size, this.Preview, this.SetPosition, (drawList) =>
+            //     {
+            //         if (this.Preview)
+            //         {
+            //             data = this.UpdatePreviewData(data);
+            //             if (this.LastFrameWasDragging)
+            //             {
+            //                 localPos = ImGui.GetWindowPos();
+            //                 this.IconStyleConfig.Position = localPos - pos;
+            //             }
+            //         }
 
-                    bool crop = this.TriggerConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
-                    bool desaturate = this.IconStyleConfig.DesaturateIcon;
-                    float alpha = this.IconStyleConfig.Opacity;
+            //         bool crop = this.TriggerConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
+            //         bool desaturate = this.IconStyleConfig.DesaturateIcon;
+            //         float alpha = this.IconStyleConfig.Opacity;
 
-                    DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, desaturate, alpha, drawList);
+            //         DrawHelpers.DrawIcon(this.TriggerConfig.GetIcon(), localPos, size, crop, 0, desaturate, alpha, drawList);
 
-                    if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
-                    {
-                        if (this.IconStyleConfig.ShowProgressSwipe)
-                        {
-                            this.DrawProgressSwipe(localPos, size, data.Value, this.StartData.Value, alpha, drawList);
-                        }
-                    }
+            //         if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
+            //         {
+            //             if (this.IconStyleConfig.ShowProgressSwipe)
+            //             {
+            //                 this.DrawProgressSwipe(localPos, size, data.Value, this.StartData.Value, alpha, drawList);
+            //             }
+            //         }
 
-                    if (this.IconStyleConfig.ShowBorder)
-                    {
-                        for (int i = 0; i < this.IconStyleConfig.BorderThickness; i++)
-                        {
-                            Vector2 offset = new Vector2(i, i);
-                            Vector4 color = this.IconStyleConfig.BorderColor.Vector.AddTransparency(alpha);
-                            drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
-                        }
-                    }
-                });
-            }
-            else
-            {
-                this.StartData = null;
-                this.StartTime = null;
-            }
+            //         if (this.IconStyleConfig.ShowBorder)
+            //         {
+            //             for (int i = 0; i < this.IconStyleConfig.BorderThickness; i++)
+            //             {
+            //                 Vector2 offset = new Vector2(i, i);
+            //                 Vector4 color = this.IconStyleConfig.BorderColor.Vector.AddTransparency(alpha);
+            //                 drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
+            //             }
+            //         }
+            //     });
+            // }
+            // else
+            // {
+            //     this.StartData = null;
+            //     this.StartTime = null;
+            // }
 
-            foreach (AuraLabel label in IconStyleConfig.AuraLabels)
-            {
-                if (!this.Preview && this.LastFrameWasPreview)
-                {
-                    label.Preview = false;
-                }
-                else
-                {
-                    label.Preview |= this.Preview;
-                }
+            // foreach (AuraLabel label in IconStyleConfig.AuraLabels)
+            // {
+            //     if (!this.Preview && this.LastFrameWasPreview)
+            //     {
+            //         label.Preview = false;
+            //     }
+            //     else
+            //     {
+            //         label.Preview |= this.Preview;
+            //     }
 
-                if (triggered || label.Preview)
-                {
-                    label.SetData(data);
-                    label.Draw(localPos, size);
-                }
-            }
+            //     if (triggered || label.Preview)
+            //     {
+            //         label.SetData(data);
+            //         label.Draw(localPos, size);
+            //     }
+            // }
 
-            this.LastFrameWasPreview = this.Preview;
+            // this.LastFrameWasPreview = this.Preview;
         }
 
         private void DrawProgressSwipe(Vector2 pos, Vector2 size, float triggeredValue, float startValue, float alpha, ImDrawListPtr drawList)
@@ -186,13 +186,7 @@ namespace XIVAuras.Auras
             stacksLabel.VisibilityConfig.HideIfValue = 1;
 
             AuraIcon newIcon = new AuraIcon(name, valueLabel, stacksLabel);
-            newIcon.TriggerConfig.TriggerConditions.Add(new TriggerCondition()
-            {
-                Cond = TriggerCond.None,
-                Source = TriggerDataSource.Value,
-                Op = TriggerDataOp.GreaterThan,
-                Value = 0
-            });
+            newIcon.TriggerConfig.TriggerOptions.Add(StatusTrigger.GetDefault());
 
             return newIcon;
         }

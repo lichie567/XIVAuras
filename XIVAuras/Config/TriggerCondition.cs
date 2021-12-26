@@ -4,7 +4,6 @@ namespace XIVAuras.Config
 {
     public enum TriggerCond
     {
-        None,
         And,
         Or,
         Xor
@@ -12,7 +11,6 @@ namespace XIVAuras.Config
 
     public enum TriggerDataSource
     {
-        None,
         Value,
         Stacks,
         MaxStacks
@@ -20,7 +18,6 @@ namespace XIVAuras.Config
 
     public enum TriggerDataOp
     {
-        None,
         Equals,
         NotEquals,
         LessThan,
@@ -31,13 +28,13 @@ namespace XIVAuras.Config
 
     public class TriggerCondition
     {
-        public static readonly string[] CondOptions = new string[] { "", "AND", "OR", "XOR" };
-        public static readonly string[] SourceOptions = new string[] { "", "Value", "Stacks", "MaxStacks" };
-        public static readonly string[] OperatorOptions = new string[] { "", "==", "!=", "<", ">", "<=", ">=" };
+        public static readonly string[] CondOptions = new string[] { "AND", "OR", "XOR" };
+        public static readonly string[] SourceOptions = new string[] { "Value", "Stacks", "MaxStacks" };
+        public static readonly string[] OperatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
 
-        public TriggerCond Cond = TriggerCond.None;
-        public TriggerDataSource Source = TriggerDataSource.None;
-        public TriggerDataOp Op = TriggerDataOp.None;
+        public TriggerCond Cond = TriggerCond.And;
+        public TriggerDataSource Source = TriggerDataSource.Value;
+        public TriggerDataOp Op = TriggerDataOp.GreaterThan;
         public float Value = 0;
 
         public bool GetResult(DataSource data)

@@ -25,8 +25,8 @@ namespace XIVAuras.Config
         public bool HideInGoldenSaucer = false;
 
         public bool HideIf = false;
-        public TriggerDataSource HideIfDataSource = TriggerDataSource.None;
-        public TriggerDataOp HideIfOp = TriggerDataOp.None;
+        public TriggerDataSource HideIfDataSource = TriggerDataSource.Value;
+        public TriggerDataOp HideIfOp = TriggerDataOp.Equals;
         public float HideIfValue = 0;
 
         public JobType ShowForJobTypes = JobType.All;
@@ -65,9 +65,7 @@ namespace XIVAuras.Config
                 return false;
             }
 
-            if (this.HideIf &&
-                this.HideIfDataSource != TriggerDataSource.None &&
-                this.HideIfOp != TriggerDataOp.None)
+            if (this.HideIf)
             {
                 if (data is not null ||
                     (this.HideIfDataSource != TriggerDataSource.Value &&
