@@ -29,8 +29,15 @@ namespace XIVAuras.Helpers
             };
         }
 
-        public static GameObject? FindTargetOfTarget(GameObject? player, GameObject? target)
+        public static GameObject? FindTarget()
         {
+            TargetManager targetManager = Singletons.Get<TargetManager>();
+            return targetManager.SoftTarget ?? targetManager.Target;
+        }
+
+        public static GameObject? FindTargetOfTarget(GameObject? player)
+        {
+            GameObject? target = FindTarget();
             if (target == null)
             {
                 return null;

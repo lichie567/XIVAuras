@@ -14,6 +14,8 @@ namespace XIVAuras.Config
     {
         public string Name => "Visibility";
 
+        [JsonIgnore] private static readonly string[] _sourceOptions = new string[] { "Value", "Stacks", "MaxStacks" };
+
         [JsonIgnore] private string _customJobInput = string.Empty;
         [JsonIgnore] private string _hideIfValueInput = string.Empty;
 
@@ -118,27 +120,26 @@ namespace XIVAuras.Config
                 DrawHelpers.DrawSpacing(1);
                 ImGui.Checkbox("Hide If:", ref this.HideIf);
                 ImGui.SameLine();
-                string[] sourceOptions = TriggerCondition.SourceOptions;
                 ImGui.PushItemWidth(90);
-                ImGui.Combo("##HideIfSourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref this.HideIfDataSource), sourceOptions, sourceOptions.Length);
+                ImGui.Combo("##HideIfSourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref this.HideIfDataSource), _sourceOptions, _sourceOptions.Length);
                 ImGui.PopItemWidth();
                 ImGui.SameLine();
-                string[] operatorOptions = TriggerCondition.OperatorOptions;
+                string[] operatorOptions = TriggerOptions.OperatorOptions;
                 ImGui.PushItemWidth(80);
                 ImGui.Combo("##HideIfOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.HideIfOp), operatorOptions, operatorOptions.Length);
                 ImGui.PopItemWidth();
                 ImGui.SameLine();
 
-                if (string.IsNullOrEmpty(this._hideIfValueInput))
+                if (string.IsNullOrEmpty(_hideIfValueInput))
                 {
-                    this._hideIfValueInput = this.HideIfValue.ToString();
+                    _hideIfValueInput = this.HideIfValue.ToString();
                 }
 
                 float width = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() + padX;
                 ImGui.PushItemWidth(width);
-                if (ImGui.InputText("##HideIfValue", ref this._hideIfValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputText("##HideIfValue", ref _hideIfValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
-                    if (float.TryParse(this._hideIfValueInput, out float value))
+                    if (float.TryParse(_hideIfValueInput, out float value))
                     {
                         this.HideIfValue = value;
                     }
@@ -152,14 +153,14 @@ namespace XIVAuras.Config
 
                 if (this.ShowForJobTypes == JobType.Custom)
                 {
-                    if (string.IsNullOrEmpty(this._customJobInput))
+                    if (string.IsNullOrEmpty(_customJobInput))
                     {
-                        this._customJobInput = this.CustomJobString.ToUpper();
+                        _customJobInput = this.CustomJobString.ToUpper();
                     }
 
                     if (ImGui.InputTextWithHint("Custom Job List", "Comma Separated List (ex: WAR, SAM, BLM)", ref _customJobInput, 100, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
-                        IEnumerable<string> jobStrings = this._customJobInput.Split(',').Select(j => j.Trim());
+                        IEnumerable<string> jobStrings = _customJobInput.Split(',').Select(j => j.Trim());
                         List<Job> jobList = new List<Job>();
                         foreach (string j in jobStrings)
                         {
@@ -170,13 +171,13 @@ namespace XIVAuras.Config
                             else
                             {
                                 jobList.Clear();
-                                this._customJobInput = string.Empty;
+                                _customJobInput = string.Empty;
                                 break;
                             }
                         }
 
-                        this._customJobInput = this._customJobInput.ToUpper();
-                        this.CustomJobString = this._customJobInput;
+                        _customJobInput = _customJobInput.ToUpper();
+                        this.CustomJobString = _customJobInput;
                         this.CustomJobList = jobList;
                     }
                 }

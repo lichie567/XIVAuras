@@ -28,7 +28,6 @@ namespace XIVAuras.Config
     {
         [JsonIgnore] public string Name => "Triggers";
 
-        [JsonIgnore] private static readonly string[] _statusOptions = Enum.GetNames<TriggerStatus>();
         [JsonIgnore] private static readonly string[] _typeOptions = Enum.GetNames<TriggerType>();
         [JsonIgnore] private static readonly string[] _condOptions = new string[] { "AND", "OR", "XOR" };
         [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
@@ -37,26 +36,35 @@ namespace XIVAuras.Config
         [JsonIgnore] private TriggerType _selectedType = 0;
 
         public List<TriggerOptions> TriggerOptions { get; private set; } = new List<TriggerOptions>();
+        public int DataTrigger = 0;
 
-        public bool IsTriggered(bool preview, out DataSource?[] data)
+        public bool IsTriggered(bool preview, out DataSource data)
         {
-            data = new DataSource?[this.TriggerOptions.Count];
+            data = new DataSource();
             if (!this.TriggerOptions.Any())
             {
                 return false;
             }
 
-            if (data is null)
+            DataSource currentData;
+            bool triggered = this.TriggerOptions[0].IsTriggered(preview, out currentData);
+            bool anyTriggered = triggered;
+            if (triggered && this.DataTrigger <= 1)
             {
-                return false;
+                data = currentData;
             }
 
-            bool triggered = this.TriggerOptions[0].IsTriggered(preview, out data[0]);
             for (int i = 1; i < this.TriggerOptions.Count; i++)
             {
                 TriggerOptions current = this.TriggerOptions[i];
+                bool currentTriggered = current.IsTriggered(preview, out currentData);
 
-                bool currentTriggered = current.IsTriggered(preview, out data[i]);
+                if (!anyTriggered && currentTriggered && this.DataTrigger == 0 ||
+                    this.DataTrigger - 1 == i)
+                {
+                    data = currentData;
+                }
+
                 triggered = current.Condition switch
                 {
                     TriggerCond.And => triggered && currentTriggered,
@@ -64,17 +72,36 @@ namespace XIVAuras.Config
                     TriggerCond.Xor => triggered ^ currentTriggered,
                     _ => false
                 };
+
+                anyTriggered |= currentTriggered;
             }
 
             return triggered;
+        }
+
+        private string[] GetTriggerDataOptions()
+        {
+            string[] options = new string[this.TriggerOptions.Count + 1];
+            options[0] = "Dynamic data from first active Trigger";
+            for (int i = 1; i < options.Length; i++)
+            {
+                options[i] = $"Data from Trigger {i}";
+            }
+
+            return options;
         }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##TriggerConfig", new Vector2(size.X, size.Y), true))
             {
-                ImGui.Text("Trigger List");
+                if (this.TriggerOptions.Count > 1)
+                {
+                    string[] dataTriggerOptions = this.GetTriggerDataOptions();
+                    ImGui.Combo("Use data from Trigger", ref this.DataTrigger, dataTriggerOptions, dataTriggerOptions.Length);
+                }
 
+                ImGui.Text("Trigger List");
                 ImGuiTableFlags tableFlags =
                     ImGuiTableFlags.RowBg |
                     ImGuiTableFlags.Borders |
@@ -86,8 +113,8 @@ namespace XIVAuras.Config
                 if (ImGui.BeginTable("##Trigger_Table", 4, tableFlags, new Vector2(size.X - padX * 2, (size.Y - ImGui.GetCursorPosY() - padY * 2) / 4)))
                 {
                     ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
-                    ImGui.TableSetupColumn("Trigger Name", ImGuiTableColumnFlags.WidthFixed, 90, 1);
-                    ImGui.TableSetupColumn("Status", ImGuiTableColumnFlags.WidthStretch, 0, 2);
+                    ImGui.TableSetupColumn("Trigger Name", ImGuiTableColumnFlags.WidthStretch, 0, 1);
+                    ImGui.TableSetupColumn("Trigger Type", ImGuiTableColumnFlags.WidthStretch, 0, 2);
                     ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 90, 3);
 
                     ImGui.TableSetupScrollFreeze(0, 1);
@@ -118,9 +145,9 @@ namespace XIVAuras.Config
                     {
                         this.TriggerOptions[_selectedIndex] = _selectedType switch
                         {
-                            TriggerType.Status   => StatusTrigger.GetDefault(),
-                            TriggerType.Cooldown => CooldownTrigger.GetDefault(),
-                            _                    => StatusTrigger.GetDefault()
+                            TriggerType.Status   => new StatusTrigger(),
+                            TriggerType.Cooldown => new CooldownTrigger(),
+                            _                    => new StatusTrigger()
                         };
                     }
                     
@@ -144,14 +171,13 @@ namespace XIVAuras.Config
 
             if (ImGui.TableSetColumnIndex(0))
             {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (i == 0 ? 3f : 1f));
                 if (i == 0)
                 {
-                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3f);
                     ImGui.Text("IF");
                 }
                 else
                 {
-                    ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                     ImGui.PushItemWidth(ImGui.GetColumnWidth());
                     ImGui.Combo("##CondCombo", ref Unsafe.As<TriggerCond, int>(ref trigger.Condition), _condOptions, _condOptions.Length);
                     ImGui.PopItemWidth();
@@ -160,31 +186,27 @@ namespace XIVAuras.Config
 
             if (ImGui.TableSetColumnIndex(1))
             {
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 3f);
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (i == 0 ? 3f : 0f));
                 ImGui.Text($"Trigger {i + 1}");
             }
 
             if (ImGui.TableSetColumnIndex(2))
             {
-                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                string[] options = TriggerCondition.OperatorOptions;
-                ImGui.Combo("##StatusCombo", ref Unsafe.As<TriggerStatus, int>(ref trigger.Status), _statusOptions, _statusOptions.Length);
-                ImGui.PopItemWidth();
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (i == 0 ? 3f : 0f));
+                ImGui.Text($"{trigger.Type}");
             }
 
             if (ImGui.TableSetColumnIndex(3))
             {
-                Vector2 buttonSize = new Vector2(40, 0);
-
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                Vector2 buttonSize = new Vector2(40, 0);
                 if (i < this.TriggerOptions.Count)
                 {
                     DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => SelectTrigger(i), "Edit Trigger", buttonSize);
-                    if (i > 0)
+                    if (this.TriggerOptions.Count > 1)
                     {
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(trigger), "Remove Trigger", buttonSize);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(i), "Remove Trigger", buttonSize);
                     }
                 }
                 else
@@ -201,14 +223,18 @@ namespace XIVAuras.Config
 
         private void AddTrigger()
         {
-            this.TriggerOptions.Add(StatusTrigger.GetDefault());
+            this.TriggerOptions.Add(new StatusTrigger());
             this.SelectTrigger(this.TriggerOptions.Count - 1);
         }
 
-        private void RemoveTrigger(TriggerOptions trigger)
+        private void RemoveTrigger(int i)
         {
-            this.TriggerOptions.Remove(trigger);
+            this.TriggerOptions.RemoveAt(i);
             _selectedIndex = Math.Clamp(_selectedIndex, 0, this.TriggerOptions.Count - 1);
+            if (this.TriggerOptions.Count <= 1 || this.DataTrigger >= i + 1)
+            {
+                this.DataTrigger = 0;
+            }
         }
     }
 }

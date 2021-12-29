@@ -79,7 +79,7 @@ namespace XIVAuras.Auras
             this.LastFrameWasDragging = this.Hovered || this.Dragging;
         }
 
-        protected void UpdateStartData(DataSource data, TriggerType type)
+        protected void UpdateStartData(DataSource data)
         {
             if (this.LastFrameWasPreview && !this.Preview)
             {
@@ -102,7 +102,9 @@ namespace XIVAuras.Auras
                 this.StartTime = DateTime.UtcNow;
             }
 
-            if (this.StartData is null || !this.StartTime.HasValue)
+            if (this.StartData is null ||
+                !this.StartTime.HasValue ||
+                this.StartData.TriggerId != data.TriggerId)
             {
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
