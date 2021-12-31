@@ -13,9 +13,8 @@ namespace XIVAuras.Auras
         public override AuraType Type => AuraType.Icon;
 
         public IconStyleConfig IconStyleConfig { get; set; }
-
+        public LabelListConfig LabelListConfig { get; set; }
         public TriggerConfig TriggerConfig { get; set; }
-
         public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constructor for deserialization
@@ -24,7 +23,8 @@ namespace XIVAuras.Auras
         public AuraIcon(string name, params AuraLabel[] labels) : base(name)
         {
             this.Name = name;
-            this.IconStyleConfig = new IconStyleConfig(labels);
+            this.IconStyleConfig = new IconStyleConfig();
+            this.LabelListConfig = new LabelListConfig(labels);
             this.TriggerConfig = new TriggerConfig();
             this.VisibilityConfig = new VisibilityConfig();
         }
@@ -32,6 +32,7 @@ namespace XIVAuras.Auras
         public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.IconStyleConfig;
+            yield return this.LabelListConfig;
             yield return this.TriggerConfig;
             yield return this.VisibilityConfig;
         }
@@ -81,11 +82,14 @@ namespace XIVAuras.Auras
                         }
                     }
 
-                    // bool crop = this.TriggerConfig.CropIcon && this.TriggerConfig.TriggerType != TriggerType.Cooldown;
+                    ushort icon = this.IconStyleConfig.IconOption > 0 && this.IconStyleConfig.CustomIcon > 0
+                        ? this.IconStyleConfig.CustomIcon
+                        : data.Icon;
+
                     bool desaturate = this.IconStyleConfig.DesaturateIcon;
                     float alpha = this.IconStyleConfig.Opacity;
 
-                    DrawHelpers.DrawIcon(data.Icon, localPos, size, cropIcon: false, 0, desaturate, alpha, drawList);
+                    DrawHelpers.DrawIcon(icon, localPos, size, this.IconStyleConfig.CropIcon, 0, desaturate, alpha, drawList);
 
                     if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
                     {
@@ -112,7 +116,7 @@ namespace XIVAuras.Auras
                 this.StartTime = null;
             }
 
-            foreach (AuraLabel label in IconStyleConfig.AuraLabels)
+            foreach (AuraLabel label in this.LabelListConfig.AuraLabels)
             {
                 if (!this.Preview && this.LastFrameWasPreview)
                 {
