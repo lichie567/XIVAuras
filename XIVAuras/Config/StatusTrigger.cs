@@ -15,21 +15,23 @@ namespace XIVAuras.Config
         
         [JsonIgnore] private string _triggerNameInput = string.Empty;
         [JsonIgnore] private string _triggerConditionValueInput = string.Empty;
-        [JsonIgnore] private string _remainingTimeValueInput = string.Empty;
+        [JsonIgnore] private string _durationValueInput = string.Empty;
         [JsonIgnore] private string _stackCountValueInput = string.Empty;
 
         public TriggerSource TriggerSource = TriggerSource.Player;
         public string TriggerName = string.Empty;
-        public bool ShowOnlyMine = true;
         public int TriggerCondition = 0;
 
-        public bool RemainingTime = false;
-        public TriggerDataOp RemainingTimeOp = TriggerDataOp.GreaterThan;
-        public float RemainingTimeValue;
+        public bool OnlyMine = true;
+
+        public bool Duration = false;
+        public TriggerDataOp DurationOp = TriggerDataOp.GreaterThan;
+        public float DurationValue;
 
         public bool StackCount = false;
         public TriggerDataOp StackCountOp = TriggerDataOp.GreaterThan;
         public float StackCountValue;
+
 
         public override TriggerType Type => TriggerType.Status;
         public override TriggerSource Source => this.TriggerSource;
@@ -42,13 +44,16 @@ namespace XIVAuras.Config
                 return false;
             }
             
-            data = SpellHelpers.GetStatusData(this.TriggerSource, this.TriggerData, this.ShowOnlyMine, preview);
+            data = SpellHelpers.GetStatusData(this.TriggerSource, this.TriggerData, this.OnlyMine, preview);
+
+            if (preview)
+                return true;
 
             switch (this.TriggerCondition)
             {
                 case 0:
                     return data.Active &&
-                        (!this.RemainingTime || GetResult(data, TriggerDataSource.Value, this.RemainingTimeOp, this.RemainingTimeValue)) &&
+                        (!this.Duration || GetResult(data, TriggerDataSource.Value, this.DurationOp, this.DurationValue)) &&
                         (!this.StackCount || GetResult(data, TriggerDataSource.Stacks, this.StackCountOp, this.StackCountValue));
                 case 1:
                     return !data.Active;
@@ -77,69 +82,70 @@ namespace XIVAuras.Config
                 _triggerNameInput = this.TriggerName;
             }
 
-            ImGui.Checkbox("Only Show My Effects", ref this.ShowOnlyMine);
-
+            ImGui.Checkbox("Only Mine", ref this.OnlyMine);
             DrawHelpers.DrawSpacing(1);
             ImGui.Combo("Trigger Condition", ref this.TriggerCondition, _triggerConditions, _triggerConditions.Length);
             if (this.TriggerCondition == 0)
             {
                 string[] operatorOptions = TriggerOptions.OperatorOptions;
-                float opComboWidth = 50;
-                float valueInputWidth = 40;
+                float optionsWidth = 100 + padX;
+                float opComboWidth = 55;
+                float valueInputWidth = 45;
+                float padWidth = 0;
 
-                ImGui.Checkbox("Only if Remaining Time", ref this.RemainingTime);
-                ImGui.SameLine();
-
-                float padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - opComboWidth - valueInputWidth;
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
-
-                ImGui.PushItemWidth(opComboWidth);
-                ImGui.Combo("##RemainingTimeOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.RemainingTimeOp), operatorOptions, operatorOptions.Length);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
-
-                if (string.IsNullOrEmpty(_remainingTimeValueInput))
+                ImGui.Checkbox("Duration Remaining", ref this.Duration);
+                if (this.Duration)
                 {
-                    _remainingTimeValueInput = this.RemainingTimeValue.ToString();
-                }
+                    ImGui.SameLine();
+                    padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - optionsWidth + padX;
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
+                    ImGui.PushItemWidth(opComboWidth);
+                    ImGui.Combo("##DurationOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.DurationOp), operatorOptions, operatorOptions.Length);
+                    ImGui.PopItemWidth();
+                    ImGui.SameLine();
 
-                ImGui.PushItemWidth(valueInputWidth);
-                if (ImGui.InputText("Seconds##RemainingTimeValue", ref _remainingTimeValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
-                {
-                    if (float.TryParse(_remainingTimeValueInput, out float value))
+                    if (string.IsNullOrEmpty(_durationValueInput))
                     {
-                        this.RemainingTimeValue = value;
+                        _durationValueInput = this.DurationValue.ToString();
                     }
-                }
 
-                ImGui.PopItemWidth();
-
-                ImGui.Checkbox("Only if Stack Count", ref this.StackCount);
-                ImGui.SameLine();
-
-                padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - opComboWidth - valueInputWidth;
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
-
-                ImGui.PushItemWidth(opComboWidth);
-                ImGui.Combo("##StackCountOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.StackCountOp), operatorOptions, operatorOptions.Length);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
-
-                if (string.IsNullOrEmpty(_stackCountValueInput))
-                {
-                    _stackCountValueInput = this.StackCountValue.ToString();
-                }
-
-                ImGui.PushItemWidth(valueInputWidth);
-                if (ImGui.InputText("Stacks##StackCountValue", ref _stackCountValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
-                {
-                    if (float.TryParse(_stackCountValueInput, out float value))
+                    ImGui.PushItemWidth(valueInputWidth);
+                    if (ImGui.InputText("Seconds##DurationValue", ref _durationValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
-                        this.StackCountValue = value;
+                        if (float.TryParse(_durationValueInput, out float value))
+                        {
+                            this.DurationValue = value;
+                        }
                     }
+                    ImGui.PopItemWidth();
                 }
 
-                ImGui.PopItemWidth();
+                ImGui.Checkbox("Stack Count", ref this.StackCount);
+                if (this.StackCount)
+                {
+                    ImGui.SameLine();
+                    padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - optionsWidth + padX;
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
+                    ImGui.PushItemWidth(opComboWidth);
+                    ImGui.Combo("##StackCountOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.StackCountOp), operatorOptions, operatorOptions.Length);
+                    ImGui.PopItemWidth();
+                    ImGui.SameLine();
+
+                    if (string.IsNullOrEmpty(_stackCountValueInput))
+                    {
+                        _stackCountValueInput = this.StackCountValue.ToString();
+                    }
+
+                    ImGui.PushItemWidth(valueInputWidth);
+                    if (ImGui.InputText("Stacks##StackCountValue", ref _stackCountValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                    {
+                        if (float.TryParse(_stackCountValueInput, out float value))
+                        {
+                            this.StackCountValue = value;
+                        }
+                    }
+                    ImGui.PopItemWidth();
+                }
             }
         }
         

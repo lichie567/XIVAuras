@@ -19,12 +19,13 @@ namespace XIVAuras.Helpers
         {
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             TypeNameHandling = TypeNameHandling.Objects,
+            ObjectCreationHandling = ObjectCreationHandling.Replace,
             SerializationBinder = new XIVAurasSerializationBinder()
         };
 
-        public static void ExportAuraToClipboard(AuraListItem aura)
+        public static void ExportToClipboard<T>(T toExport)
         {
-            string? exportString = ConfigHelpers.GetAuraExportString(aura);
+            string? exportString = ConfigHelpers.GetExportString(toExport);
 
             if (exportString is not null)
             {
@@ -33,15 +34,15 @@ namespace XIVAuras.Helpers
             }
             else
             {
-                DrawHelpers.DrawNotification("Failed to Export Aura!", NotificationType.Error);
+                DrawHelpers.DrawNotification("Failed to Export!", NotificationType.Error);
             }
         }
 
-        public static string? GetAuraExportString(AuraListItem aura)
+        public static string? GetExportString<T>(T toExport)
         {
             try
             {
-                string jsonString = JsonConvert.SerializeObject(aura, Formatting.None, _serializerSettings);
+                string jsonString = JsonConvert.SerializeObject(toExport, Formatting.None, _serializerSettings);
                 using (MemoryStream outputStream = new MemoryStream())
                 {
                     using (DeflateStream compressionStream = new DeflateStream(outputStream, CompressionLevel.Optimal))
@@ -63,9 +64,9 @@ namespace XIVAuras.Helpers
             return null;
         }
 
-        public static AuraListItem? GetAuraFromImportString(string importString)
+        public static T? GetFromImportString<T>(string importString)
         {
-            if (string.IsNullOrEmpty(importString)) return null;
+            if (string.IsNullOrEmpty(importString)) return default;
 
             try
             {
@@ -83,15 +84,15 @@ namespace XIVAuras.Helpers
                     }
                 }
 
-                AuraListItem? importedAura = JsonConvert.DeserializeObject<AuraListItem>(decodedJsonString, _serializerSettings);
-                return importedAura;
+                T? importedObj = JsonConvert.DeserializeObject<T>(decodedJsonString, _serializerSettings);
+                return importedObj;
             }
             catch (Exception ex)
             {
                 PluginLog.Error(ex.ToString());
             }
 
-            return null;
+            return default;
         }
 
         public static XIVAurasConfig LoadConfig(string path)
@@ -116,11 +117,11 @@ namespace XIVAuras.Helpers
                     try
                     {
                         File.Copy(path, backupPath);
-                        PluginLog.Information($"Backed up XIVAuras config to '{backupPath}'.");
+                        PluginLog.Information($"Backed up LMeter config to '{backupPath}'.");
                     }
                     catch
                     {
-                        PluginLog.Warning($"Unable to back up XIVAuras config.");
+                        PluginLog.Warning($"Unable to back up LMeter config.");
                     }
                 }
             }
@@ -153,7 +154,7 @@ namespace XIVAuras.Helpers
     /// </summary>
     public class XIVAurasSerializationBinder : ISerializationBinder
     {
-        // TODO: Make this automatic somehow?
+        // FIXME: Make this automatic somehow
         private static List<Type> _configTypes = new List<Type>()
         {
             typeof(AuraBar),
@@ -163,16 +164,16 @@ namespace XIVAuras.Helpers
             typeof(AuraListItem),
             typeof(AuraListConfig),
             typeof(BarStyleConfig),
+            typeof(CooldownTrigger),
             typeof(ConfigColor),
             typeof(FontConfig),
             typeof(FontData),
             typeof(IconStyleConfig),
             typeof(LabelStyleConfig),
+            typeof(StatusTrigger),
             typeof(TriggerConfig),
             typeof(TriggerData),
             typeof(TriggerOptions),
-            typeof(StatusTrigger),
-            typeof(CooldownTrigger),
             typeof(VisibilityConfig),
             typeof(XIVAurasConfig)
         };

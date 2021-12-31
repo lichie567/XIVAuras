@@ -10,7 +10,6 @@ namespace XIVAuras.Helpers
     {
         private static readonly Dictionary<Type, Func<object>> TypeInitializers = new Dictionary<Type, Func<object>>()
         {
-            { typeof(SpellHelpers), () => new SpellHelpers() },
         };
 
         private static readonly ConcurrentDictionary<Type, object> ActiveInstances = new ConcurrentDictionary<Type, object>();

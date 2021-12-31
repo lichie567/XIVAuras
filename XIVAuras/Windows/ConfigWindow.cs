@@ -17,10 +17,8 @@ namespace XIVAuras.Windows
         private bool _back = false;
         private bool _home = false;
         private string _name = string.Empty;
-
-        private Vector2 WindowSize { get; set; }
-
-        private Stack<IConfigurable> ConfigStack { get; init; }
+        private Vector2 _windowSize;
+        private Stack<IConfigurable> _configStack;
 
         public ConfigWindow(string id, Vector2 position, Vector2 size) : base(id)
         {
@@ -30,7 +28,6 @@ namespace XIVAuras.Windows
                 ImGuiWindowFlags.NoScrollWithMouse |
                 ImGuiWindowFlags.NoSavedSettings;
 
-            this.WindowSize = size;
             this.Position = position - size / 2;
             this.PositionCondition = ImGuiCond.Appearing;
             this.SizeConstraints = new WindowSizeConstraints()
@@ -39,49 +36,52 @@ namespace XIVAuras.Windows
                 MaximumSize = ImGui.GetMainViewport().Size
             };
 
-            this.ConfigStack = new Stack<IConfigurable>();
+            _windowSize = size;
+            _configStack = new Stack<IConfigurable>();
         }
 
         public void PushConfig(IConfigurable configItem)
         {
-            this.ConfigStack.Push(configItem);
+            _configStack.Push(configItem);
             _name = configItem.Name;
             this.IsOpen = true;
         }
 
         public override void PreDraw()
         {
-            if (this.ConfigStack.Any())
+            if (_configStack.Any())
             {
                 this.WindowName = this.GetWindowTitle();
-                ImGui.SetNextWindowSize(this.WindowSize);
+                ImGui.SetNextWindowSize(_windowSize);
             }
         }
 
         public override void Draw()
         {
-            if (!this.ConfigStack.Any())
+            if (!_configStack.Any())
             {
                 this.IsOpen = false;
                 return;
             }
 
-            IConfigurable configItem = this.ConfigStack.Peek();
+            IConfigurable configItem = _configStack.Peek();
             Vector2 spacing = ImGui.GetStyle().ItemSpacing;
-            Vector2 size = this.WindowSize - spacing * 2;
-            bool drawNavBar = this.ConfigStack.Count > 1;
+            Vector2 size = _windowSize - spacing * 2;
+            bool drawNavBar = _configStack.Count > 1;
 
             if (drawNavBar)
             {
                 size -= new Vector2(0, NavBarHeight + spacing.Y);
             }
 
+            IConfigPage? openPage = null;
             if (ImGui.BeginTabBar($"##{this.WindowName}"))
             {
                 foreach (IConfigPage page in configItem.GetConfigPages())
                 {
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
+                        openPage = page;
                         page.DrawConfig(size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
                         ImGui.EndTabItem();
                     }
@@ -92,14 +92,14 @@ namespace XIVAuras.Windows
 
             if (drawNavBar)
             {
-                this.DrawNavBar(size, spacing.X);
+                this.DrawNavBar(openPage, size, spacing.X);
             }
 
             this.Position = ImGui.GetWindowPos();
-            this.WindowSize = ImGui.GetWindowSize();
+            _windowSize = ImGui.GetWindowSize();
         }
 
-        private void DrawNavBar(Vector2 size, float padX)
+        private void DrawNavBar(IConfigPage? openPage, Vector2 size, float padX)
         {
             Vector2 buttonsize = new Vector2(40, 0);
             float textInputWidth = 150;
@@ -112,10 +112,10 @@ namespace XIVAuras.Windows
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Home, () => _home = true, "Home", buttonsize);
                 ImGui.SameLine();
 
-                // calculate empty horizontal space based on size of 4 buttons and text box
-                float offset = size.X - buttonsize.X * 4 - textInputWidth - padX * 6;
+                // calculate empty horizontal space based on size of 5 buttons and text box
+                float offset = size.X - buttonsize.X * 5 - textInputWidth - padX * 7;
 
-                if (this.ConfigStack.Peek() is AuraListItem aura)
+                if (_configStack.Peek() is AuraListItem aura)
                 {
                     offset -= 80;
                     ImGui.Checkbox("Preview", ref aura.Preview);
@@ -123,57 +123,70 @@ namespace XIVAuras.Windows
                 }
 
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.UndoAlt, () => Reset(openPage), $"Reset {openPage?.Name} to Defaults", buttonsize);
+                ImGui.SameLine();
 
                 ImGui.PushItemWidth(textInputWidth);
                 if (ImGui.InputText("##Input", ref _name, 64, ImGuiInputTextFlags.EnterReturnsTrue))
                 {
                     Rename(_name);
                 }
-
                 ImGui.PopItemWidth();
-                ImGui.SameLine();
+                
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip("Rename");
+                }
 
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(), "Export", buttonsize);
                 ImGui.SameLine();
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(openPage), $"Export {openPage?.Name}", buttonsize);
 
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => Delete(), "Delete", buttonsize);
                 ImGui.SameLine();
-
-                ImGui.EndChild();
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => Import(), $"Import {openPage?.Name}", buttonsize);
             }
+
+            ImGui.EndChild();
         }
 
         private string GetWindowTitle()
         {
             string title = string.Empty;
-            title = string.Join("  >  ", this.ConfigStack.Reverse().Select(c => c.ToString()));
+            title = string.Join("  >  ", _configStack.Reverse().Select(c => c.ToString()));
             return title;
         }
 
-        private void Export()
+        private void Reset(IConfigPage? openPage)
         {
-            if (this.ConfigStack.Any() &&
-                this.ConfigStack.Peek() is AuraListItem aura)
+            if (openPage is not null)
             {
-                ConfigHelpers.ExportAuraToClipboard(aura);
+                _configStack.Peek().ImportPage(openPage.GetDefault());
             }
         }
 
-        private void Delete()
+        private void Export(IConfigPage? openPage)
         {
-            AuraListItem? aura = this.ConfigStack.Pop() as AuraListItem;
-            if (aura is not null && this.ConfigStack.Any())
+            if (openPage is not null)
             {
-                IAuraGroup? auraGroup = this.ConfigStack.Peek() as IAuraGroup;
-                auraGroup?.AuraList.Auras.Remove(aura);
+                ConfigHelpers.ExportToClipboard<IConfigPage>(openPage);
+            }
+        }
+
+        private void Import()
+        {
+            string importString = ImGui.GetClipboardText();
+            IConfigPage? page = ConfigHelpers.GetFromImportString<IConfigPage>(importString);
+
+            if (page is not null)
+            {
+                _configStack.Peek().ImportPage(page);
             }
         }
 
         private void Rename(string name)
         {
-            if (this.ConfigStack.Any())
+            if (_configStack.Any())
             {
-                this.ConfigStack.Peek().Name = name;
+                _configStack.Peek().Name = name;
             }
         }
 
@@ -181,19 +194,19 @@ namespace XIVAuras.Windows
         {
             if (_home)
             {
-                while (this.ConfigStack.Count > 1)
+                while (_configStack.Count > 1)
                 {
-                    this.ConfigStack.Pop();
+                    _configStack.Pop();
                 }
             }
             else if (_back)
             {
-                this.ConfigStack.Pop();
+                _configStack.Pop();
             }
 
-            if ((_home || _back) && this.ConfigStack.Count > 1)
+            if ((_home || _back) && _configStack.Count > 1)
             {
-                _name = this.ConfigStack.Peek().Name;
+                _name = _configStack.Peek().Name;
             }
 
             _home = false;
@@ -210,7 +223,7 @@ namespace XIVAuras.Windows
                 aura.StopPreview();
             }
 
-            this.ConfigStack.Clear();
+            _configStack.Clear();
         }
     }
 }

@@ -33,10 +33,17 @@ namespace XIVAuras.Config
 
         public List<AuraLabel> AuraLabels { get; init; }
 
+        public IconStyleConfig()
+        {
+            this.AuraLabels = new List<AuraLabel>();
+        }
+
         public IconStyleConfig(params AuraLabel[] labels)
         {
             this.AuraLabels = new List<AuraLabel>(labels);
         }
+
+        public IConfigPage GetDefault() => new IconStyleConfig();
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
@@ -174,7 +181,7 @@ namespace XIVAuras.Config
                 importString = ImGui.GetClipboardText();
             }
             
-            AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+            AuraListItem? newAura = ConfigHelpers.GetFromImportString<AuraListItem>(importString);
 
             if (newAura is AuraLabel label)
             {
@@ -195,7 +202,7 @@ namespace XIVAuras.Config
 
         private void ExportLabel(AuraLabel label)
         {
-            ConfigHelpers.ExportAuraToClipboard(label);
+            ConfigHelpers.ExportToClipboard<AuraLabel>(label);
         }
 
         private void DeleteLabel(AuraLabel label)

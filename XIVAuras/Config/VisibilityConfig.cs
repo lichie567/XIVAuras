@@ -35,6 +35,8 @@ namespace XIVAuras.Config
         public string CustomJobString = string.Empty;
         public List<Job> CustomJobList = new List<Job>();
 
+        public IConfigPage GetDefault() => new VisibilityConfig();
+
         public bool IsVisible(DataSource? data = null)
         {
             if (this.AlwaysHide)

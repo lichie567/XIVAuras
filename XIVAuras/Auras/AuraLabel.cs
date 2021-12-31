@@ -13,9 +13,9 @@ namespace XIVAuras.Auras
 
         public override AuraType Type => AuraType.Label;
 
-        public LabelStyleConfig LabelStyleConfig { get; init; }
+        public LabelStyleConfig LabelStyleConfig { get; set; }
 
-        public VisibilityConfig VisibilityConfig { get; init; }
+        public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constuctor for deserialization
         public AuraLabel() : this(string.Empty) { }
@@ -31,6 +31,19 @@ namespace XIVAuras.Auras
         {
             yield return this.LabelStyleConfig;
             yield return this.VisibilityConfig;
+        }
+
+        public override void ImportPage(IConfigPage page)
+        {
+            switch (page)
+            {
+                case LabelStyleConfig newPage:
+                    this.LabelStyleConfig = newPage;
+                    break;
+                case VisibilityConfig newPage:
+                    this.VisibilityConfig = newPage;
+                    break;
+            }
         }
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)

@@ -70,9 +70,8 @@ namespace XIVAuras
             Singletons.Register(sigScanner);
             Singletons.Register(targetManager);
             Singletons.Register(pluginInterface.UiBuilder);
-
-            // Init TexturesCache
             Singletons.Register(new TexturesCache(pluginInterface));
+            Singletons.Register(new SpellHelpers(sigScanner));
 
             // Load Icon
             Plugin.IconTexture = LoadIconTexture(pluginInterface.UiBuilder);

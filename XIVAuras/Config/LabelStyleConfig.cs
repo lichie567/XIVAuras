@@ -43,6 +43,8 @@ namespace XIVAuras.Config
             this.TextFormat = textFormat;
         }
 
+        public IConfigPage GetDefault() => new LabelStyleConfig("[value]");
+
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##LabelStyleConfig", new Vector2(size.X, size.Y), true))

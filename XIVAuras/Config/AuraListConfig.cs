@@ -28,6 +28,8 @@ namespace XIVAuras.Config
             this.Auras = new List<AuraListItem>();
         }
 
+        public IConfigPage GetDefault() => new AuraListConfig();
+
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             this.DrawCreateMenu(size, padX);
@@ -166,7 +168,7 @@ namespace XIVAuras.Config
                 importString = ImGui.GetClipboardText();
             }
 
-            AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+            AuraListItem? newAura = ConfigHelpers.GetFromImportString<AuraListItem>(importString);
             if (newAura is not null)
             {
                 this.Auras.Add(newAura);
@@ -181,7 +183,7 @@ namespace XIVAuras.Config
 
         private void ExportAura(AuraListItem aura)
         {
-            ConfigHelpers.ExportAuraToClipboard(aura);
+            ConfigHelpers.ExportToClipboard<AuraListItem>(aura);
         }
     }
 }

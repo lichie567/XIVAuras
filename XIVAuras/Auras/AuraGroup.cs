@@ -31,6 +31,22 @@ namespace XIVAuras.Auras
             yield return this.VisibilityConfig;
         }
 
+        public override void ImportPage(IConfigPage page)
+        {
+            switch (page)
+            {
+                case AuraListConfig newPage:
+                    this.AuraList = newPage;
+                    break;
+                case GroupConfig newPage:
+                    this.GroupConfig = newPage;
+                    break;
+                case VisibilityConfig newPage:
+                    this.VisibilityConfig = newPage;
+                    break;
+            }
+        }
+
         public override void StopPreview()
         {
             base.StopPreview();

@@ -38,6 +38,8 @@ namespace XIVAuras.Auras
 
         public abstract IEnumerable<IConfigPage> GetConfigPages();
 
+        public abstract void ImportPage(IConfigPage page);
+
         public override string? ToString() => $"{this.Type} [{this.Name}]";
 
         public virtual void StopPreview()
@@ -63,7 +65,8 @@ namespace XIVAuras.Auras
                 {
                     Value = newValue,
                     Stacks = data.Stacks,
-                    MaxStacks = data.MaxStacks
+                    MaxStacks = data.MaxStacks,
+                    Icon = data.Icon
                 };
             }
 

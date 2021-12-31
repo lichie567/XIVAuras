@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -35,8 +35,15 @@ namespace XIVAuras.Config
         [JsonIgnore] private int _selectedIndex = 0;
         [JsonIgnore] private TriggerType _selectedType = 0;
 
-        public List<TriggerOptions> TriggerOptions { get; private set; } = new List<TriggerOptions>();
+        public List<TriggerOptions> TriggerOptions { get; init; }
         public int DataTrigger = 0;
+
+        public TriggerConfig()
+        {
+            this.TriggerOptions = new List<TriggerOptions>() { new StatusTrigger() };
+        }
+
+        public IConfigPage GetDefault() => new TriggerConfig();
 
         public bool IsTriggered(bool preview, out DataSource data)
         {
@@ -93,6 +100,11 @@ namespace XIVAuras.Config
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
+            if (!this.TriggerOptions.Any())
+            {
+                return;
+            }
+
             if (ImGui.BeginChild("##TriggerConfig", new Vector2(size.X, size.Y), true))
             {
                 if (this.TriggerOptions.Count > 1)
@@ -112,10 +124,12 @@ namespace XIVAuras.Config
 
                 if (ImGui.BeginTable("##Trigger_Table", 4, tableFlags, new Vector2(size.X - padX * 2, (size.Y - ImGui.GetCursorPosY() - padY * 2) / 4)))
                 {
+                    Vector2 buttonsize = new Vector2(30, 0);
+                    float actionsWidth = buttonsize.X * 3 + padX * 2;
                     ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
                     ImGui.TableSetupColumn("Trigger Name", ImGuiTableColumnFlags.WidthStretch, 0, 1);
                     ImGui.TableSetupColumn("Trigger Type", ImGuiTableColumnFlags.WidthStretch, 0, 2);
-                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 90, 3);
+                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 3);
 
                     ImGui.TableSetupScrollFreeze(0, 1);
                     ImGui.TableHeadersRow();
@@ -131,7 +145,9 @@ namespace XIVAuras.Config
                     ImGui.PushID(this.TriggerOptions.Count.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
                     ImGui.TableSetColumnIndex(3);
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", new Vector2(40, 0));
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonsize);
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportTrigger(), "Import Trigger", buttonsize);
 
                     ImGui.EndTable();
                 }
@@ -141,7 +157,8 @@ namespace XIVAuras.Config
                 {
                     TriggerOptions selectedTrigger = this.TriggerOptions[_selectedIndex];
                     _selectedType = selectedTrigger.Type;
-                    if (ImGui.Combo("Trigger Type", ref Unsafe.As<TriggerType, int>(ref _selectedType), _typeOptions, _typeOptions.Length))
+                    if (ImGui.Combo("Trigger Type", ref Unsafe.As<TriggerType, int>(ref _selectedType), _typeOptions, _typeOptions.Length) &&
+                        _selectedType != this.TriggerOptions[_selectedIndex].Type)
                     {
                         this.TriggerOptions[_selectedIndex] = _selectedType switch
                         {
@@ -199,19 +216,14 @@ namespace XIVAuras.Config
             if (ImGui.TableSetColumnIndex(3))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                Vector2 buttonSize = new Vector2(40, 0);
-                if (i < this.TriggerOptions.Count)
+                Vector2 buttonSize = new Vector2(30, 0);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => SelectTrigger(i), "Edit Trigger", buttonSize);
+                ImGui.SameLine();
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportTrigger(i), "Export Trigger", buttonSize);
+                if (this.TriggerOptions.Count > 1)
                 {
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => SelectTrigger(i), "Edit Trigger", buttonSize);
-                    if (this.TriggerOptions.Count > 1)
-                    {
-                        ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(i), "Remove Trigger", buttonSize);
-                    }
-                }
-                else
-                {
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonSize);
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => RemoveTrigger(i), "Remove Trigger", buttonSize);
                 }
             }
         }
@@ -221,19 +233,43 @@ namespace XIVAuras.Config
             _selectedIndex = i;
         }
 
-        private void AddTrigger()
+        private void AddTrigger(TriggerOptions? newTrigger = null)
         {
-            this.TriggerOptions.Add(new StatusTrigger());
+            this.TriggerOptions.Add(newTrigger ?? new StatusTrigger());
             this.SelectTrigger(this.TriggerOptions.Count - 1);
+        }
+
+        private void ExportTrigger(int i)
+        {
+            if (i < this.TriggerOptions.Count && i >= 0)
+            {
+                ConfigHelpers.ExportToClipboard<TriggerOptions>(this.TriggerOptions[i]);
+            }
+        }
+
+        private void ImportTrigger()
+        {
+            string importString = ImGui.GetClipboardText();
+            if (!string.IsNullOrEmpty(importString))
+            {
+                TriggerOptions? newTrigger = ConfigHelpers.GetFromImportString<TriggerOptions>(importString);
+                if (newTrigger is not null)
+                {
+                    this.AddTrigger(newTrigger);
+                }
+            }
         }
 
         private void RemoveTrigger(int i)
         {
-            this.TriggerOptions.RemoveAt(i);
-            _selectedIndex = Math.Clamp(_selectedIndex, 0, this.TriggerOptions.Count - 1);
-            if (this.TriggerOptions.Count <= 1 || this.DataTrigger >= i + 1)
+            if (i < this.TriggerOptions.Count && i >= 0)
             {
-                this.DataTrigger = 0;
+                this.TriggerOptions.RemoveAt(i);
+                _selectedIndex = Math.Clamp(_selectedIndex, 0, this.TriggerOptions.Count - 1);
+                if (this.TriggerOptions.Count <= 1 || this.DataTrigger >= i + 1)
+                {
+                    this.DataTrigger = 0;
+                }
             }
         }
     }

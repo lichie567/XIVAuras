@@ -12,11 +12,11 @@ namespace XIVAuras.Auras
     {
         public override AuraType Type => AuraType.Icon;
 
-        public IconStyleConfig IconStyleConfig { get; init; }
+        public IconStyleConfig IconStyleConfig { get; set; }
 
-        public TriggerConfig TriggerConfig { get; init; }
+        public TriggerConfig TriggerConfig { get; set; }
 
-        public VisibilityConfig VisibilityConfig { get; init; }
+        public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constructor for deserialization
         public AuraIcon() : this(string.Empty) { }
@@ -36,6 +36,22 @@ namespace XIVAuras.Auras
             yield return this.VisibilityConfig;
         }
 
+        public override void ImportPage(IConfigPage page)
+        {
+            switch (page)
+            {
+                case IconStyleConfig newPage:
+                    this.IconStyleConfig = newPage;
+                    break;
+                case TriggerConfig newPage:
+                    this.TriggerConfig = newPage;
+                    break;
+                case VisibilityConfig newPage:
+                    this.VisibilityConfig = newPage;
+                    break;
+            }
+        }
+
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
             if (!this.TriggerConfig.TriggerOptions.Any())
@@ -47,6 +63,7 @@ namespace XIVAuras.Auras
             Vector2 size = this.IconStyleConfig.Size;
 
             bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && this.VisibilityConfig.IsVisible(data);
+
             if (triggered)
             {
                 this.UpdateStartData(data);
@@ -173,7 +190,6 @@ namespace XIVAuras.Auras
             stacksLabel.VisibilityConfig.HideIfValue = 1;
 
             AuraIcon newIcon = new AuraIcon(name, valueLabel, stacksLabel);
-            newIcon.TriggerConfig.TriggerOptions.Add(new StatusTrigger());
 
             return newIcon;
         }

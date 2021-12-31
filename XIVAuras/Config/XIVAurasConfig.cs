@@ -55,5 +55,9 @@ namespace XIVAuras.Config
             yield return this.FontConfig;
             yield return this.AboutPage;
         }
+
+        public void ImportPage(IConfigPage page)
+        {
+        }
     }
 }

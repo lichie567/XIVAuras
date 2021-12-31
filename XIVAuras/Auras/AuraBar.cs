@@ -8,11 +8,11 @@ namespace XIVAuras.Auras
     {
         public override AuraType Type => AuraType.Bar;
 
-        public BarStyleConfig BarStyleConfig { get; init; }
+        public BarStyleConfig BarStyleConfig { get; set; }
 
-        public TriggerConfig TriggerConfig { get; init; }
+        public TriggerConfig TriggerConfig { get; set; }
 
-        public VisibilityConfig VisibilityConfig { get; init; }
+        public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constuctor for deserialization
         public AuraBar() : this(string.Empty) { }
@@ -23,6 +23,22 @@ namespace XIVAuras.Auras
             this.BarStyleConfig = new BarStyleConfig();
             this.TriggerConfig = new TriggerConfig();
             this.VisibilityConfig = new VisibilityConfig();
+        }
+
+        public override void ImportPage(IConfigPage page)
+        {
+            switch (page)
+            {
+                case BarStyleConfig newPage:
+                    this.BarStyleConfig = newPage;
+                    break;
+                case TriggerConfig newPage:
+                    this.TriggerConfig = newPage;
+                    break;
+                case VisibilityConfig newPage:
+                    this.VisibilityConfig = newPage;
+                    break;
+            }
         }
 
         public override IEnumerable<IConfigPage> GetConfigPages()

@@ -9,6 +9,8 @@ namespace XIVAuras.Config
 
         public Vector2 Position = new Vector2(0, 0);
 
+        public IConfigPage GetDefault() => new GroupConfig();
+
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##GroupConfig", new Vector2(size.X, size.Y), true))
