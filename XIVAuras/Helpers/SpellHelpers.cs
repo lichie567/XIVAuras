@@ -15,6 +15,7 @@ using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
+using Newtonsoft.Json;
 
 namespace XIVAuras.Helpers
 {
@@ -37,7 +38,7 @@ namespace XIVAuras.Helpers
             _combo = (Combo*) scanner.GetStaticAddressFromSig(ComboSig);
         }
 
-        public unsafe uint GetSpellActionId(uint actionId)
+        public unsafe uint GetAdjustedActionId(uint actionId)
         {
             return _actionManager->GetAdjustedActionId(actionId);
         }
@@ -186,6 +187,7 @@ namespace XIVAuras.Helpers
         public static DataSource GetCooldownData(
             IEnumerable<TriggerData> triggerData,
             bool usable,
+            bool combo,
             bool inRange,
             bool inLos,
             bool preview)
@@ -224,12 +226,26 @@ namespace XIVAuras.Helpers
                 ? Math.Abs(recastInfo.RecastTime - recastInfo.RecastTimeElapsed) % chargeTime
                 : 0;
 
+            bool comboActive = false;
+            if (combo && actionTrigger.ComboId.Length > 0)
+            {
+                uint lastAction = helper.GetLastUsedActionId();
+                foreach (uint id in actionTrigger.ComboId)
+                {
+                    if (id == lastAction)
+                    {
+                        comboActive = true;
+                        break;
+                    }
+                }
+            }
+
             return new DataSource()
             {
                 Active = usable && helper.CanUseAction(actionId),
                 InRange = inRange && helper.GetActionInRange(actionId, Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget()),
                 InLos = inLos && helper.IsTargetInLos(Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget()),
-                ComboActive = helper.GetLastUsedActionId() == actionTrigger.ComboId,
+                ComboActive = comboActive,
                 TriggerId = actionId,
                 Value = cooldown,
                 Stacks = stacks,
@@ -313,8 +329,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = actionSheet.GetRow(value);
                     if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        uint comboId = action.ActionCombo?.Value?.RowId ?? 0;
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, comboId));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -326,8 +341,7 @@ namespace XIVAuras.Helpers
                 {
                     if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        uint comboId = action.ActionCombo?.Value?.RowId ?? 0;
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, comboId));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -353,8 +367,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = iAction.Name.Value;
                     if (action is not null && action.RowId == value)
                     {
-                        uint comboId = action.ActionCombo?.Value?.RowId ?? 0;
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, comboId));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                         break;
                     }
                 }
@@ -368,8 +381,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = indirectAction.Name.Value;
                     if (action is not null && input.ToLower().Equals(action.Name.ToString().ToLower()))
                     {
-                        uint comboId = action.ActionCombo?.Value?.RowId ?? 0;
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, comboId));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -401,6 +413,44 @@ namespace XIVAuras.Helpers
             }
 
             return actionList;
+        }
+
+        public static uint[] GetComboIds(LuminaAction? action)
+        {
+            if (action is null)
+            {
+                return Array.Empty<uint>();
+            }
+
+            return GetComboIds(action.ActionCombo.Value?.RowId ?? 0);
+        }
+
+        public static uint[] GetComboIds(uint baseComboId)
+        {
+            if (baseComboId == 0)
+            {
+                return Array.Empty<uint>();
+            }
+            
+            List<uint> comboIds = new List<uint>() { baseComboId };
+            ExcelSheet<ActionIndirection>? actionIndirectionSheet = Singletons.Get<DataManager>().GetExcelSheet<ActionIndirection>();
+
+            if (actionIndirectionSheet is null)
+            {
+                return comboIds.ToArray();
+            }
+
+            foreach (ActionIndirection indirectAction in actionIndirectionSheet)
+            {
+                LuminaAction? upgradedAction = indirectAction.Name.Value;
+                LuminaAction? prevAction = indirectAction.PreviousComboAction.Value;
+                if (upgradedAction is not null && prevAction is not null && baseComboId == prevAction.RowId)
+                {
+                    comboIds.Add(upgradedAction.RowId);
+                }
+            }
+
+            return comboIds.ToArray();
         }
     }
 
@@ -440,15 +490,17 @@ namespace XIVAuras.Helpers
         public uint Id;
         public ushort Icon;
         public byte MaxStacks;
-        public uint ComboId;
+        
+        [JsonConverter(typeof(ComboIdConverter))]
+        public uint[] ComboId;
 
-        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint comboId = 0)
+        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint[]? comboId = null)
         {
             Name = name;
             Id = id;
             Icon = icon;
             MaxStacks = maxStacks;
-            ComboId = comboId;
+            ComboId = comboId ?? new uint[0];
         }
     }
 

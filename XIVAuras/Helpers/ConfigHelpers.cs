@@ -147,6 +147,99 @@ namespace XIVAuras.Helpers
             }
         }
     }
+    
+    public class ComboIdConverter : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException("Write not supported.");
+        }
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            if (!objectType.IsArray ||
+                objectType.GetElementType() != typeof(uint) ||
+                reader.TokenType != JsonToken.Integer)
+            {
+                return serializer.Deserialize(reader, objectType);
+            }
+            
+            try
+            {
+                uint? value = (uint?)serializer.Deserialize(reader, typeof(uint));
+                if (value.HasValue)
+                {
+                    return SpellHelpers.GetComboIds(value.Value);
+                }
+            }
+            catch
+            {
+            }
+
+            return Array.Empty<uint>();
+        }
+
+        public override bool CanRead
+        {
+            get { return true; }
+        }
+
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType.IsEnum;
+        }
+    }
+
+    public class ArrayConvertor<T> : JsonConverter
+    {
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException("Write not supported.");
+        }
+
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            if (!objectType.IsArray ||
+                objectType.GetElementType() != typeof(T))
+            {
+                return serializer.Deserialize(reader, objectType);
+            }
+            
+            try
+            {
+                T? value = (T?)serializer.Deserialize(reader, typeof(T));
+                if (value is not null && value.GetType() == typeof(T))
+                {
+                    return new T[] { value };
+                }
+            }
+            catch
+            {
+            }
+
+            return Array.Empty<T>();
+        }
+
+        public override bool CanRead
+        {
+            get { return true; }
+        }
+
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType.IsEnum;
+        }
+    }
 
     /// <summary>
     /// Because the game blocks the json serializer from loading assemblies at runtime, we define

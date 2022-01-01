@@ -53,7 +53,7 @@ namespace XIVAuras.Config
                 return false;
             }
 
-            data = SpellHelpers.GetCooldownData(this.TriggerData, this.Usable, this.RangeCheck, this.LosCheck, preview);
+            data = SpellHelpers.GetCooldownData(this.TriggerData, this.Usable, this.Combo, this.RangeCheck, this.LosCheck, preview);
 
             return preview ||
                 (!this.Combo || (this.ComboValue == 0 ? data.ComboActive : !data.ComboActive)) &&
