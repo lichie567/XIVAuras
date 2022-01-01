@@ -65,7 +65,7 @@ namespace XIVAuras.Auras
 
             bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && this.VisibilityConfig.IsVisible(data);
 
-            if (triggered)
+            if (triggered || this.Preview)
             {
                 this.UpdateStartData(data);
                 this.UpdateDragData(localPos, size);
