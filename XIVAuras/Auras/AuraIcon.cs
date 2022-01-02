@@ -90,26 +90,26 @@ namespace XIVAuras.Auras
                         ? this.IconStyleConfig.CustomIcon
                         : data.Icon;
 
-                    bool desaturate = this.IconStyleConfig.DesaturateIcon;
-                    float alpha = this.IconStyleConfig.Opacity;
-
-                    DrawHelpers.DrawIcon(icon, localPos, size, this.IconStyleConfig.CropIcon, 0, desaturate, alpha, drawList);
-
-                    if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
+                    if (icon > 0)
                     {
-                        if (this.IconStyleConfig.ShowProgressSwipe)
+                        bool desaturate = this.IconStyleConfig.DesaturateIcon;
+                        float alpha = this.IconStyleConfig.Opacity;
+
+                        DrawHelpers.DrawIcon(icon, localPos, size, this.IconStyleConfig.CropIcon, 0, desaturate, alpha, drawList);
+
+                        if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
                         {
                             this.DrawProgressSwipe(localPos, size, data.Value, this.StartData.Value, alpha, drawList);
                         }
-                    }
 
-                    if (this.IconStyleConfig.ShowBorder)
-                    {
-                        for (int i = 0; i < this.IconStyleConfig.BorderThickness; i++)
+                        if (this.IconStyleConfig.ShowBorder)
                         {
-                            Vector2 offset = new Vector2(i, i);
-                            Vector4 color = this.IconStyleConfig.BorderColor.Vector.AddTransparency(alpha);
-                            drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
+                            for (int i = 0; i < this.IconStyleConfig.BorderThickness; i++)
+                            {
+                                Vector2 offset = new Vector2(i, i);
+                                Vector4 color = this.IconStyleConfig.BorderColor.Vector.AddTransparency(alpha);
+                                drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
+                            }
                         }
                     }
                 });
