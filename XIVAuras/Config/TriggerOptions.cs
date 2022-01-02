@@ -5,30 +5,6 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {
-    public enum TriggerCond
-    {
-        And,
-        Or,
-        Xor
-    }
-
-    public enum TriggerDataSource
-    {
-        Value,
-        Stacks,
-        MaxStacks
-    }
-
-    public enum TriggerDataOp
-    {
-        Equals,
-        NotEquals,
-        LessThan,
-        GreaterThan,
-        LessThanEq,
-        GreaterThanEq
-    }
-
     public abstract class TriggerOptions
     {
         [JsonIgnore] public static readonly string[] OperatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
@@ -42,14 +18,10 @@ namespace XIVAuras.Config
         public abstract void DrawTriggerOptions(Vector2 size, float padX, float padY);
 
         protected static bool GetResult(
-            DataSource data,
-            TriggerDataSource source,
+            float dataValue,
             TriggerDataOp op,
             float value)
         {
-                
-            float dataValue = data.GetDataForSourceType(source);
-
             return op switch
             {
                 TriggerDataOp.Equals => dataValue == value,

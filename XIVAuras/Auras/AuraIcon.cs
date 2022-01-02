@@ -20,11 +20,10 @@ namespace XIVAuras.Auras
         // Constructor for deserialization
         public AuraIcon() : this(string.Empty) { }
 
-        public AuraIcon(string name, params AuraLabel[] labels) : base(name)
+        public AuraIcon(string name) : base(name)
         {
-            this.Name = name;
             this.IconStyleConfig = new IconStyleConfig();
-            this.LabelListConfig = new LabelListConfig(labels);
+            this.LabelListConfig = new LabelListConfig();
             this.TriggerConfig = new TriggerConfig();
             this.VisibilityConfig = new VisibilityConfig();
         }
@@ -44,6 +43,9 @@ namespace XIVAuras.Auras
                 case IconStyleConfig newPage:
                     this.IconStyleConfig = newPage;
                     break;
+                case LabelListConfig newPage:
+                    this.LabelListConfig = newPage;
+                    break;
                 case TriggerConfig newPage:
                     this.TriggerConfig = newPage;
                     break;
@@ -55,7 +57,9 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.TriggerConfig.TriggerOptions.Any())
+            if (!this.Preview &&
+                (!this.TriggerConfig.TriggerOptions.Any() ||
+                !this.VisibilityConfig.IsVisible()))
             {
                 return;
             }
@@ -63,9 +67,9 @@ namespace XIVAuras.Auras
             Vector2 localPos = pos + this.IconStyleConfig.Position;
             Vector2 size = this.IconStyleConfig.Size;
 
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && this.VisibilityConfig.IsVisible(data);
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
 
-            if (triggered || this.Preview)
+            if (triggered)
             {
                 this.UpdateStartData(data);
                 this.UpdateDragData(localPos, size);
@@ -139,7 +143,7 @@ namespace XIVAuras.Auras
 
         private void DrawProgressSwipe(Vector2 pos, Vector2 size, float triggeredValue, float startValue, float alpha, ImDrawListPtr drawList)
         {
-            if (startValue > 0)
+            if (startValue > 0 && triggeredValue != 0)
             {
                 bool invert = this.IconStyleConfig.InvertSwipe;
                 float percent = (invert ? 0 : 1) - (startValue - triggeredValue) / startValue;
@@ -152,7 +156,7 @@ namespace XIVAuras.Auras
                 drawList.PathArcTo(pos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
                 uint progressAlpha = (uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255 * alpha) << 24;
                 drawList.PathStroke(progressAlpha, ImDrawFlags.None, radius);
-                if (this.IconStyleConfig.ShowSwipeLines && triggeredValue != 0)
+                if (this.IconStyleConfig.ShowSwipeLines)
                 {
                     Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
                     Vector2 start = pos + size / 2;
@@ -172,29 +176,8 @@ namespace XIVAuras.Auras
 
         public static AuraIcon GetDefaultAuraIcon(string name)
         {
-            AuraLabel valueLabel = new AuraLabel("Value", "[value]");
-            valueLabel.LabelStyleConfig.FontKey = FontsManager.DefaultBigFontKey;
-            valueLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultBigFontKey);
-            valueLabel.VisibilityConfig.HideIf = true;
-            valueLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.Value;
-            valueLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
-            valueLabel.VisibilityConfig.HideIfValue = 0;
-
-            AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
-            stacksLabel.LabelStyleConfig.FontKey = FontsManager.DefaultMediumFontKey;
-            stacksLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultMediumFontKey);
-            stacksLabel.LabelStyleConfig.Position = new Vector2(-1, 0);
-            stacksLabel.LabelStyleConfig.ParentAnchor = DrawAnchor.BottomRight;
-            stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
-            stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
-            stacksLabel.LabelStyleConfig.OutlineColor = new ConfigColor(1, 1, 1, 1);
-            stacksLabel.VisibilityConfig.HideIf = true;
-            stacksLabel.VisibilityConfig.HideIfDataSource = TriggerDataSource.MaxStacks;
-            stacksLabel.VisibilityConfig.HideIfOp = TriggerDataOp.LessThanEq;
-            stacksLabel.VisibilityConfig.HideIfValue = 1;
-
-            AuraIcon newIcon = new AuraIcon(name, valueLabel, stacksLabel);
-
+            AuraIcon newIcon = new AuraIcon(name);
+            newIcon.ImportPage(newIcon.LabelListConfig.GetDefault());
             return newIcon;
         }
     }

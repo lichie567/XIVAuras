@@ -23,7 +23,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private bool _chinese = false;
         [JsonIgnore] private bool _korean = false;
 
-        public Dictionary<string, FontData> Fonts { get; private set; }
+        public Dictionary<string, FontData> Fonts { get; init; }
 
         public FontConfig()
         {

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using XIVAuras.Config;
+using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {

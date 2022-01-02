@@ -1,16 +1,16 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Dalamud.Game.ClientState;
 using ImGuiNET;
 using XIVAuras.Helpers;
-using System.Linq;
 
 namespace XIVAuras.Config
 {
     public class CooldownTrigger : TriggerOptions
     {
-        [JsonIgnore] private static readonly string[] _sourceOptions = Enum.GetNames<TriggerSource>();
         [JsonIgnore] private static readonly string[] _comboOptions = new[] { "Ready", "Not Ready" };
         [JsonIgnore] private static readonly string[] _usableOptions = new[] { "Usable", "Not Usable" };
         [JsonIgnore] private static readonly string[] _rangeOptions = new[] { "In Range", "Not in Range" };
@@ -47,21 +47,84 @@ namespace XIVAuras.Config
 
         public override bool IsTriggered(bool preview, out DataSource data)
         {
+            data = new DataSource();
             if (!this.TriggerData.Any())
             {
-                data = new DataSource();
                 return false;
             }
 
-            data = SpellHelpers.GetCooldownData(this.TriggerData, this.Usable, this.Combo, this.RangeCheck, this.LosCheck, preview);
+            if (preview)
+            {
+                data.Value = 10;
+                data.Stacks = 2;
+                data.MaxStacks = 2;
+                data.Icon = this.TriggerData.FirstOrDefault().Icon;
+                return true;
+            }
+
+            SpellHelpers helper = Singletons.Get<SpellHelpers>();
+            TriggerData actionTrigger = this.TriggerData.First();
+            uint actionId = actionTrigger.Id;
+            helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
+
+            int stacks = recastInfo.RecastTime == 0f
+                ? recastInfo.MaxCharges
+                : (int)(recastInfo.MaxCharges * (recastInfo.RecastTimeElapsed / recastInfo.RecastTime));
+
+            float chargeTime = recastInfo.MaxCharges != 0
+                ? recastInfo.RecastTime / recastInfo.MaxCharges
+                : recastInfo.RecastTime;
+
+            float cooldown = chargeTime != 0 
+                ? Math.Abs(recastInfo.RecastTime - recastInfo.RecastTimeElapsed) % chargeTime
+                : 0;
+
+            bool comboActive = false;
+            bool usable = false;
+            bool inRange = false;
+            bool inLos = false;
+
+            if (this.Usable)
+            {
+                usable = helper.CanUseAction(actionId);
+            }
+
+            if (this.RangeCheck)
+            {
+                inRange = helper.GetActionInRange(actionId, Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget());
+            }
+
+            if (this.LosCheck)
+            {
+                inLos = helper.IsTargetInLos(Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget());
+            }
+
+            if (this.Combo && actionTrigger.ComboId.Length > 0)
+            {
+                uint lastAction = helper.GetLastUsedActionId();
+                foreach (uint id in actionTrigger.ComboId)
+                {
+                    if (id == lastAction)
+                    {
+                        comboActive = true;
+                        break;
+                    }
+                }
+            }
+
+            data.Id = actionId;
+            data.Value = cooldown;
+            data.Stacks = stacks;
+            data.MaxStacks = recastInfo.MaxCharges;
+            data.Icon = actionTrigger.Icon;
 
             return preview ||
-                (!this.Combo || (this.ComboValue == 0 ? data.ComboActive : !data.ComboActive)) &&
-                (!this.Usable || (this.UsableValue == 0 ? data.Active : !data.Active)) &&
-                (!this.RangeCheck || (this.RangeValue == 0 ? data.InRange : !data.InRange)) &&
-                (!this.LosCheck || (this.LosValue == 0 ? data.InLos : !data.InLos)) &&
-                (!this.Cooldown || GetResult(data, TriggerDataSource.Value, this.CooldownOp, this.CooldownValue)) &&
-                (!this.ChargeCount || GetResult(data, TriggerDataSource.Stacks, this.ChargeCountOp, this.ChargeCountValue));
+                (!this.Combo || (this.ComboValue == 0 ? comboActive : !comboActive)) &&
+                (!this.Usable || (this.UsableValue == 0 ? usable : !usable)) &&
+                (!this.RangeCheck || (this.RangeValue == 0 ? inRange : !inRange)) &&
+                (!this.LosCheck || (this.LosValue == 0 ? inLos : !inLos)) &&
+                (!this.Cooldown || GetResult(data.Value, this.CooldownOp, this.CooldownValue)) &&
+                (!this.ChargeCount || GetResult(data.Stacks, this.ChargeCountOp, this.ChargeCountValue));
         }
 
         public override void DrawTriggerOptions(Vector2 size, float padX, float padY)
@@ -108,13 +171,16 @@ namespace XIVAuras.Config
                 }
 
                 ImGui.PushItemWidth(valueInputWidth);
-                if (ImGui.InputText("Seconds##CooldownValue", ref _cooldownValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputText("Seconds##CooldownValue", ref _cooldownValueInput, 10, ImGuiInputTextFlags.CharsDecimal))
                 {
                     if (float.TryParse(_cooldownValueInput, out float value))
                     {
                         this.CooldownValue = value;
                     }
+
+                    _cooldownValueInput = this.CooldownValue.ToString();
                 }
+
                 ImGui.PopItemWidth();
             }
 
@@ -136,13 +202,16 @@ namespace XIVAuras.Config
                 }
 
                 ImGui.PushItemWidth(valueInputWidth);
-                if (ImGui.InputText("Stacks##ChargeCountValue", ref _chargeCountValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                if (ImGui.InputText("Stacks##ChargeCountValue", ref _chargeCountValueInput, 10, ImGuiInputTextFlags.CharsDecimal))
                 {
                     if (float.TryParse(_chargeCountValueInput, out float value))
                     {
                         this.ChargeCountValue = value;
                     }
+
+                    _chargeCountValueInput = this.ChargeCountValue.ToString();
                 }
+
                 ImGui.PopItemWidth();
             }
 

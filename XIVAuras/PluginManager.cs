@@ -70,11 +70,6 @@ namespace XIVAuras
             this.PluginInterface.UiBuilder.Draw += Draw;
         }
 
-        public void Edit(AuraListItem aura)
-        {
-            this.ConfigRoot.PushConfig(aura);
-        }
-
         private void Draw()
         {
             if (this.ClientState.LocalPlayer == null || CharacterState.IsCharacterBusy())
@@ -98,6 +93,13 @@ namespace XIVAuras
             ImGui.End();
         }
 
+        public void Edit(AuraListItem aura)
+        {
+            this.ConfigRoot.PushConfig(aura);
+        }
+
+        public bool IsConfigOpen() => this.ConfigRoot.IsOpen;
+
         private void OpenConfigUi()
         {
             if (!this.ConfigRoot.IsOpen)
@@ -110,7 +112,7 @@ namespace XIVAuras
         {
             ConfigHelpers.SaveConfig();
         }
-
+        
         private void PluginCommand(string command, string arguments)
         {
             if (this.ConfigRoot.IsOpen)

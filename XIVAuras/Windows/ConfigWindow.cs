@@ -123,7 +123,7 @@ namespace XIVAuras.Windows
                 }
 
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + offset);
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.UndoAlt, () => Reset(openPage), $"Reset {openPage?.Name} to Defaults", buttonsize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.UndoAlt, () => Reset(openPage), $"Reset {openPage?.Name} Options to Defaults", buttonsize);
                 ImGui.SameLine();
 
                 ImGui.PushItemWidth(textInputWidth);
@@ -139,10 +139,10 @@ namespace XIVAuras.Windows
                 }
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(openPage), $"Export {openPage?.Name}", buttonsize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => Export(openPage), $"Export {openPage?.Name} Options", buttonsize);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => Import(), $"Import {openPage?.Name}", buttonsize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => Import(), $"Import {openPage?.Name} Options", buttonsize);
             }
 
             ImGui.EndChild();

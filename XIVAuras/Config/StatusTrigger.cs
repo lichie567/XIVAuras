@@ -3,6 +3,10 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 using XIVAuras.Helpers;
 
@@ -38,25 +42,69 @@ namespace XIVAuras.Config
 
         public override bool IsTriggered(bool preview, out DataSource data)
         {
+            data = new DataSource();
             if (!this.TriggerData.Any())
             {
-                data = new DataSource();
                 return false;
             }
             
-            data = SpellHelpers.GetStatusData(this.TriggerSource, this.TriggerData, this.OnlyMine, preview);
-
             if (preview)
+            {
+                data.Value = 10;
+                data.Stacks = 2;
+                data.MaxStacks = 2;
+                data.Icon = this.TriggerData.FirstOrDefault().Icon;
                 return true;
+            }
+
+            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (player is null)
+            {
+                return false;
+            }
+
+            GameObject? actor = this.TriggerSource switch
+            {
+                TriggerSource.Player => player,
+                TriggerSource.Target => Utils.FindTarget(),
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player),
+                TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
+                _ => null
+            };
+
+            if (actor is not BattleChara chara)
+            {
+                return false;
+            }
+
+            bool active = false;
+            data.Icon = this.TriggerData.FirstOrDefault().Icon;
+            foreach (TriggerData trigger in this.TriggerData)
+            {
+                foreach (var status in chara.StatusList)
+                {
+                    if (status is not null &&
+                        status.StatusId == trigger.Id &&
+                        (status.SourceID == player.ObjectId || !this.OnlyMine))
+                    {
+                        active = true;
+                        data.Id = trigger.Id;
+                        data.Value = Math.Abs(status.RemainingTime);
+                        data.Stacks = status.StackCount;
+                        data.MaxStacks = trigger.MaxStacks;
+                        data.Icon = trigger.Icon;
+                    }
+                }
+            }
 
             switch (this.TriggerCondition)
             {
                 case 0:
-                    return data.Active &&
-                        (!this.Duration || GetResult(data, TriggerDataSource.Value, this.DurationOp, this.DurationValue)) &&
-                        (!this.StackCount || GetResult(data, TriggerDataSource.Stacks, this.StackCountOp, this.StackCountValue));
+                    return active &&
+                        (!this.Duration || GetResult(data.Value, this.DurationOp, this.DurationValue)) &&
+                        (!this.StackCount || GetResult(data.Stacks, this.StackCountOp, this.StackCountValue));
                 case 1:
-                    return !data.Active;
+                    return !active;
                 default:
                     return false;
             }
@@ -110,13 +158,16 @@ namespace XIVAuras.Config
                     }
 
                     ImGui.PushItemWidth(valueInputWidth);
-                    if (ImGui.InputText("Seconds##DurationValue", ref _durationValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                    if (ImGui.InputText("Seconds##DurationValue", ref _durationValueInput, 10, ImGuiInputTextFlags.CharsDecimal))
                     {
                         if (float.TryParse(_durationValueInput, out float value))
                         {
                             this.DurationValue = value;
                         }
+
+                        _durationValueInput = this.DurationValue.ToString();
                     }
+
                     ImGui.PopItemWidth();
                 }
 
@@ -137,13 +188,16 @@ namespace XIVAuras.Config
                     }
 
                     ImGui.PushItemWidth(valueInputWidth);
-                    if (ImGui.InputText("Stacks##StackCountValue", ref _stackCountValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
+                    if (ImGui.InputText("Stacks##StackCountValue", ref _stackCountValueInput, 10, ImGuiInputTextFlags.CharsDecimal))
                     {
                         if (float.TryParse(_stackCountValueInput, out float value))
                         {
                             this.StackCountValue = value;
                         }
+
+                        _stackCountValueInput = this.StackCountValue.ToString();
                     }
+                    
                     ImGui.PopItemWidth();
                 }
             }

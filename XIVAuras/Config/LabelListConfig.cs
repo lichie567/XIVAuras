@@ -29,7 +29,23 @@ namespace XIVAuras.Config
             this.AuraLabels = new List<AuraLabel>(labels);
         }
 
-        public IConfigPage GetDefault() => new AuraListConfig();
+        public IConfigPage GetDefault()
+        {
+            AuraLabel valueLabel = new AuraLabel("Value", "[value]");
+            valueLabel.LabelStyleConfig.FontKey = FontsManager.DefaultBigFontKey;
+            valueLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultBigFontKey);
+
+            AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
+            stacksLabel.LabelStyleConfig.FontKey = FontsManager.DefaultMediumFontKey;
+            stacksLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultMediumFontKey);
+            stacksLabel.LabelStyleConfig.Position = new Vector2(-1, 0);
+            stacksLabel.LabelStyleConfig.ParentAnchor = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
+            stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
+            stacksLabel.LabelStyleConfig.OutlineColor = new ConfigColor(1, 1, 1, 1);
+
+            return new LabelListConfig(valueLabel, stacksLabel);
+        }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {

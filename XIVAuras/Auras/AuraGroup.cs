@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using XIVAuras.Config;
+using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
@@ -59,7 +60,7 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.VisibilityConfig.IsVisible())
+            if (!this.VisibilityConfig.IsVisible() && !Singletons.Get<PluginManager>().IsConfigOpen())
             {
                 return;
             }

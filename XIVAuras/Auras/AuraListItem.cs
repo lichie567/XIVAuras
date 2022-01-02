@@ -107,19 +107,11 @@ namespace XIVAuras.Auras
 
             if (this.StartData is null ||
                 !this.StartTime.HasValue ||
-                this.StartData.TriggerId != data.TriggerId)
+                this.StartData.Id != data.Id)
             {
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
             }
         }
-    }
-
-    public enum AuraType
-    {
-        Icon,
-        Bar,
-        Label,
-        Group
     }
 }

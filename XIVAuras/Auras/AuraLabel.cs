@@ -9,7 +9,7 @@ namespace XIVAuras.Auras
 {
     public class AuraLabel : AuraListItem
     {
-        [JsonIgnore] private DataSource? Data { get; set; }
+        [JsonIgnore] private DataSource? _data;
 
         public override AuraType Type => AuraType.Label;
 
@@ -48,7 +48,7 @@ namespace XIVAuras.Auras
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)
         {
-            if (!this.VisibilityConfig.IsVisible(this.Data))
+            if (!this.VisibilityConfig.IsVisible() && !this.Preview)
             {
                 return;
             }
@@ -56,44 +56,31 @@ namespace XIVAuras.Auras
             Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
-            string text = this.LabelStyleConfig.TextFormat;
-            if (this.Data is not null)
+            string text = _data is not null
+                ? _data.GetFormattedString(this.LabelStyleConfig.TextFormat, "N")
+                : this.LabelStyleConfig.TextFormat;
+
+            using (FontsManager.PushFont(this.LabelStyleConfig.FontKey))
             {
-                text = text.Replace("[value]", this.LabelStyleConfig.FormatNumber(this.Data.Value));
-                text = text.Replace("[stacks]", this.LabelStyleConfig.FormatNumber(this.Data.Stacks));
-            }
-
-            bool fontPushed = FontsManager.PushFont(this.LabelStyleConfig.FontKey);
-
-            Vector2 textSize = ImGui.CalcTextSize(text);
-            Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
-            textPos = Utils.GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
-
-            Vector2 textPad = new Vector2(2, 2); // Add small amount of padding to avoid text getting clipped
-            DrawHelpers.DrawInWindow($"##{this.ID}", textPos - textPad, textSize + textPad, false, true, true, (drawList) =>
-            {
-                uint textColor = this.LabelStyleConfig.TextColor.Base;
-
-                if (this.LabelStyleConfig.ShowOutline)
+                Vector2 textSize = ImGui.CalcTextSize(text);
+                Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
+                textPos = Utils.GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
+                DrawHelpers.DrawInWindow($"##{this.ID}", textPos, textSize, false, true, true, (drawList) =>
                 {
-                    uint outlineColor = this.LabelStyleConfig.OutlineColor.Base;
-                    DrawHelpers.DrawOutlinedText(text, textPos, textColor, outlineColor, drawList);
-                }
-                else
-                {
-                    drawList.AddText(textPos, textColor, text);
-                }
-            });
-
-            if (fontPushed)
-            {
-                ImGui.PopFont();
+                    DrawHelpers.DrawText(
+                        drawList,
+                        text,
+                        textPos,
+                        this.LabelStyleConfig.TextColor.Base,
+                        this.LabelStyleConfig.ShowOutline,
+                        this.LabelStyleConfig.OutlineColor.Base);
+                });
             }
         }
 
         public void SetData(DataSource data)
         {
-            this.Data = data;
+            _data = data;
         }
     }
 }

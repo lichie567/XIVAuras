@@ -10,20 +10,6 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {
-    public enum TriggerType
-    {
-        Status,
-        Cooldown
-    }
-
-    public enum TriggerSource
-    {
-        Player,
-        Target,
-        TargetOfTarget,
-        FocusTarget
-    }
-
     public class TriggerConfig : IConfigPage
     {
         [JsonIgnore] public string Name => "Triggers";
@@ -162,9 +148,10 @@ namespace XIVAuras.Config
                     {
                         this.TriggerOptions[_selectedIndex] = _selectedType switch
                         {
-                            TriggerType.Status   => new StatusTrigger(),
-                            TriggerType.Cooldown => new CooldownTrigger(),
-                            _                    => new StatusTrigger()
+                            TriggerType.Status          => new StatusTrigger(),
+                            TriggerType.Cooldown        => new CooldownTrigger(),
+                            TriggerType.CharacterState  => new CharacterStateTrigger(),
+                        _                               => new StatusTrigger()
                         };
                     }
                     

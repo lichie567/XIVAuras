@@ -2,20 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Data;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
-using XIVAuras.Config;
 using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
 using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Dalamud.Game;
-using Newtonsoft.Json;
 
 namespace XIVAuras.Helpers
 {
@@ -117,141 +112,6 @@ namespace XIVAuras.Helpers
         public unsafe uint GetLastUsedActionId()
         {
             return _combo->Action;
-        }
-
-        public static DataSource GetStatusData(
-            TriggerSource source,
-            IEnumerable<TriggerData> triggerData,
-            bool onlyMine,
-            bool preview)
-        {
-            if (preview)
-            {
-                return new DataSource()
-                {
-                    Active = true,
-                    Value = 10,
-                    Stacks = 2,
-                    MaxStacks = 2,
-                    Icon = triggerData.FirstOrDefault().Icon
-                };
-            }
-
-            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
-            if (player is null)
-            {
-                return new DataSource();
-            }
-
-            GameObject? actor = source switch
-            {
-                TriggerSource.Player => player,
-                TriggerSource.Target => Utils.FindTarget(),
-                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player),
-                TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
-                _ => null
-            };
-
-            if (actor is not BattleChara chara)
-            {
-                return new DataSource();
-            }
-
-            foreach (TriggerData trigger in triggerData)
-            {
-                foreach (var status in chara.StatusList)
-                {
-                    if (status is not null &&
-                        status.StatusId == trigger.Id &&
-                        (status.SourceID == player.ObjectId || !onlyMine))
-                    {
-                        return new DataSource()
-                        {
-                            Active = true,
-                            TriggerId = trigger.Id,
-                            Value = Math.Abs(status.RemainingTime),
-                            Stacks = status.StackCount,
-                            MaxStacks = trigger.MaxStacks,
-                            Icon = trigger.Icon
-                        };
-                    }
-                }
-            }
-
-            return new DataSource()
-            {
-                Icon = triggerData.FirstOrDefault().Icon
-            };
-        }
-
-        public static DataSource GetCooldownData(
-            IEnumerable<TriggerData> triggerData,
-            bool usable,
-            bool combo,
-            bool inRange,
-            bool inLos,
-            bool preview)
-        {
-            if (preview)
-            {
-                return new DataSource()
-                {
-                    Active = true,
-                    Value = 10,
-                    Stacks = 2,
-                    MaxStacks = 2,
-                    Icon = triggerData.FirstOrDefault().Icon
-                };
-            }
-
-            if (!triggerData.Any())
-            {
-                return new DataSource();
-            }
-
-            SpellHelpers helper = Singletons.Get<SpellHelpers>();
-            TriggerData actionTrigger = triggerData.First();
-            uint actionId = actionTrigger.Id;
-            helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
-
-            int stacks = recastInfo.RecastTime == 0f
-                ? recastInfo.MaxCharges
-                : (int)(recastInfo.MaxCharges * (recastInfo.RecastTimeElapsed / recastInfo.RecastTime));
-
-            float chargeTime = recastInfo.MaxCharges != 0
-                ? recastInfo.RecastTime / recastInfo.MaxCharges
-                : recastInfo.RecastTime;
-
-            float cooldown = chargeTime != 0 
-                ? Math.Abs(recastInfo.RecastTime - recastInfo.RecastTimeElapsed) % chargeTime
-                : 0;
-
-            bool comboActive = false;
-            if (combo && actionTrigger.ComboId.Length > 0)
-            {
-                uint lastAction = helper.GetLastUsedActionId();
-                foreach (uint id in actionTrigger.ComboId)
-                {
-                    if (id == lastAction)
-                    {
-                        comboActive = true;
-                        break;
-                    }
-                }
-            }
-
-            return new DataSource()
-            {
-                Active = usable && helper.CanUseAction(actionId),
-                InRange = inRange && helper.GetActionInRange(actionId, Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget()),
-                InLos = inLos && helper.IsTargetInLos(Singletons.Get<ClientState>().LocalPlayer, Utils.FindTarget()),
-                ComboActive = comboActive,
-                TriggerId = actionId,
-                Value = cooldown,
-                Stacks = stacks,
-                MaxStacks = recastInfo.MaxCharges,
-                Icon = actionTrigger.Icon
-            };
         }
 
         public static List<TriggerData> FindStatusEntries(string input)
@@ -451,70 +311,6 @@ namespace XIVAuras.Helpers
             }
 
             return comboIds.ToArray();
-        }
-    }
-
-    public class DataSource
-    {
-        public uint TriggerId;
-        public bool Active;
-        public bool InRange;
-        public bool InLos;
-        public bool ComboActive;
-        public float Value;
-        public int Stacks;
-        public int MaxStacks;
-        public ushort Icon;
-
-        public float GetDataForSourceType(TriggerDataSource source)
-        {
-            return source switch
-            {
-                TriggerDataSource.Value => this.Value,
-                TriggerDataSource.Stacks => this.Stacks,
-                TriggerDataSource.MaxStacks => this.MaxStacks,
-                _ => 0
-            };
-        }
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 0x8)]
-    public struct Combo {
-        [FieldOffset(0x00)] public float Timer;
-        [FieldOffset(0x04)] public uint Action;
-    }
-
-    public struct TriggerData
-    {
-        public string Name;
-        public uint Id;
-        public ushort Icon;
-        public byte MaxStacks;
-        
-        [JsonConverter(typeof(ComboIdConverter))]
-        public uint[] ComboId;
-
-        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint[]? comboId = null)
-        {
-            Name = name;
-            Id = id;
-            Icon = icon;
-            MaxStacks = maxStacks;
-            ComboId = comboId ?? new uint[0];
-        }
-    }
-
-    public struct RecastInfo
-    {
-        public float RecastTime;
-        public float RecastTimeElapsed;
-        public ushort MaxCharges;
-
-        public RecastInfo(float recastTime, float recastTimeElapsed, ushort maxCharges)
-        {
-            RecastTime = recastTime;
-            RecastTimeElapsed = recastTimeElapsed;
-            MaxCharges = maxCharges;
         }
     }
 }

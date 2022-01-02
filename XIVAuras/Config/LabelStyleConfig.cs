@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using ImGuiNET;
@@ -8,28 +7,14 @@ using XIVAuras.Helpers;
 
 namespace XIVAuras.Config
 {
-    public enum DrawAnchor
-    {
-        Center = 0,
-        Left = 1,
-        Right = 2,
-        Top = 3,
-        TopLeft = 4,
-        TopRight = 5,
-        Bottom = 6,
-        BottomLeft = 7,
-        BottomRight = 8
-    }
-
     public class LabelStyleConfig : IConfigPage
     {
         [JsonIgnore] private string[] _anchorOptions = Enum.GetNames(typeof(DrawAnchor));
 
-        public string Name => "Style";
+        public string Name => "Text";
 
         public string TextFormat = "";
         public Vector2 Position = new Vector2(0, 0);
-        public int NumberFormat = 0;
         public DrawAnchor ParentAnchor = DrawAnchor.Center;
         public DrawAnchor TextAlign = DrawAnchor.Center;
         public int FontID = 0;
@@ -51,7 +36,6 @@ namespace XIVAuras.Config
             {
                 ImGui.InputTextWithHint("Text Format", "[value] or [stacks]", ref this.TextFormat, 64);
                 ImGui.DragFloat2("Position", ref this.Position);
-                ImGui.Combo("Number Format", ref this.NumberFormat, new[] { "No Decimals", "One Decimal", "Two Decimals" }, 3);
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);
 
@@ -81,13 +65,6 @@ namespace XIVAuras.Config
 
                 ImGui.EndChild();
             }
-        }
-
-        public string FormatNumber(float value)
-        {
-            int pow = (int)Math.Pow(10, this.NumberFormat);
-            double newValue = Math.Truncate(value * pow) / pow;
-            return newValue.ToString($"F{this.NumberFormat}", CultureInfo.InvariantCulture);
         }
     }
 }

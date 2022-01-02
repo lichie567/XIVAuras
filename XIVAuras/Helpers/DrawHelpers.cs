@@ -186,19 +186,29 @@ namespace XIVAuras.Helpers
             ImGui.PopStyleVar(3);
         }
 
-        public static void DrawOutlinedText(string text, Vector2 pos, uint color, uint outlineColor, ImDrawListPtr drawList, int thickness = 1)
+        public static void DrawText(
+            ImDrawListPtr drawList,
+            string text,
+            Vector2 pos,
+            uint color,
+            bool outline,
+            uint outlineColor = 0xFF000000,
+            int thickness = 1)
         {
             // outline
-            for (int i = 1; i < thickness + 1; i++)
+            if (outline)
             {
-                drawList.AddText(new Vector2(pos.X - i, pos.Y + i), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X, pos.Y + i), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X + i, pos.Y + i), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X - i, pos.Y), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X + i, pos.Y), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X - i, pos.Y - i), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X, pos.Y - i), outlineColor, text);
-                drawList.AddText(new Vector2(pos.X + i, pos.Y - i), outlineColor, text);
+                for (int i = 1; i < thickness + 1; i++)
+                {
+                    drawList.AddText(new Vector2(pos.X - i, pos.Y + i), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X, pos.Y + i), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X + i, pos.Y + i), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X - i, pos.Y), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X + i, pos.Y), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X - i, pos.Y - i), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X, pos.Y - i), outlineColor, text);
+                    drawList.AddText(new Vector2(pos.X + i, pos.Y - i), outlineColor, text);
+                }
             }
 
             // text

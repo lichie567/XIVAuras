@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using Dalamud.Data;
@@ -17,7 +16,9 @@ using ImGuiScene;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
 using SigScanner = Dalamud.Game.SigScanner;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Logging;
+
 
 namespace XIVAuras
 {
@@ -38,6 +39,7 @@ namespace XIVAuras
         public string Name => "XIVAuras";
 
         public Plugin(
+            BuddyList buddyList,
             ClientState clientState,
             CommandManager commandManager,
             Condition condition,
@@ -57,6 +59,7 @@ namespace XIVAuras
             Plugin.ConfigFilePath = Path.Combine(pluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 
             // Register Dalamud APIs
+            Singletons.Register(buddyList);
             Singletons.Register(clientState);
             Singletons.Register(commandManager);
             Singletons.Register(condition);
