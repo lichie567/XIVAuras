@@ -41,7 +41,7 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##IconStyleConfig", new Vector2(size.X, size.Y), true))
             {
                 float height = 50;
-                if (this.IconOption > 0 && this.CustomIcon > 0)
+                if (this.IconOption == 1 && this.CustomIcon > 0)
                 {
                     Vector2 iconPos = ImGui.GetWindowPos() + new Vector2(padX, padX);
                     Vector2 iconSize = new Vector2(height, height);
@@ -57,6 +57,8 @@ namespace XIVAuras.Config
                 ImGui.RadioButton("Automatic Icon", ref this.IconOption, 0);
                 ImGui.SameLine();
                 ImGui.RadioButton("Custom Icon", ref this.IconOption, 1);
+                ImGui.SameLine();
+                ImGui.RadioButton("No Icon", ref this.IconOption, 2);
                 
                 if (this.IconOption == 1)
                 {
@@ -107,44 +109,47 @@ namespace XIVAuras.Config
                     }
                 }
 
-                ImGui.Checkbox("Crop Icon", ref this.CropIcon);
-                DrawHelpers.DrawSpacing(1);
-
-                Vector2 screenSize = ImGui.GetMainViewport().Size;
-                ImGui.DragFloat2("Position", ref this.Position, 1, -screenSize.X / 2, screenSize.X / 2);
-                ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, screenSize.Y);
-                ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
-                ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
-
-                ImGui.Checkbox("Show Border", ref this.ShowBorder);
-                if (this.ShowBorder)
+                if (this.IconOption != 2)
                 {
-                    DrawHelpers.DrawNestIndicator(1);
-                    ImGui.DragInt("Border Thickness", ref this.BorderThickness, 1, 1, 100);
+                    ImGui.Checkbox("Crop Icon", ref this.CropIcon);
+                    DrawHelpers.DrawSpacing(1);
 
-                    DrawHelpers.DrawNestIndicator(1);
-                    Vector4 vector = this.BorderColor.Vector;
-                    ImGui.ColorEdit4("Border Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
-                    this.BorderColor.Vector = vector;
-                }
+                    Vector2 screenSize = ImGui.GetMainViewport().Size;
+                    ImGui.DragFloat2("Position", ref this.Position, 1, -screenSize.X / 2, screenSize.X / 2);
+                    ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, screenSize.Y);
+                    ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
+                    ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
 
-                ImGui.Checkbox("Show Progress Swipe", ref this.ShowProgressSwipe);
-                if (this.ShowProgressSwipe)
-                {
-                    DrawHelpers.DrawNestIndicator(1);
-                    ImGui.DragFloat("Swipe Opacity", ref this.ProgressSwipeOpacity, .01f, 0, 1);
-                    DrawHelpers.DrawNestIndicator(1);
-                    ImGui.Checkbox("Invert Swipe", ref this.InvertSwipe);
-                    DrawHelpers.DrawNestIndicator(1);
-                    ImGui.Checkbox("Show Swipe Lines", ref this.ShowSwipeLines);
-                    if (this.ShowSwipeLines)
+                    ImGui.Checkbox("Show Border", ref this.ShowBorder);
+                    if (this.ShowBorder)
                     {
-                        DrawHelpers.DrawNestIndicator(2);
-                        Vector4 vector = this.ProgressLineColor.Vector;
-                        ImGui.ColorEdit4("Line Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
-                        this.ProgressLineColor.Vector = vector;
-                        DrawHelpers.DrawNestIndicator(2);
-                        ImGui.DragInt("Thickness", ref this.ProgressLineThickness, 1, 1, 5);
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragInt("Border Thickness", ref this.BorderThickness, 1, 1, 100);
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        Vector4 vector = this.BorderColor.Vector;
+                        ImGui.ColorEdit4("Border Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.BorderColor.Vector = vector;
+                    }
+
+                    ImGui.Checkbox("Show Progress Swipe", ref this.ShowProgressSwipe);
+                    if (this.ShowProgressSwipe)
+                    {
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragFloat("Swipe Opacity", ref this.ProgressSwipeOpacity, .01f, 0, 1);
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.Checkbox("Invert Swipe", ref this.InvertSwipe);
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.Checkbox("Show Swipe Lines", ref this.ShowSwipeLines);
+                        if (this.ShowSwipeLines)
+                        {
+                            DrawHelpers.DrawNestIndicator(2);
+                            Vector4 vector = this.ProgressLineColor.Vector;
+                            ImGui.ColorEdit4("Line Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                            this.ProgressLineColor.Vector = vector;
+                            DrawHelpers.DrawNestIndicator(2);
+                            ImGui.DragInt("Thickness", ref this.ProgressLineThickness, 1, 1, 5);
+                        }
                     }
                 }
             }

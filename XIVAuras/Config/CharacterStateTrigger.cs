@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -10,6 +9,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
 using XIVAuras.Helpers;
+using CharacterStruct = FFXIVClientStructs.FFXIV.Client.Game.Character.Character;
 
 namespace XIVAuras.Config
 {
@@ -79,24 +79,31 @@ namespace XIVAuras.Config
                 TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
                 _ => null
             };
-
-            if (actor is not BattleChara chara)
-            {
-                return false;
-            }
             
-            data.Hp = chara.CurrentHp;
-            data.MaxHp = chara.MaxHp;
-            data.Mp = chara.CurrentMp;
-            data.MaxMp = chara.MaxMp;
-            data.Cp = chara.CurrentCp;
-            data.MaxCp = chara.MaxCp;
-            data.Gp = chara.CurrentGp;
-            data.MaxGp = chara.MaxGp;
-            data.Level = chara.Level;
-            data.HasPet =
-                this.TriggerSource == TriggerSource.Player &&
-                Singletons.Get<BuddyList>().PetBuddy != null;      
+            if (actor is not null)
+            {
+                data.Name = actor.Name.ToString();
+            }
+
+            if (actor is Character chara)
+            {
+                data.Hp = chara.CurrentHp;
+                data.MaxHp = chara.MaxHp;
+                data.Mp = chara.CurrentMp;
+                data.MaxMp = chara.MaxMp;
+                data.Cp = chara.CurrentCp;
+                data.MaxCp = chara.MaxCp;
+                data.Gp = chara.CurrentGp;
+                data.MaxGp = chara.MaxGp;
+                data.Level = chara.Level;
+                data.HasPet = this.TriggerSource == TriggerSource.Player &&
+                    Singletons.Get<BuddyList>().PetBuddy != null;  
+
+                unsafe
+                {
+                    data.Job = (Job)((CharacterStruct*)chara.Address)->ClassJob;
+                }
+            }
 
             return preview ||
                 (!this.Hp || GetResult(data.Hp, this.HpOp, this.MaxHp ? data.MaxHp : this.HpValue)) &&

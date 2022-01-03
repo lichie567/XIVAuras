@@ -59,12 +59,25 @@ namespace XIVAuras.Helpers
                 new TextTagFormatter(this, numberFormat, _fields).Evaluate);
         }
 
+        public DataSource()
+        {
+            this.Name_First = new LazyString<string?>(() => this.Name, LazyStringConverters.FirstName);
+            this.Name_Last = new LazyString<string?>(() => this.Name, LazyStringConverters.LastName);
+            this.JobName = new LazyString<Job>(() => this.Job, LazyStringConverters.JobName);
+        }
+
         public uint Id;
         public float Value;
         public int Stacks;
         public int MaxStacks;
         public ushort Icon;
         
+        public string Name = string.Empty;
+        public LazyString<string?>? Name_First;
+        public LazyString<string?>? Name_Last;
+        public Job Job;
+        public LazyString<Job>? JobName;
+
         public uint Level;
         public uint Hp;
         public uint MaxHp;

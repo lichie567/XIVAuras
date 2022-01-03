@@ -85,10 +85,13 @@ namespace XIVAuras.Auras
                             this.IconStyleConfig.Position = localPos - pos;
                         }
                     }
-
-                    ushort icon = this.IconStyleConfig.IconOption > 0 && this.IconStyleConfig.CustomIcon > 0
-                        ? this.IconStyleConfig.CustomIcon
-                        : data.Icon;
+                    
+                    ushort icon = this.IconStyleConfig.IconOption switch
+                    {
+                        0 => data.Icon,
+                        1 => this.IconStyleConfig.CustomIcon,
+                        _ => 0
+                    };
 
                     if (icon > 0)
                     {
