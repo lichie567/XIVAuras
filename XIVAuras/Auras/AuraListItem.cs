@@ -10,17 +10,19 @@ namespace XIVAuras.Auras
 {
     public abstract class AuraListItem : IConfigurable
     {
-        [JsonIgnore] public readonly string ID;
-        [JsonIgnore] protected bool LastFrameWasPreview = false;
-        [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] public bool Preview = false;
         [JsonIgnore] public bool Hovered = false;
         [JsonIgnore] public bool Dragging = false;
         [JsonIgnore] public bool SetPosition = false;
+
+        [JsonIgnore] protected bool LastFrameWasPreview = false;
+        [JsonIgnore] protected bool LastFrameWasDragging = false;
         [JsonIgnore] protected DataSource? StartData = null;
         [JsonIgnore] protected DateTime? StartTime = null;
         [JsonIgnore] protected DataSource? OldStartData = null;
         [JsonIgnore] protected DateTime? OldStartTime = null;
+
+        [JsonIgnore] public string ID { get; }
 
         public string Name { get; set; }
 
@@ -35,6 +37,8 @@ namespace XIVAuras.Auras
         public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
 
         public abstract IEnumerable<IConfigPage> GetConfigPages();
+
+        public abstract void ImportPage(IConfigPage page);
 
         public override string? ToString() => $"{this.Type} [{this.Name}]";
 
@@ -61,7 +65,8 @@ namespace XIVAuras.Auras
                 {
                     Value = newValue,
                     Stacks = data.Stacks,
-                    MaxStacks = data.MaxStacks
+                    MaxStacks = data.MaxStacks,
+                    Icon = data.Icon
                 };
             }
 
@@ -77,7 +82,7 @@ namespace XIVAuras.Auras
             this.LastFrameWasDragging = this.Hovered || this.Dragging;
         }
 
-        protected void UpdateStartData(DataSource data, TriggerType type)
+        protected void UpdateStartData(DataSource data)
         {
             if (this.LastFrameWasPreview && !this.Preview)
             {
@@ -100,19 +105,13 @@ namespace XIVAuras.Auras
                 this.StartTime = DateTime.UtcNow;
             }
 
-            if (this.StartData is null || !this.StartTime.HasValue)
+            if (this.StartData is null ||
+                !this.StartTime.HasValue ||
+                this.StartData.Id != data.Id)
             {
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
             }
         }
-    }
-
-    public enum AuraType
-    {
-        Group,
-        Icon,
-        Bar,
-        Label
     }
 }

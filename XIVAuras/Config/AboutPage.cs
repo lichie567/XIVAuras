@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using Dalamud.Interface;
 using ImGuiNET;
 using XIVAuras.Helpers;
 
@@ -7,8 +6,9 @@ namespace XIVAuras.Config
 {
     public class AboutPage : IConfigPage
     {
+        public string Name => "Changelog";
 
-        public string Name => "About";
+        public IConfigPage GetDefault() => new AboutPage();
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
@@ -58,14 +58,15 @@ namespace XIVAuras.Config
                 }
 
                 ImGui.SameLine();
-                if (ImGui.Button("Donate", buttonSize))
+                if (ImGui.Button("Discord", buttonSize))
                 {
-                    Utils.OpenUrl("https://ko-fi.com/lichie");
+                    Utils.OpenUrl("https://discord.gg/delvui");
                 }
 
                 ImGui.PopStyleVar();
-                ImGui.EndChild();
             }
+
+            ImGui.EndChild();
         }
     }
 }

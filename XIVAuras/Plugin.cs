@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using Dalamud.Data;
@@ -17,7 +16,9 @@ using ImGuiScene;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
 using SigScanner = Dalamud.Game.SigScanner;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Logging;
+
 
 namespace XIVAuras
 {
@@ -25,7 +26,7 @@ namespace XIVAuras
     {
         public const string ConfigFileName = "XIVAuras.json";
 
-        public static string Version { get; private set; } = "0.1.3.2";
+        public static string Version { get; private set; } = "0.1.4.0";
 
         public static string ConfigFileDir { get; private set; } = "";
 
@@ -38,6 +39,7 @@ namespace XIVAuras
         public string Name => "XIVAuras";
 
         public Plugin(
+            BuddyList buddyList,
             ClientState clientState,
             CommandManager commandManager,
             Condition condition,
@@ -57,6 +59,7 @@ namespace XIVAuras
             Plugin.ConfigFilePath = Path.Combine(pluginInterface.GetPluginConfigDirectory(), Plugin.ConfigFileName);
 
             // Register Dalamud APIs
+            Singletons.Register(buddyList);
             Singletons.Register(clientState);
             Singletons.Register(commandManager);
             Singletons.Register(condition);
@@ -70,15 +73,14 @@ namespace XIVAuras
             Singletons.Register(sigScanner);
             Singletons.Register(targetManager);
             Singletons.Register(pluginInterface.UiBuilder);
+            Singletons.Register(new TexturesCache(pluginInterface));
+            Singletons.Register(new SpellHelpers(sigScanner));
 
             // Load Icon
             Plugin.IconTexture = LoadIconTexture(pluginInterface.UiBuilder);
 
             // Load Changelog
             Plugin.Changelog = LoadChangelog();
-
-            // Initialize FFXIVClientStructs
-            FFXIVClientStructs.Resolver.Initialize(sigScanner.SearchBase);
 
             // Load config
             XIVAurasConfig config = ConfigHelpers.LoadConfig(Plugin.ConfigFilePath);

@@ -15,9 +15,9 @@ namespace XIVAuras.Config
     {
         private const float MenuBarHeight = 40;
 
-        [JsonIgnore] private AuraType _selectedType = AuraType.Group;
+        [JsonIgnore] private AuraType _selectedType = AuraType.Icon;
         [JsonIgnore] private string _input = string.Empty;
-        [JsonIgnore] private string[] _options = Enum.GetNames(typeof(AuraType));
+        [JsonIgnore] private string[] _options = new string[] { "Icon", "Bar", "Group" };
 
         public string Name => "Auras";
 
@@ -27,6 +27,8 @@ namespace XIVAuras.Config
         {
             this.Auras = new List<AuraListItem>();
         }
+
+        public IConfigPage GetDefault() => new AuraListConfig();
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
@@ -88,8 +90,8 @@ namespace XIVAuras.Config
                 {
                     AuraListItem aura = this.Auras[i];
 
-                    if (!string.IsNullOrEmpty(this._input) &&
-                        !aura.Name.Contains(this._input, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(_input) &&
+                        !aura.Name.Contains(_input, StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
@@ -135,7 +137,6 @@ namespace XIVAuras.Config
                     AuraType.Group => new AuraGroup(name),
                     AuraType.Icon => AuraIcon.GetDefaultAuraIcon(name),
                     AuraType.Bar => new AuraBar(name),
-                    AuraType.Label => new AuraLabel(name),
                     _ => null
                 };
 
@@ -145,7 +146,7 @@ namespace XIVAuras.Config
                 }
             }
 
-            this._input = string.Empty;
+            _input = string.Empty;
         }
 
         private void EditAura(AuraListItem aura)
@@ -166,7 +167,7 @@ namespace XIVAuras.Config
                 importString = ImGui.GetClipboardText();
             }
 
-            AuraListItem? newAura = ConfigHelpers.GetAuraFromImportString(importString);
+            AuraListItem? newAura = ConfigHelpers.GetFromImportString<AuraListItem>(importString);
             if (newAura is not null)
             {
                 this.Auras.Add(newAura);
@@ -176,12 +177,12 @@ namespace XIVAuras.Config
                 DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
             }
 
-            this._input = string.Empty;
+            _input = string.Empty;
         }
 
         private void ExportAura(AuraListItem aura)
         {
-            ConfigHelpers.ExportAuraToClipboard(aura);
+            ConfigHelpers.ExportToClipboard<AuraListItem>(aura);
         }
     }
 }

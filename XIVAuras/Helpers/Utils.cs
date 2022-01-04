@@ -2,10 +2,10 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Logging;
-using XIVAuras.Config;
 
 namespace XIVAuras.Helpers
 {
@@ -29,14 +29,22 @@ namespace XIVAuras.Helpers
             };
         }
 
-        public static GameObject? FindTargetOfTarget(GameObject? player, GameObject? target)
+        public static GameObject? FindTarget()
         {
+            TargetManager targetManager = Singletons.Get<TargetManager>();
+            return targetManager.SoftTarget ?? targetManager.Target;
+        }
+
+        public static GameObject? FindTargetOfTarget()
+        {
+            GameObject? target = FindTarget();
             if (target == null)
             {
                 return null;
             }
 
-            if (target.TargetObjectId == 0 && player != null && player.TargetObjectId == 0)
+            GameObject? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (target.TargetObjectId == 0 && player is not null && player.TargetObjectId == 0)
             {
                 return player;
             }

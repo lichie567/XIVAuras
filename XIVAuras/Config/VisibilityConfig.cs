@@ -14,25 +14,24 @@ namespace XIVAuras.Config
     {
         public string Name => "Visibility";
 
+        [JsonIgnore] private static readonly string[] _sourceOptions = new string[] { "Value", "Stacks", "MaxStacks" };
+
         [JsonIgnore] private string _customJobInput = string.Empty;
-        [JsonIgnore] private string _hideIfValueInput = string.Empty;
 
         public bool AlwaysHide = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
+        public bool HideOutsideDuty = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
-
-        public bool HideIf = false;
-        public TriggerDataSource HideIfDataSource = TriggerDataSource.None;
-        public TriggerDataOp HideIfOp = TriggerDataOp.None;
-        public float HideIfValue = 0;
 
         public JobType ShowForJobTypes = JobType.All;
         public string CustomJobString = string.Empty;
         public List<Job> CustomJobList = new List<Job>();
 
-        public bool IsVisible(DataSource? data = null)
+        public IConfigPage GetDefault() => new VisibilityConfig();
+
+        public bool IsVisible()
         {
             if (this.AlwaysHide)
             {
@@ -40,6 +39,11 @@ namespace XIVAuras.Config
             }
 
             if (this.HideInCombat && CharacterState.IsInCombat())
+            {
+                return false;
+            }
+
+            if (this.HideOutsideDuty && !CharacterState.IsInDuty())
             {
                 return false;
             }
@@ -57,34 +61,6 @@ namespace XIVAuras.Config
             if (this.HideInGoldenSaucer && CharacterState.IsInGoldenSaucer())
             {
                 return false;
-            }
-
-            if (this.HideIf &&
-                this.HideIfDataSource != TriggerDataSource.None &&
-                this.HideIfOp != TriggerDataOp.None)
-            {
-                if (data is not null ||
-                    (this.HideIfDataSource != TriggerDataSource.Value &&
-                    this.HideIfDataSource != TriggerDataSource.Stacks &&
-                    this.HideIfDataSource != TriggerDataSource.MaxStacks))
-                {
-                    float value = data?.GetDataForSourceType(this.HideIfDataSource) ?? 0;
-                    bool result = this.HideIfOp switch
-                    {
-                        TriggerDataOp.Equals => value == this.HideIfValue,
-                        TriggerDataOp.NotEquals => value != this.HideIfValue,
-                        TriggerDataOp.LessThan => value < this.HideIfValue,
-                        TriggerDataOp.GreaterThan => value > this.HideIfValue,
-                        TriggerDataOp.LessThanEq => value <= this.HideIfValue,
-                        TriggerDataOp.GreaterThanEq => value >= this.HideIfValue,
-                        _ => false
-                    };
-
-                    if (result)
-                    {
-                        return false;
-                    }
-                }
             }
 
             if (this.ShowForJobTypes == JobType.All)
@@ -107,39 +83,9 @@ namespace XIVAuras.Config
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
+                ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
                 ImGui.Checkbox("Hide While Performing", ref this.HideWhilePerforming);
                 ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
-
-                DrawHelpers.DrawSpacing(1);
-                ImGui.Checkbox("Hide If:", ref this.HideIf);
-                ImGui.SameLine();
-                string[] sourceOptions = TriggerCondition.SourceOptions;
-                ImGui.PushItemWidth(90);
-                ImGui.Combo("##HideIfSourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref this.HideIfDataSource), sourceOptions, sourceOptions.Length);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
-                string[] operatorOptions = TriggerCondition.OperatorOptions;
-                ImGui.PushItemWidth(80);
-                ImGui.Combo("##HideIfOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.HideIfOp), operatorOptions, operatorOptions.Length);
-                ImGui.PopItemWidth();
-                ImGui.SameLine();
-
-                if (string.IsNullOrEmpty(this._hideIfValueInput))
-                {
-                    this._hideIfValueInput = this.HideIfValue.ToString();
-                }
-
-                float width = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() + padX;
-                ImGui.PushItemWidth(width);
-                if (ImGui.InputText("##HideIfValue", ref this._hideIfValueInput, 10, ImGuiInputTextFlags.EnterReturnsTrue))
-                {
-                    if (float.TryParse(this._hideIfValueInput, out float value))
-                    {
-                        this.HideIfValue = value;
-                    }
-                }
-
-                ImGui.PopItemWidth();
                 
                 DrawHelpers.DrawSpacing(1);
                 string[] jobTypeOptions = Enum.GetNames(typeof(JobType));
@@ -147,14 +93,14 @@ namespace XIVAuras.Config
 
                 if (this.ShowForJobTypes == JobType.Custom)
                 {
-                    if (string.IsNullOrEmpty(this._customJobInput))
+                    if (string.IsNullOrEmpty(_customJobInput))
                     {
-                        this._customJobInput = this.CustomJobString.ToUpper();
+                        _customJobInput = this.CustomJobString.ToUpper();
                     }
 
                     if (ImGui.InputTextWithHint("Custom Job List", "Comma Separated List (ex: WAR, SAM, BLM)", ref _customJobInput, 100, ImGuiInputTextFlags.EnterReturnsTrue))
                     {
-                        IEnumerable<string> jobStrings = this._customJobInput.Split(',').Select(j => j.Trim());
+                        IEnumerable<string> jobStrings = _customJobInput.Split(',').Select(j => j.Trim());
                         List<Job> jobList = new List<Job>();
                         foreach (string j in jobStrings)
                         {
@@ -165,13 +111,13 @@ namespace XIVAuras.Config
                             else
                             {
                                 jobList.Clear();
-                                this._customJobInput = string.Empty;
+                                _customJobInput = string.Empty;
                                 break;
                             }
                         }
 
-                        this._customJobInput = this._customJobInput.ToUpper();
-                        this.CustomJobString = this._customJobInput;
+                        _customJobInput = _customJobInput.ToUpper();
+                        this.CustomJobString = _customJobInput;
                         this.CustomJobList = jobList;
                     }
                 }
