@@ -23,6 +23,8 @@ namespace XIVAuras.Config
         public bool ShowOutline = true;
         public ConfigColor OutlineColor = new ConfigColor(0, 0, 0, 1);
 
+        public LabelStyleConfig() : this("") { }
+
         public LabelStyleConfig(string textFormat)
         {
             this.TextFormat = textFormat;
@@ -62,9 +64,9 @@ namespace XIVAuras.Config
                     ImGui.ColorEdit4("Outline Color", ref outlineColor);
                     this.OutlineColor.Vector = outlineColor;
                 }
-
-                ImGui.EndChild();
             }
+
+            ImGui.EndChild();
         }
     }
 }

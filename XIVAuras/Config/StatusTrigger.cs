@@ -67,7 +67,7 @@ namespace XIVAuras.Config
             {
                 TriggerSource.Player => player,
                 TriggerSource.Target => Utils.FindTarget(),
-                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player),
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(),
                 TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
                 _ => null
             };

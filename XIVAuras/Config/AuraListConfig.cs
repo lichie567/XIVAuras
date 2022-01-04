@@ -17,7 +17,7 @@ namespace XIVAuras.Config
 
         [JsonIgnore] private AuraType _selectedType = AuraType.Icon;
         [JsonIgnore] private string _input = string.Empty;
-        [JsonIgnore] private string[] _options = Enum.GetNames(typeof(AuraType));
+        [JsonIgnore] private string[] _options = new string[] { "Icon", "Bar", "Group" };
 
         public string Name => "Auras";
 
@@ -137,7 +137,6 @@ namespace XIVAuras.Config
                     AuraType.Group => new AuraGroup(name),
                     AuraType.Icon => AuraIcon.GetDefaultAuraIcon(name),
                     AuraType.Bar => new AuraBar(name),
-                    AuraType.Label => new AuraLabel(name),
                     _ => null
                 };
 

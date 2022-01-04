@@ -4,8 +4,8 @@ namespace XIVAuras.Helpers
     {
         Icon,
         Bar,
-        Label,
-        Group
+        Group,
+        Label
     }
     
     public enum TriggerType
@@ -34,7 +34,11 @@ namespace XIVAuras.Helpers
     {
         Value,
         Stacks,
-        MaxStacks
+        MaxStacks,
+        HP,
+        MP,
+        CP,
+        GP
     }
 
     public enum TriggerDataOp

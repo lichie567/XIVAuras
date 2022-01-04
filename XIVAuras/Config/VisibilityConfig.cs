@@ -17,7 +17,6 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _sourceOptions = new string[] { "Value", "Stacks", "MaxStacks" };
 
         [JsonIgnore] private string _customJobInput = string.Empty;
-        [JsonIgnore] private string _hideIfValueInput = string.Empty;
 
         public bool AlwaysHide = false;
         public bool HideInCombat = false;

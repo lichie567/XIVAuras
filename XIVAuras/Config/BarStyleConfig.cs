@@ -5,7 +5,7 @@ namespace XIVAuras.Config
 {
     public class BarStyleConfig : IConfigPage
     {
-        public string Name => "Style";
+        public string Name => "Bar";
 
         public IConfigPage GetDefault() => new BarStyleConfig();
 

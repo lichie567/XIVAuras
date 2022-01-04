@@ -114,6 +114,7 @@ namespace XIVAuras.Config
 
             data.Id = actionId;
             data.Value = cooldown;
+            data.ValueMax = chargeTime;
             data.Stacks = stacks;
             data.MaxStacks = recastInfo.MaxCharges;
             data.Icon = actionTrigger.Icon;

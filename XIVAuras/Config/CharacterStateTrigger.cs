@@ -65,17 +65,11 @@ namespace XIVAuras.Config
                 return true;
             }
 
-            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
-            if (player is null)
-            {
-                return false;
-            }
-
             GameObject? actor = this.TriggerSource switch
             {
-                TriggerSource.Player => player,
+                TriggerSource.Player => Singletons.Get<ClientState>().LocalPlayer,
                 TriggerSource.Target => Utils.FindTarget(),
-                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player),
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(),
                 TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
                 _ => null
             };

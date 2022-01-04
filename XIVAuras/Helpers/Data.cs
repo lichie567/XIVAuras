@@ -65,9 +65,22 @@ namespace XIVAuras.Helpers
             this.Name_Last = new LazyString<string?>(() => this.Name, LazyStringConverters.LastName);
             this.JobName = new LazyString<Job>(() => this.Job, LazyStringConverters.JobName);
         }
+                
+        public float GetDataForSourceType(TriggerDataSource sourcetype) => sourcetype switch
+        {
+            TriggerDataSource.Value     => this.Value,
+            TriggerDataSource.Stacks    => this.Stacks,
+            TriggerDataSource.MaxStacks => this.MaxStacks,
+            TriggerDataSource.HP        => this.Hp,
+            TriggerDataSource.MP        => this.Mp,
+            TriggerDataSource.CP        => this.Cp,
+            TriggerDataSource.GP        => this.Gp,
+            _                           => 0
+        };
 
         public uint Id;
         public float Value;
+        public float ValueMax;
         public int Stacks;
         public int MaxStacks;
         public ushort Icon;
@@ -79,14 +92,14 @@ namespace XIVAuras.Helpers
         public LazyString<Job>? JobName;
 
         public uint Level;
-        public uint Hp;
-        public uint MaxHp;
-        public uint Mp;
-        public uint MaxMp;
-        public uint Gp;
-        public uint MaxGp;
-        public uint Cp;
-        public uint MaxCp;
+        public float Hp;
+        public float MaxHp;
+        public float Mp;
+        public float MaxMp;
+        public float Gp;
+        public float MaxGp;
+        public float Cp;
+        public float MaxCp;
         public bool HasPet;
     }
 }

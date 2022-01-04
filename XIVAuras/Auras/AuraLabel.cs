@@ -14,7 +14,7 @@ namespace XIVAuras.Auras
         public override AuraType Type => AuraType.Label;
 
         public LabelStyleConfig LabelStyleConfig { get; set; }
-
+        public StyleConditions<LabelStyleConfig> StyleConditions { get; set; }
         public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constuctor for deserialization
@@ -24,12 +24,14 @@ namespace XIVAuras.Auras
         {
             this.Name = name;
             this.LabelStyleConfig = new LabelStyleConfig(textFormat);
+            this.StyleConditions = new StyleConditions<LabelStyleConfig>();
             this.VisibilityConfig = new VisibilityConfig();
         }
 
         public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.LabelStyleConfig;
+            yield return this.StyleConditions;
             yield return this.VisibilityConfig;
         }
 
@@ -39,6 +41,9 @@ namespace XIVAuras.Auras
             {
                 case LabelStyleConfig newPage:
                     this.LabelStyleConfig = newPage;
+                    break;
+                case StyleConditions<LabelStyleConfig> newPage:
+                    this.StyleConditions = newPage;
                     break;
                 case VisibilityConfig newPage:
                     this.VisibilityConfig = newPage;
@@ -56,24 +61,26 @@ namespace XIVAuras.Auras
             Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
-            string text = _data is not null
-                ? _data.GetFormattedString(this.LabelStyleConfig.TextFormat, "N")
-                : this.LabelStyleConfig.TextFormat;
+            LabelStyleConfig style = this.StyleConditions.GetStyle(_data) ?? this.LabelStyleConfig;
 
-            using (FontsManager.PushFont(this.LabelStyleConfig.FontKey))
+            string text = _data is not null
+                ? _data.GetFormattedString(style.TextFormat, "N")
+                : style.TextFormat;
+
+            using (FontsManager.PushFont(style.FontKey))
             {
                 Vector2 textSize = ImGui.CalcTextSize(text);
-                Vector2 textPos = Utils.GetAnchoredPosition(pos + this.LabelStyleConfig.Position, -size, this.LabelStyleConfig.ParentAnchor);
-                textPos = Utils.GetAnchoredPosition(textPos, textSize, this.LabelStyleConfig.TextAlign);
+                Vector2 textPos = Utils.GetAnchoredPosition(pos + style.Position, -size, style.ParentAnchor);
+                textPos = Utils.GetAnchoredPosition(textPos, textSize, style.TextAlign);
                 DrawHelpers.DrawInWindow($"##{this.ID}", textPos, textSize, false, true, true, (drawList) =>
                 {
                     DrawHelpers.DrawText(
                         drawList,
                         text,
                         textPos,
-                        this.LabelStyleConfig.TextColor.Base,
-                        this.LabelStyleConfig.ShowOutline,
-                        this.LabelStyleConfig.OutlineColor.Base);
+                        style.TextColor.Base,
+                        style.ShowOutline,
+                        style.OutlineColor.Base);
                 });
             }
         }

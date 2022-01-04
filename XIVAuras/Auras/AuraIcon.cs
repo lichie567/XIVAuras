@@ -15,6 +15,7 @@ namespace XIVAuras.Auras
         public IconStyleConfig IconStyleConfig { get; set; }
         public LabelListConfig LabelListConfig { get; set; }
         public TriggerConfig TriggerConfig { get; set; }
+        public StyleConditions<IconStyleConfig> StyleConditions { get; set; }
         public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constructor for deserialization
@@ -25,6 +26,7 @@ namespace XIVAuras.Auras
             this.IconStyleConfig = new IconStyleConfig();
             this.LabelListConfig = new LabelListConfig();
             this.TriggerConfig = new TriggerConfig();
+            this.StyleConditions = new StyleConditions<IconStyleConfig>();
             this.VisibilityConfig = new VisibilityConfig();
         }
 
@@ -33,6 +35,7 @@ namespace XIVAuras.Auras
             yield return this.IconStyleConfig;
             yield return this.LabelListConfig;
             yield return this.TriggerConfig;
+            yield return this.StyleConditions;
             yield return this.VisibilityConfig;
         }
 
@@ -49,6 +52,9 @@ namespace XIVAuras.Auras
                 case TriggerConfig newPage:
                     this.TriggerConfig = newPage;
                     break;
+                case StyleConditions<IconStyleConfig> newPage:
+                    this.StyleConditions = newPage;
+                    break;
                 case VisibilityConfig newPage:
                     this.VisibilityConfig = newPage;
                     break;
@@ -64,10 +70,11 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            Vector2 localPos = pos + this.IconStyleConfig.Position;
-            Vector2 size = this.IconStyleConfig.Size;
-
             bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
+            IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
+
+            Vector2 localPos = pos + style.Position;
+            Vector2 size = style.Size;
 
             if (triggered)
             {
@@ -82,35 +89,40 @@ namespace XIVAuras.Auras
                         if (this.LastFrameWasDragging)
                         {
                             localPos = ImGui.GetWindowPos();
-                            this.IconStyleConfig.Position = localPos - pos;
+                            style.Position = localPos - pos;
                         }
                     }
                     
-                    ushort icon = this.IconStyleConfig.IconOption switch
+                    ushort icon = style.IconOption switch
                     {
                         0 => data.Icon,
-                        1 => this.IconStyleConfig.CustomIcon,
+                        1 => style.CustomIcon,
                         _ => 0
                     };
 
                     if (icon > 0)
                     {
-                        bool desaturate = this.IconStyleConfig.DesaturateIcon;
-                        float alpha = this.IconStyleConfig.Opacity;
+                        bool desaturate = style.DesaturateIcon;
+                        float alpha = style.Opacity;
 
-                        DrawHelpers.DrawIcon(icon, localPos, size, this.IconStyleConfig.CropIcon, 0, desaturate, alpha, drawList);
+                        DrawHelpers.DrawIcon(icon, localPos, size, style.CropIcon, 0, desaturate, alpha, drawList);
 
-                        if (this.StartData is not null && this.IconStyleConfig.ShowProgressSwipe)
+                        if (this.StartData is not null && data.ValueMax == 0)
                         {
-                            this.DrawProgressSwipe(localPos, size, data.Value, this.StartData.Value, alpha, drawList);
+                            data.ValueMax = this.StartData.Value;
                         }
 
-                        if (this.IconStyleConfig.ShowBorder)
+                        if (style.ShowProgressSwipe)
                         {
-                            for (int i = 0; i < this.IconStyleConfig.BorderThickness; i++)
+                            this.DrawProgressSwipe(style, localPos, size, data.Value, data.ValueMax, alpha, drawList);
+                        }
+
+                        if (style.ShowBorder)
+                        {
+                            for (int i = 0; i < style.BorderThickness; i++)
                             {
                                 Vector2 offset = new Vector2(i, i);
-                                Vector4 color = this.IconStyleConfig.BorderColor.Vector.AddTransparency(alpha);
+                                Vector4 color = style.BorderColor.Vector.AddTransparency(alpha);
                                 drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
                             }
                         }
@@ -144,11 +156,18 @@ namespace XIVAuras.Auras
             this.LastFrameWasPreview = this.Preview;
         }
 
-        private void DrawProgressSwipe(Vector2 pos, Vector2 size, float triggeredValue, float startValue, float alpha, ImDrawListPtr drawList)
+        private void DrawProgressSwipe(
+            IconStyleConfig style,
+            Vector2 pos,
+            Vector2 size,
+            float triggeredValue,
+            float startValue,
+            float alpha,
+            ImDrawListPtr drawList)
         {
             if (startValue > 0 && triggeredValue != 0)
             {
-                bool invert = this.IconStyleConfig.InvertSwipe;
+                bool invert = style.InvertSwipe;
                 float percent = (invert ? 0 : 1) - (startValue - triggeredValue) / startValue;
 
                 float radius = (float)Math.Sqrt(Math.Pow(Math.Max(size.X, size.Y), 2) * 2) / 2f;
@@ -157,15 +176,15 @@ namespace XIVAuras.Auras
 
                 ImGui.PushClipRect(pos, pos + size, false);
                 drawList.PathArcTo(pos + size / 2, radius / 2, startAngle, endAngle, (int)(100f * Math.Abs(percent)));
-                uint progressAlpha = (uint)(this.IconStyleConfig.ProgressSwipeOpacity * 255 * alpha) << 24;
+                uint progressAlpha = (uint)(style.ProgressSwipeOpacity * 255 * alpha) << 24;
                 drawList.PathStroke(progressAlpha, ImDrawFlags.None, radius);
-                if (this.IconStyleConfig.ShowSwipeLines)
+                if (style.ShowSwipeLines)
                 {
                     Vector2 vec = new Vector2((float)Math.Cos(endAngle), (float)Math.Sin(endAngle));
                     Vector2 start = pos + size / 2;
                     Vector2 end = start + vec * radius;
-                    float thickness = this.IconStyleConfig.ProgressLineThickness;
-                    Vector4 swipeLineColor = this.IconStyleConfig.ProgressLineColor.Vector.AddTransparency(alpha);
+                    float thickness = style.ProgressLineThickness;
+                    Vector4 swipeLineColor = style.ProgressLineColor.Vector.AddTransparency(alpha);
                     uint color = ImGui.ColorConvertFloat4ToU32(swipeLineColor);
 
                     drawList.AddLine(start, end, color, thickness);

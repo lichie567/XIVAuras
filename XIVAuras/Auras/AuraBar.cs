@@ -10,9 +10,8 @@ namespace XIVAuras.Auras
         public override AuraType Type => AuraType.Bar;
 
         public BarStyleConfig BarStyleConfig { get; set; }
-
         public TriggerConfig TriggerConfig { get; set; }
-
+        public StyleConditions<BarStyleConfig> StyleConditions { get; set; }
         public VisibilityConfig VisibilityConfig { get; set; }
 
         // Constuctor for deserialization
@@ -23,6 +22,7 @@ namespace XIVAuras.Auras
             this.Name = name;
             this.BarStyleConfig = new BarStyleConfig();
             this.TriggerConfig = new TriggerConfig();
+            this.StyleConditions = new StyleConditions<BarStyleConfig>();
             this.VisibilityConfig = new VisibilityConfig();
         }
 
@@ -36,6 +36,9 @@ namespace XIVAuras.Auras
                 case TriggerConfig newPage:
                     this.TriggerConfig = newPage;
                     break;
+                case StyleConditions<BarStyleConfig> newPage:
+                    this.StyleConditions = newPage;
+                    break;
                 case VisibilityConfig newPage:
                     this.VisibilityConfig = newPage;
                     break;
@@ -45,8 +48,8 @@ namespace XIVAuras.Auras
         public override IEnumerable<IConfigPage> GetConfigPages()
         {
             yield return this.BarStyleConfig;
-            yield return this.TriggerConfig;
-            yield return this.VisibilityConfig;
+            // yield return this.TriggerConfig;
+            // yield return this.VisibilityConfig;
         }
 
         public override void Draw(Vector2 pos, Vector2? parentSize = null)

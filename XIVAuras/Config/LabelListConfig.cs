@@ -34,6 +34,12 @@ namespace XIVAuras.Config
             AuraLabel valueLabel = new AuraLabel("Value", "[value]");
             valueLabel.LabelStyleConfig.FontKey = FontsManager.DefaultBigFontKey;
             valueLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultBigFontKey);
+            valueLabel.StyleConditions.Conditions.Add(new StyleCondition<LabelStyleConfig>()
+            {
+                Source = TriggerDataSource.Value,
+                Op = TriggerDataOp.Equals,
+                Value = 0
+            });
 
             AuraLabel stacksLabel = new AuraLabel("Stacks", "[stacks]");
             stacksLabel.LabelStyleConfig.FontKey = FontsManager.DefaultMediumFontKey;
@@ -43,6 +49,12 @@ namespace XIVAuras.Config
             stacksLabel.LabelStyleConfig.TextAlign = DrawAnchor.BottomRight;
             stacksLabel.LabelStyleConfig.TextColor = new ConfigColor(0, 0, 0, 1);
             stacksLabel.LabelStyleConfig.OutlineColor = new ConfigColor(1, 1, 1, 1);
+            stacksLabel.StyleConditions.Conditions.Add(new StyleCondition<LabelStyleConfig>()
+            {
+                Source = TriggerDataSource.MaxStacks,
+                Op = TriggerDataOp.Equals,
+                Value = 1
+            });
 
             return new LabelListConfig(valueLabel, stacksLabel);
         }

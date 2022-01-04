@@ -93,9 +93,9 @@ namespace XIVAuras
             ImGui.End();
         }
 
-        public void Edit(AuraListItem aura)
+        public void Edit(IConfigurable config)
         {
-            this.ConfigRoot.PushConfig(aura);
+            this.ConfigRoot.PushConfig(config);
         }
 
         public bool IsConfigOpen() => this.ConfigRoot.IsOpen;
