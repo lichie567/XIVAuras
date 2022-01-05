@@ -52,7 +52,7 @@ namespace XIVAuras.Config
             stacksLabel.StyleConditions.Conditions.Add(new StyleCondition<LabelStyleConfig>()
             {
                 Source = TriggerDataSource.MaxStacks,
-                Op = TriggerDataOp.Equals,
+                Op = TriggerDataOp.LessThanEq,
                 Value = 1
             });
 

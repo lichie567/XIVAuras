@@ -58,13 +58,9 @@ namespace XIVAuras.Auras
             }
         }
 
-        public override void Draw(Vector2 pos, Vector2? parentSize = null)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true)
         {
-            if (!this.VisibilityConfig.IsVisible() && !Singletons.Get<PluginManager>().IsConfigOpen())
-            {
-                return;
-            }
-
+            bool visible = this.VisibilityConfig.IsVisible(parentVisible);
             foreach (AuraListItem aura in this.AuraList.Auras)
             {
                 if (!this.Preview && this.LastFrameWasPreview)
@@ -76,7 +72,7 @@ namespace XIVAuras.Auras
                     aura.Preview |= this.Preview;
                 }
 
-                aura.Draw(pos + this.GroupConfig.Position);
+                aura.Draw(pos + this.GroupConfig.Position, null, visible);
             }
 
             this.LastFrameWasPreview = this.Preview;

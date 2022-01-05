@@ -61,16 +61,15 @@ namespace XIVAuras.Auras
             }
         }
 
-        public override void Draw(Vector2 pos, Vector2? parentSize = null)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true)
         {
-            if (!this.Preview &&
-                (!this.TriggerConfig.TriggerOptions.Any() ||
-                !this.VisibilityConfig.IsVisible()))
+            if (!this.TriggerConfig.TriggerOptions.Any())
             {
                 return;
             }
 
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
+            bool visible = this.VisibilityConfig.IsVisible(parentVisible);
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && visible;
             IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
 
             Vector2 localPos = pos + style.Position;
@@ -149,7 +148,7 @@ namespace XIVAuras.Auras
                 if (triggered || label.Preview)
                 {
                     label.SetData(data);
-                    label.Draw(localPos, size);
+                    label.Draw(localPos, size, visible);
                 }
             }
 

@@ -51,9 +51,9 @@ namespace XIVAuras.Auras
             }
         }
 
-        public override void Draw(Vector2 pos, Vector2? parentSize = null)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true)
         {
-            if (!this.VisibilityConfig.IsVisible() && !this.Preview)
+            if (!this.VisibilityConfig.IsVisible(parentVisible) && !this.Preview)
             {
                 return;
             }

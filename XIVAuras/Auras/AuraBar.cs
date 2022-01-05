@@ -52,7 +52,7 @@ namespace XIVAuras.Auras
             // yield return this.VisibilityConfig;
         }
 
-        public override void Draw(Vector2 pos, Vector2? parentSize = null)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true)
         {
 
         }

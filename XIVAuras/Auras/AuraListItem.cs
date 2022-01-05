@@ -34,7 +34,7 @@ namespace XIVAuras.Auras
 
         public abstract AuraType Type { get; }
 
-        public abstract void Draw(Vector2 pos, Vector2? parentSize = null);
+        public abstract void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true);
 
         public abstract IEnumerable<IConfigPage> GetConfigPages();
 
