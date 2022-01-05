@@ -31,7 +31,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault()
         {
-            AuraLabel valueLabel = new AuraLabel("Value", "[value]");
+            AuraLabel valueLabel = new AuraLabel("Value", "[value:t]");
             valueLabel.LabelStyleConfig.FontKey = FontsManager.DefaultBigFontKey;
             valueLabel.LabelStyleConfig.FontID = Singletons.Get<FontsManager>().GetFontIndex(FontsManager.DefaultBigFontKey);
             valueLabel.StyleConditions.Conditions.Add(new StyleCondition<LabelStyleConfig>()

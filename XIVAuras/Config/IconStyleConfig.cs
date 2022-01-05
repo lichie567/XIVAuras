@@ -119,6 +119,7 @@ namespace XIVAuras.Config
                     ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, _screenSize.Y);
                     ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
                     ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
+                    DrawHelpers.DrawSpacing(1);
 
                     ImGui.Checkbox("Show Border", ref this.ShowBorder);
                     if (this.ShowBorder)
