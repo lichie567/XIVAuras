@@ -52,6 +52,30 @@ namespace XIVAuras.Helpers
         private static readonly Dictionary<string, FieldInfo> _fields = 
             typeof(DataSource).GetFields().ToDictionary((x) => x.Name.ToLower());
 
+        [JsonIgnore] public static readonly string[] TextTags = new string[]
+        {
+            "Text tags available for Cooldown/Status triggers:",
+            "[value]    =>  The value tracked by the trigger, represents cooldown/duration.",
+            "[maxvalue]",
+            "[stacks]",
+            "[maxstacks]",
+            "",
+            "Text tags available for CharacterState triggers:",
+            "[name]",
+            "[name_first]",
+            "[name_last]",
+            "[job]",
+            "[jobname]",
+            "[hp]",
+            "[maxhp]",
+            "[mp]",
+            "[maxmp]",
+            "[gp]",
+            "[maxgp]",
+            "[cp]",
+            "[maxcp]",
+        };
+
         public string GetFormattedString(string format, string numberFormat)
         {
             return TextTagFormatter.TextTagRegex.Replace(
@@ -80,7 +104,7 @@ namespace XIVAuras.Helpers
 
         public uint Id;
         public float Value;
-        public float ValueMax;
+        public float MaxValue;
         public int Stacks;
         public int MaxStacks;
         public ushort Icon;

@@ -37,6 +37,11 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##LabelStyleConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.InputTextWithHint("Text Format", "[value] or [stacks]", ref this.TextFormat, 64);
+                if (ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(Utils.GetTagsTooltip(DataSource.TextTags));
+                }
+
                 ImGui.DragFloat2("Position", ref this.Position);
                 ImGui.Combo("Parent Anchor", ref Unsafe.As<DrawAnchor, int>(ref this.ParentAnchor), _anchorOptions, _anchorOptions.Length);
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);

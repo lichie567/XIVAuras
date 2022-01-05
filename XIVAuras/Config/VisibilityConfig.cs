@@ -43,12 +43,12 @@ namespace XIVAuras.Config
                 return false;
             }
 
-            if (this.HideOutsideDuty && !CharacterState.IsInDuty())
+            if (this.HideOutsideCombat && !CharacterState.IsInCombat())
             {
                 return false;
             }
 
-            if (this.HideOutsideCombat && !CharacterState.IsInCombat())
+            if (this.HideOutsideDuty && !CharacterState.IsInDuty())
             {
                 return false;
             }

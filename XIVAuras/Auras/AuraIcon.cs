@@ -106,14 +106,14 @@ namespace XIVAuras.Auras
 
                         DrawHelpers.DrawIcon(icon, localPos, size, style.CropIcon, 0, desaturate, alpha, drawList);
 
-                        if (this.StartData is not null && data.ValueMax == 0)
+                        if (this.StartData is not null && data.MaxValue == 0)
                         {
-                            data.ValueMax = this.StartData.Value;
+                            data.MaxValue = this.StartData.Value;
                         }
 
                         if (style.ShowProgressSwipe)
                         {
-                            this.DrawProgressSwipe(style, localPos, size, data.Value, data.ValueMax, alpha, drawList);
+                            this.DrawProgressSwipe(style, localPos, size, data.Value, data.MaxValue, alpha, drawList);
                         }
 
                         if (style.ShowBorder)
