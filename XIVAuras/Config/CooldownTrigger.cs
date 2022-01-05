@@ -22,7 +22,7 @@ namespace XIVAuras.Config
 
         public string TriggerName = string.Empty;
 
-        public bool Cooldown = true;
+        public bool Cooldown = false;
         public TriggerDataOp CooldownOp = TriggerDataOp.GreaterThan;
         public float CooldownValue;
 

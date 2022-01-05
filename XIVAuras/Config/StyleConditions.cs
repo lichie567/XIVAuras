@@ -60,9 +60,9 @@ namespace XIVAuras.Config
     {
         [JsonIgnore] private static readonly string[] _sourceOptions = Enum.GetNames<TriggerDataSource>();
         [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
-        [JsonIgnore] private string _styleConditionValueInput = string.Empty;
-        [JsonIgnore] private const string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
+        [JsonIgnore] private static readonly string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
         [JsonIgnore] private static readonly float _yOffset = ImGui.CalcTextSize(_text).Y;
+        [JsonIgnore] private string _styleConditionValueInput = string.Empty;
 
         public string Name => "Conditions";
         public IConfigPage GetDefault() => new StyleConditions<T>();
