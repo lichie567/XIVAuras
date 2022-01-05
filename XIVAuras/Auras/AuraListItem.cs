@@ -66,6 +66,10 @@ namespace XIVAuras.Auras
                     Value = newValue,
                     Stacks = data.Stacks,
                     MaxStacks = data.MaxStacks,
+                    Hp = data.Hp,
+                    Mp = data.Mp,
+                    Cp = data.Cp,
+                    Gp = data.Gp,
                     Icon = data.Icon
                 };
             }

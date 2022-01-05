@@ -1,14 +1,14 @@
-using System.Reflection;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace XIVAuras.Helpers
 {
     public class TextTagFormatter
     {
-        public static Regex TextTagRegex { get; } = new Regex(@"\[(\w*)(:k)?\.?(\d+)?\]", RegexOptions.Compiled);
+        public static Regex TextTagRegex { get; } = new Regex(@"\[(\w*)(:\w)?\.?(\d+)?\]", RegexOptions.Compiled);
 
         private string _format;
         private Dictionary<string, FieldInfo> _fields;
@@ -31,16 +31,12 @@ namespace XIVAuras.Helpers
                 return m.Value;
             }
 
-            string format = string.IsNullOrEmpty(m.Groups[3].Value)
-                ? $"{_format}0"
-                : $"{_format}{m.Groups[3].Value}";
-            
-            string? value = null;
             string key = m.Groups[1].Value;
+            string? value = null;
             
             if (_fields.ContainsKey(key))
             {
-                object? propValue = _fields[m.Groups[1].Value].GetValue(_source);
+                object? propValue = _fields[key].GetValue(_source);
 
                 if (propValue is null)
                 {
@@ -49,9 +45,13 @@ namespace XIVAuras.Helpers
 
                 if (propValue is float f)
                 {
-                    value = !string.IsNullOrEmpty(m.Groups[2].Value)
-                        ? KiloFormat(f, format) ?? m.Value
-                        : f.ToString(format);
+                    int decimals = int.TryParse(m.Groups[3].Value, out int dec) ? dec : 0;
+                    value = m.Groups[2].Value switch
+                    {
+                        ":k" => KiloFormat(f, _format, decimals) ?? m.Value,
+                        ":t" => TimeFormat(f),
+                        _    => FloatFormat(f, _format, decimals)
+                    };
                 }
                 else
                 {
@@ -68,11 +68,25 @@ namespace XIVAuras.Helpers
             return value ?? m.Value;
         }
 
-        private static string KiloFormat(float num, string format) => num switch
+        private static string FloatFormat(float value, string format, int decimals)
         {
-            >= 1000000 => (num / 1000000f).ToString(format, CultureInfo.InvariantCulture) + "M",
-            >= 1000 => (num / 1000f).ToString(format, CultureInfo.InvariantCulture) + "K",
-            _ => num.ToString(format, CultureInfo.InvariantCulture)
+            int m = (int)Math.Pow(10, decimals);
+            double temp = Math.Truncate(value * m) / m;
+            return temp.ToString($"{format}{decimals}", CultureInfo.InvariantCulture);
+        }
+
+        private static string TimeFormat(float seconds) => seconds switch
+        {
+            > 3600 => $"{(int)seconds / 3600:0}:{((int)seconds % 3600) / 60:00}:{(int)seconds % 60:00}",
+            > 60   => $"{(int)seconds / 60:0}:{(int)seconds % 60:00}",
+            _      => FloatFormat(seconds, "F", 0)
+        };
+
+        private static string KiloFormat(float num, string format, int decimals) => num switch
+        {
+            >= 1000000 => FloatFormat(num / 1000000f, format, decimals) + "M",
+            >= 1000 => FloatFormat(num / 1000f, format, decimals) + "K",
+            _ => FloatFormat(num, format, decimals)
         };
     }
 }
