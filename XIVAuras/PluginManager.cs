@@ -78,7 +78,6 @@ namespace XIVAuras
             }
 
             this.WindowSystem.Draw();
-
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
             ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
@@ -89,7 +88,6 @@ namespace XIVAuras
                     aura.Draw(_origin + this.Config.GroupConfig.Position);
                 }
             }
-
             ImGui.End();
         }
 

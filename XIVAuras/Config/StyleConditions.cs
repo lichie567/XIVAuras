@@ -15,7 +15,8 @@ namespace XIVAuras.Config
         public TriggerDataSource Source = TriggerDataSource.Value;
         public TriggerDataOp Op = TriggerDataOp.GreaterThan;
         public float Value = 0;
-        public T Style = new T();
+
+        public T Style { get; set; } = new T();
 
         public string Name
         {
@@ -23,7 +24,7 @@ namespace XIVAuras.Config
             set { }
         }
 
-        public override string ToString() => this.Name;
+        public override string ToString() => $"Condition [{this.Name}]";
 
         public IEnumerable<IConfigPage> GetConfigPages()
         {
@@ -32,9 +33,9 @@ namespace XIVAuras.Config
 
         public void ImportPage(IConfigPage page)
         {
-            if (page.GetType() == typeof(T))
+            if (page is T t)
             {
-                this.Style = (T)page;
+                this.Style = t;
             }
         }
 
@@ -57,14 +58,16 @@ namespace XIVAuras.Config
 
     public class StyleConditions<T> : IConfigPage where T : class?, IConfigPage, new()
     {
-        public static readonly string[] _sourceOptions = Enum.GetNames<TriggerDataSource>();
-        public static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
+        [JsonIgnore] private static readonly string[] _sourceOptions = Enum.GetNames<TriggerDataSource>();
+        [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
+        [JsonIgnore] private string _styleConditionValueInput = string.Empty;
+        [JsonIgnore] private const string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
+        [JsonIgnore] private static readonly float _yOffset = ImGui.CalcTextSize(_text).Y;
 
         public string Name => "Conditions";
         public IConfigPage GetDefault() => new StyleConditions<T>();
-
-        [JsonIgnore] private string _styleConditionValueInput = string.Empty;        
-        public List<StyleCondition<T>> Conditions = new List<StyleCondition<T>>();
+      
+        public List<StyleCondition<T>> Conditions { get; set; } = new List<StyleCondition<T>>();
 
         public T? GetStyle(DataSource? data)
         {
@@ -86,6 +89,8 @@ namespace XIVAuras.Config
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {
+            ImGui.Text(_text);
+            size = size.AddY(-(_yOffset + padY));
             if (ImGui.BeginChild("##StyleConditions", new Vector2(size.X, size.Y), true))
             {
                 ImGuiTableFlags tableFlags =

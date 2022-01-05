@@ -31,7 +31,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new VisibilityConfig();
 
-        public bool IsVisible(bool parentVisibility)
+        public bool IsVisible(bool parentVisible)
         {
             if (this.AlwaysHide)
             {
@@ -63,16 +63,7 @@ namespace XIVAuras.Config
                 return false;
             }
 
-            if (this.ShowForJobTypes == JobType.Custom)
-            {
-                return CharacterState.IsJob(this.CustomJobList);
-            }
-            else if (this.ShowForJobTypes != JobType.All)
-            {
-                return CharacterState.IsJob(CharacterState.GetJobsForJobType(this.ShowForJobTypes));
-            }
-
-            return parentVisibility;
+            return parentVisible && CharacterState.IsJobType(CharacterState.GetCharacterJob(), this.ShowForJobTypes, this.CustomJobList);
         }
 
         public void DrawConfig(Vector2 size, float padX, float padY)

@@ -75,7 +75,7 @@ namespace XIVAuras.Auras
             Vector2 localPos = pos + style.Position;
             Vector2 size = style.Size;
 
-            if (triggered)
+            if (triggered || this.Preview)
             {
                 this.UpdateStartData(data);
                 this.UpdateDragData(localPos, size);

@@ -15,6 +15,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private string _labelInput = string.Empty;
         [JsonIgnore] private string _iconSearchInput = string.Empty;
         [JsonIgnore] private List<TriggerData> _iconSearchResults = new List<TriggerData>();
+        [JsonIgnore] Vector2 _screenSize = ImGui.GetMainViewport().Size;
 
         public Vector2 Position = Vector2.Zero;
         public Vector2 Size = new Vector2(40, 40);
@@ -114,9 +115,8 @@ namespace XIVAuras.Config
                     ImGui.Checkbox("Crop Icon", ref this.CropIcon);
                     DrawHelpers.DrawSpacing(1);
 
-                    Vector2 screenSize = ImGui.GetMainViewport().Size;
-                    ImGui.DragFloat2("Position", ref this.Position, 1, -screenSize.X / 2, screenSize.X / 2);
-                    ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, screenSize.Y);
+                    ImGui.DragFloat2("Position", ref this.Position, 1, -_screenSize.X / 2, _screenSize.X / 2);
+                    ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, _screenSize.Y);
                     ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
                     ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
 
