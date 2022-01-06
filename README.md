@@ -29,19 +29,10 @@ If you don't know what to do with this link, click here: [How to Install](https:
 ### Planned Features
 
 - Ability to create bars to track cooldowns and buffs/debuffs.
-- More data sources, such as job guages and other player state data (HP, CP, GP, etc)
+- More data sources, such as job guages.
 - Dynamic Icon Groups, which track all buffs/debuffs on a specific actor with a blacklist/whitelist.
 - Accepting suggestions!
 
 ## Screenshots
 
 ![](screenshots/example.gif)
-
-Home | Icon Style Options
-:-------------------------:|:-------------------------:
-![](screenshots/home.png)  |  ![](screenshots/iconstyle.png)
-
-
-Trigger Options | Visibility Options
-:-------------------------:|:-------------------------:
-![](screenshots/trigger.png)  |  ![](screenshots/visibility.png)
