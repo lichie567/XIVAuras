@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using XIVAuras.Config;
+using XIVAuras.Helpers;
 
 namespace XIVAuras.Auras
 {
@@ -31,6 +32,22 @@ namespace XIVAuras.Auras
             yield return this.VisibilityConfig;
         }
 
+        public override void ImportPage(IConfigPage page)
+        {
+            switch (page)
+            {
+                case AuraListConfig newPage:
+                    this.AuraList = newPage;
+                    break;
+                case GroupConfig newPage:
+                    this.GroupConfig = newPage;
+                    break;
+                case VisibilityConfig newPage:
+                    this.VisibilityConfig = newPage;
+                    break;
+            }
+        }
+
         public override void StopPreview()
         {
             base.StopPreview();
@@ -41,13 +58,9 @@ namespace XIVAuras.Auras
             }
         }
 
-        public override void Draw(Vector2 pos, Vector2? parentSize = null)
+        public override void Draw(Vector2 pos, Vector2? parentSize = null, bool parentVisible = true)
         {
-            if (!this.VisibilityConfig.IsVisible())
-            {
-                return;
-            }
-
+            bool visible = this.VisibilityConfig.IsVisible(parentVisible);
             foreach (AuraListItem aura in this.AuraList.Auras)
             {
                 if (!this.Preview && this.LastFrameWasPreview)
@@ -59,7 +72,7 @@ namespace XIVAuras.Auras
                     aura.Preview |= this.Preview;
                 }
 
-                aura.Draw(pos + this.GroupConfig.Position);
+                aura.Draw(pos + this.GroupConfig.Position, null, visible);
             }
 
             this.LastFrameWasPreview = this.Preview;

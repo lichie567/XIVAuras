@@ -2,144 +2,116 @@
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Data;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.ClientState.Objects;
-using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
-using XIVAuras.Config;
 using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
 using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using Dalamud.Game;
 
 namespace XIVAuras.Helpers
 {
     public class SpellHelpers
     {
+        private const string CastRaySig = "48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1";
+        private const string ComboSig = "48 89 2D ?? ?? ?? ?? 85 C0";
+
+        [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
+        private unsafe delegate bool CastRayNative(float* origin, float* direction, float distance, float* worldPos, int* flags);
+
+        private readonly CastRayNative _castRay;
+        private readonly unsafe Combo* _combo;
         private readonly unsafe ActionManager* _actionManager;
 
-        public unsafe SpellHelpers()
+        public unsafe SpellHelpers(SigScanner scanner)
         {
             _actionManager = ActionManager.Instance();
+            _castRay = Marshal.GetDelegateForFunctionPointer<CastRayNative>(scanner.ScanText(CastRaySig));
+            _combo = (Combo*) scanner.GetStaticAddressFromSig(ComboSig);
         }
 
-        public unsafe uint GetSpellActionId(uint actionId)
+        public unsafe uint GetAdjustedActionId(uint actionId)
         {
             return _actionManager->GetAdjustedActionId(actionId);
         }
 
-        public unsafe float GetRecastTimeElapsed(uint actionId)
+        public unsafe void GetAdjustedRecastInfo(uint actionId, out RecastInfo recastInfo)
         {
-            return _actionManager->GetRecastTimeElapsed(ActionType.Spell, GetSpellActionId(actionId));
+            recastInfo = default;
+            int recastGroup = _actionManager->GetRecastGroup((int)ActionType.Spell, actionId);
+            RecastDetail* recastDetail = _actionManager->GetRecastGroupDetail(recastGroup);
+            if (recastDetail == null)
+            {
+                return;
+            }
+            
+            recastInfo.RecastTime = recastDetail->Total;
+            recastInfo.RecastTimeElapsed = recastDetail->Elapsed;
+            recastInfo.MaxCharges = ActionManager.GetMaxCharges(actionId, 90);
+            if (recastInfo.MaxCharges == 1)
+            {
+                return;
+            }
+
+            ushort currentMaxCharges = ActionManager.GetMaxCharges(actionId, 0);
+            if (currentMaxCharges == recastInfo.MaxCharges)
+            {
+                return;
+            }
+
+            recastInfo.RecastTime = (recastInfo.RecastTime * currentMaxCharges) / recastInfo.MaxCharges;
+            recastInfo.MaxCharges = currentMaxCharges;
+            if (recastInfo.RecastTimeElapsed > recastInfo.RecastTime)
+            {
+                recastInfo.RecastTime = 0;
+                recastInfo.RecastTimeElapsed = 0;
+            }
+
+            return;
         }
 
-        public unsafe float GetRecastTime(uint actionId)
+        public unsafe bool CanUseAction(uint actionId, uint targetId = 0xE000_0000)
         {
-            return _actionManager->GetRecastTime(ActionType.Spell, GetSpellActionId(actionId));
+            return _actionManager->GetActionStatus(ActionType.Spell, actionId, targetId, 0, 1) == 0;
         }
 
-        public float GetSpellCooldown(uint actionId)
+        public unsafe bool GetActionInRange(uint actionId, GameObject? player, GameObject? target)
         {
-            return Math.Abs(GetRecastTime(GetSpellActionId(actionId)) - GetRecastTimeElapsed(GetSpellActionId(actionId)));
+            if (player is null || target is null)
+            {
+                return false;
+            }
+
+            uint result = ActionManager.GetActionInRangeOrLoS(
+                actionId,
+                (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)player.Address,
+                (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)target.Address);
+
+            return result != 566; // 0 == in range, 565 == in range but not facing target, 566 == out of range, 562 == not in LoS
         }
 
-        public int GetStackCount(int maxStacks, uint actionId)
+        public unsafe bool IsTargetInLos(GameObject? player, GameObject? target)
         {
-            float cooldown = this.GetSpellCooldown(actionId);
-            if (cooldown <= 0)
+            if (target is null || player is null)
             {
-                return maxStacks;
+                return false;
             }
 
-            return maxStacks - (int)Math.Ceiling(cooldown / (this.GetRecastTime(actionId) / maxStacks));
+            Vector3 delta = target.Position - player.Position;
+            float distance = delta.Length();
+            float* origin = stackalloc[] { player.Position.X, player.Position.Y + 2f, player.Position.Z };
+            float* direction = stackalloc[] { delta.X / distance, delta.Y / distance, delta.Z / distance };
+            float* worldPos = stackalloc float[32];
+            int* flags = stackalloc int[3] { 0x4000, 0x4000, 0x0 };
+            return !_castRay(origin, direction, distance, worldPos, flags);
         }
 
-        public unsafe ushort GetMaxCharges(uint actionId, uint level)
+        public unsafe uint GetLastUsedActionId()
         {
-            return ActionManager.GetMaxCharges(actionId, level);
-        }
-
-        public static DataSource? GetData(TriggerSource source, TriggerType type, IEnumerable<TriggerData> triggerData, bool onlyMine, bool preview)
-        {
-            if (preview)
-            {
-                return new DataSource()
-                {
-                    Value = 10,
-                    Stacks = 2,
-                    MaxStacks = 2
-                };
-            }
-
-            if (!triggerData.Any())
-            {
-                return null;
-            }
-
-            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
-            if (player is null)
-            {
-                return null;
-            }
-
-            if (type == TriggerType.Cooldown)
-            {
-                SpellHelpers helper = Singletons.Get<SpellHelpers>();
-                TriggerData activeTrigger = triggerData.First();
-
-                int maxCharges = helper.GetMaxCharges(activeTrigger.Id, player.Level);
-                int stacks = helper.GetStackCount(maxCharges, activeTrigger.Id);
-                float chargeTime = helper.GetRecastTime(activeTrigger.Id) / maxCharges;
-                float cooldown = chargeTime != 0 
-                    ? helper.GetSpellCooldown(activeTrigger.Id) % chargeTime
-                    : chargeTime;
-
-                return new DataSource()
-                {
-                    Value = cooldown,
-                    Stacks = stacks,
-                    MaxStacks = maxCharges
-                };
-            }
-            else
-            {
-                TargetManager targetManager = Singletons.Get<TargetManager>();
-                GameObject? target = targetManager.SoftTarget ?? targetManager.Target;
-                GameObject? actor = source switch
-                {
-                    TriggerSource.Player => player,
-                    TriggerSource.Target => target,
-                    TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(player, target),
-                    TriggerSource.FocusTarget => targetManager.FocusTarget,
-                    _ => null
-                };
-
-                if (actor is not BattleChara chara)
-                {
-                    return null;
-                }
-
-                foreach (TriggerData trigger in triggerData)
-                {
-                    foreach (var status in chara.StatusList)
-                    {
-                        if (status is not null &&
-                            status.StatusId == trigger.Id &&
-                            (status.SourceID == player.ObjectId || !onlyMine))
-                        {
-                            return new DataSource()
-                            {
-                                Value = Math.Abs(status.RemainingTime),
-                                Stacks = status.StackCount,
-                                MaxStacks = trigger.MaxStacks
-                            };
-                        }
-                    }
-                }
-
-                return null;
-            }
+            return _combo->Action;
         }
 
         public static List<TriggerData> FindStatusEntries(string input)
@@ -217,7 +189,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = actionSheet.GetRow(value);
                     if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -229,7 +201,7 @@ namespace XIVAuras.Helpers
                 {
                     if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -255,7 +227,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = iAction.Name.Value;
                     if (action is not null && action.RowId == value)
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                         break;
                     }
                 }
@@ -269,7 +241,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = indirectAction.Name.Value;
                     if (action is not null && input.ToLower().Equals(action.Name.ToString().ToLower()))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, 0));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
                 }
             }
@@ -295,46 +267,50 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = generalAction.Action.Value;
                     if (action is not null && input.ToLower().Equals(generalAction.Name.ToString().ToLower()))
                     {
-                        actionList.Add(new TriggerData(generalAction.Name, action.RowId, (ushort)generalAction.Icon, 0));
+                        actionList.Add(new TriggerData(generalAction.Name, action.RowId, (ushort)generalAction.Icon, action.MaxCharges));
                     }
                 }
             }
 
             return actionList;
         }
-    }
 
-    public class DataSource
-    {
-        public float Value;
-        public int Stacks;
-        public int MaxStacks;
-
-        public float GetDataForSourceType(TriggerDataSource sourcetype)
+        public static uint[] GetComboIds(LuminaAction? action)
         {
-            return sourcetype switch
+            if (action is null)
             {
-                TriggerDataSource.Value => this.Value,
-                TriggerDataSource.Stacks => this.Stacks,
-                TriggerDataSource.MaxStacks => this.MaxStacks,
-                _ => 0
-            };
+                return Array.Empty<uint>();
+            }
+
+            return GetComboIds(action.ActionCombo.Value?.RowId ?? 0);
         }
-    }
 
-    public struct TriggerData
-    {
-        public string Name;
-        public uint Id;
-        public ushort Icon;
-        public byte MaxStacks;
-
-        public TriggerData(string name, uint id, ushort icon, byte maxStacks)
+        public static uint[] GetComboIds(uint baseComboId)
         {
-            Name = name;
-            Id = id;
-            Icon = icon;
-            MaxStacks = maxStacks;
+            if (baseComboId == 0)
+            {
+                return Array.Empty<uint>();
+            }
+            
+            List<uint> comboIds = new List<uint>() { baseComboId };
+            ExcelSheet<ActionIndirection>? actionIndirectionSheet = Singletons.Get<DataManager>().GetExcelSheet<ActionIndirection>();
+
+            if (actionIndirectionSheet is null)
+            {
+                return comboIds.ToArray();
+            }
+
+            foreach (ActionIndirection indirectAction in actionIndirectionSheet)
+            {
+                LuminaAction? upgradedAction = indirectAction.Name.Value;
+                LuminaAction? prevAction = indirectAction.PreviousComboAction.Value;
+                if (upgradedAction is not null && prevAction is not null && baseComboId == prevAction.RowId)
+                {
+                    comboIds.Add(upgradedAction.RowId);
+                }
+            }
+
+            return comboIds.ToArray();
         }
     }
 }

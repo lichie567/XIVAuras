@@ -5,7 +5,9 @@ namespace XIVAuras.Config
 {
     public class BarStyleConfig : IConfigPage
     {
-        public string Name => "Style";
+        public string Name => "Bar";
+
+        public IConfigPage GetDefault() => new BarStyleConfig();
 
         public void DrawConfig(Vector2 size, float padX, float padY)
         {

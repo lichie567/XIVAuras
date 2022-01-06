@@ -2,16 +2,15 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Logging;
-using XIVAuras.Config;
 
 namespace XIVAuras.Helpers
 {
     public static class Utils
     {
-
         public static Vector2 GetAnchoredPosition(Vector2 position, Vector2 size, DrawAnchor anchor)
         {
             return anchor switch
@@ -29,14 +28,22 @@ namespace XIVAuras.Helpers
             };
         }
 
-        public static GameObject? FindTargetOfTarget(GameObject? player, GameObject? target)
+        public static GameObject? FindTarget()
         {
+            TargetManager targetManager = Singletons.Get<TargetManager>();
+            return targetManager.SoftTarget ?? targetManager.Target;
+        }
+
+        public static GameObject? FindTargetOfTarget()
+        {
+            GameObject? target = FindTarget();
             if (target == null)
             {
                 return null;
             }
 
-            if (target.TargetObjectId == 0 && player != null && player.TargetObjectId == 0)
+            GameObject? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (target.TargetObjectId == 0 && player is not null && player.TargetObjectId == 0)
             {
                 return player;
             }
@@ -54,6 +61,22 @@ namespace XIVAuras.Helpers
             }
 
             return null;
+        }
+
+        public static string GetTagsTooltip(string[] textTags)
+        {
+            return $"Available Text Tags:\n\n{string.Join("\n", textTags)}\n\n" +
+                    "Append the characters ':k' to a numeric tag to kilo-format it.\n" +
+                    "Append the characters ':t' to a numeric tag to time-format it.\n" +
+                    "Append a '.' and a number to limit the number of characters,\n" +
+                    "or the number of decimals when used with numeric values.\n\nExamples:\n" +
+                    "[value]          =>    1,234\n" +
+                    "[value:k]      =>           1k\n" +
+                    "[value:t]       =>     20:34\n" +
+                    "[value:k.1]  =>       1.2k\n\n" +
+                    "[name]                   =>    Firstname Lastname\n" +
+                    "[name_first.5]    =>    First\n" +
+                    "[name_last.1]     =>    L";
         }
         
         public static void OpenUrl(string url)

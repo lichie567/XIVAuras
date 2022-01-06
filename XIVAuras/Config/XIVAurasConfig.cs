@@ -6,7 +6,7 @@ using XIVAuras.Helpers;
 namespace XIVAuras.Config
 {
     [JsonObject]
-    public class XIVAurasConfig : IAuraGroup, IConfigurable, IXIVAurasDisposable
+    public class XIVAurasConfig : IAuraGroup, IConfigurable, IPluginDisposable
     {
         public string Name
         {
@@ -54,6 +54,10 @@ namespace XIVAuras.Config
             yield return this.GroupConfig;
             yield return this.FontConfig;
             yield return this.AboutPage;
+        }
+
+        public void ImportPage(IConfigPage page)
+        {
         }
     }
 }
