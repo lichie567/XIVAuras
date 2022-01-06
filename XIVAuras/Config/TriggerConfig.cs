@@ -146,6 +146,7 @@ namespace XIVAuras.Config
                     if (ImGui.Combo("Trigger Type", ref Unsafe.As<TriggerType, int>(ref _selectedType), _typeOptions, _typeOptions.Length) &&
                         _selectedType != this.TriggerOptions[_selectedIndex].Type)
                     {
+                        TriggerCond oldCond = this.TriggerOptions[_selectedIndex].Condition;
                         this.TriggerOptions[_selectedIndex] = _selectedType switch
                         {
                             TriggerType.Status          => new StatusTrigger(),
@@ -153,6 +154,7 @@ namespace XIVAuras.Config
                             TriggerType.CharacterState  => new CharacterStateTrigger(),
                         _                               => new StatusTrigger()
                         };
+                        this.TriggerOptions[_selectedIndex].Condition = oldCond;
                     }
                     
                     selectedTrigger.DrawTriggerOptions(ImGui.GetWindowSize(), padX, padX);
