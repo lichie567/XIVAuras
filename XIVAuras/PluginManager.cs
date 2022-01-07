@@ -52,7 +52,6 @@ namespace XIVAuras
             this.Config = config;
 
             this.ConfigRoot = new ConfigWindow("ConfigRoot", _origin, _configSize);
-
             this.WindowSystem = new WindowSystem("XIVAuras");
             this.WindowSystem.AddWindow(this.ConfigRoot);
 
@@ -88,6 +87,7 @@ namespace XIVAuras
                     aura.Draw(_origin + this.Config.GroupConfig.Position);
                 }
             }
+
             ImGui.End();
         }
 

@@ -13,6 +13,7 @@ namespace XIVAuras.Auras
 
         public override AuraType Type => AuraType.Label;
 
+        [JsonConverter(typeof(LabelConverter))]
         public LabelStyleConfig LabelStyleConfig { get; set; }
         public StyleConditions<LabelStyleConfig> StyleConditions { get; set; }
         public VisibilityConfig VisibilityConfig { get; set; }

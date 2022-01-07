@@ -47,11 +47,16 @@ namespace XIVAuras.Config
                 ImGui.Combo("Text Align", ref Unsafe.As<DrawAnchor, int>(ref this.TextAlign), _anchorOptions, _anchorOptions.Length);
 
                 string[] fontOptions = FontsManager.GetFontList();
-                if (this.FontID > fontOptions.Length ||
-                    !fontOptions[this.FontID].Equals(this.FontKey))
+                if (!FontsManager.ValidateFont(fontOptions, this.FontID, this.FontKey))
                 {
-                    this.FontKey = FontsManager.DalamudFontKey;
                     this.FontID = 0;
+                    for (int i = 0; i < fontOptions.Length; i++)
+                    {
+                        if (this.FontKey.Equals(fontOptions[i]))
+                        {
+                            this.FontID = i;
+                        }
+                    }
                 }
 
                 ImGui.Combo("Font", ref this.FontID, fontOptions, fontOptions.Length);

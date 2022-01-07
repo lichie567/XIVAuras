@@ -18,8 +18,6 @@ namespace XIVAuras.Helpers
         public uint Id;
         public ushort Icon;
         public byte MaxStacks;
-        
-        [JsonConverter(typeof(ComboIdConverter))]
         public uint[] ComboId;
 
         public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint[]? comboId = null)
