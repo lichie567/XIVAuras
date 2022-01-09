@@ -73,16 +73,13 @@ namespace XIVAuras.Auras
                 Vector2 textSize = ImGui.CalcTextSize(text);
                 Vector2 textPos = Utils.GetAnchoredPosition(pos + style.Position, -size, style.ParentAnchor);
                 textPos = Utils.GetAnchoredPosition(textPos, textSize, style.TextAlign);
-                DrawHelpers.DrawInWindow($"##{this.ID}", textPos, textSize, false, true, true, (drawList) =>
-                {
-                    DrawHelpers.DrawText(
-                        drawList,
-                        text,
-                        textPos,
-                        style.TextColor.Base,
-                        style.ShowOutline,
-                        style.OutlineColor.Base);
-                });
+                DrawHelpers.DrawText(
+                    ImGui.GetWindowDrawList(),
+                    text,
+                    textPos,
+                    style.TextColor.Base,
+                    style.ShowOutline,
+                    style.OutlineColor.Base);
             }
         }
 
