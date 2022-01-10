@@ -26,11 +26,30 @@ namespace XIVAuras.Helpers
         private readonly unsafe Combo* _combo;
         private readonly unsafe ActionManager* _actionManager;
 
+        private readonly Dictionary<uint, ushort> _actionIdToIconId;
+
         public unsafe SpellHelpers(SigScanner scanner)
         {
             _actionManager = ActionManager.Instance();
             _castRay = Marshal.GetDelegateForFunctionPointer<CastRayNative>(scanner.ScanText(CastRaySig));
             _combo = (Combo*) scanner.GetStaticAddressFromSig(ComboSig);
+            _actionIdToIconId = new Dictionary<uint, ushort>();
+        }
+
+        public ushort GetIconIdForAction(uint actionId)
+        {
+            if (_actionIdToIconId.ContainsKey(actionId))
+            {
+                return _actionIdToIconId[actionId];
+            }
+
+            ushort icon = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>()?.GetRow(actionId)?.Icon ?? 0;
+            if (icon != 0)
+            {
+                _actionIdToIconId.Add(actionId, icon);
+            }
+
+            return icon;
         }
 
         public unsafe uint GetAdjustedActionId(uint actionId)

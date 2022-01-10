@@ -152,16 +152,20 @@ namespace XIVAuras.Config
             _fonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
         }
 
-        private void AddFont(int fontIndex, int size)
+        public void AddFont(FontData newFont)
         {
-            FontData newFont = new FontData(_fonts[fontIndex], size + 1, _chinese, _korean);
             string key = FontsManager.GetFontKey(newFont);
-
             if (!this.Fonts.ContainsKey(key))
             {
                 this.Fonts.Add(key, newFont);
                 Singletons.Get<FontsManager>().UpdateFonts(this.Fonts.Values);
             }
+        }
+
+        private void AddFont(int fontIndex, int size)
+        {
+            FontData newFont = new FontData(_fonts[fontIndex], size + 1, _chinese, _korean);
+            this.AddFont(newFont);
         }
 
         private void RemoveFont(string key)

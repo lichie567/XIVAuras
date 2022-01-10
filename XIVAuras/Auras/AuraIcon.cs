@@ -92,25 +92,30 @@ namespace XIVAuras.Auras
                         }
                     }
                     
-                    ushort icon = style.IconOption switch
+                    bool desaturate = style.DesaturateIcon;
+                    float alpha = style.Opacity;
+
+                    if (style.IconOption == 3)
                     {
-                        0 => data.Icon,
-                        1 => style.CustomIcon,
-                        _ => 0
-                    };
-
-                    if (icon > 0)
+                        drawList.AddRectFilled(localPos, localPos + size, style.IconColor.Base);
+                    }
+                    else
                     {
-                        bool desaturate = style.DesaturateIcon;
-                        float alpha = style.Opacity;
-
-                        DrawHelpers.DrawIcon(icon, localPos, size, style.CropIcon, 0, desaturate, alpha, drawList);
-
-                        if (this.StartData is not null && data.MaxValue == 0)
+                        ushort icon = style.IconOption switch
                         {
-                            data.MaxValue = this.StartData.Value;
-                        }
+                            0 => data.Icon,
+                            1 => style.CustomIcon,
+                            _ => 0
+                        };
 
+                        if (icon > 0)
+                        {
+                            DrawHelpers.DrawIcon(icon, localPos, size, style.CropIcon, 0, desaturate, alpha, drawList);
+                        }
+                    }
+
+                    if (style.IconOption != 2)
+                    {
                         if (style.ShowProgressSwipe)
                         {
                             this.DrawProgressSwipe(style, localPos, size, data.Value, data.MaxValue, alpha, drawList);

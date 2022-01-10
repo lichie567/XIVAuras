@@ -37,6 +37,11 @@ namespace XIVAuras.Helpers
             });
         }
 
+        public static bool IsRegistered<T>()
+        {
+            return ActiveInstances.ContainsKey(typeof(T));
+        }
+
         public static void Register(object newSingleton)
         {
             if (!ActiveInstances.TryAdd(newSingleton.GetType(), newSingleton))

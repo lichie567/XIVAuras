@@ -148,7 +148,7 @@ namespace XIVAuras.Helpers
         }
     }
     
-    public class ComboIdConverter : JsonConverter
+    public class LabelConverter : JsonConverter
     {
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
@@ -157,26 +157,51 @@ namespace XIVAuras.Helpers
 
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            if (!objectType.IsArray ||
-                objectType.GetElementType() != typeof(uint) ||
-                reader.TokenType != JsonToken.Integer)
+            if (objectType != typeof(LabelStyleConfig))
             {
                 return serializer.Deserialize(reader, objectType);
             }
-            
+
+            LabelStyleConfig? label = null;
             try
             {
-                uint? value = (uint?)serializer.Deserialize(reader, typeof(uint));
-                if (value.HasValue)
+                label = serializer.Deserialize(reader, objectType) as LabelStyleConfig;
+                if (label is not null &&
+                    Singletons.IsRegistered<XIVAurasConfig>() &&
+                    Singletons.IsRegistered<FontsManager>())
                 {
-                    return SpellHelpers.GetComboIds(value.Value);
+                    string[] fontOptions = FontsManager.GetFontList();
+                    if (!FontsManager.ValidateFont(fontOptions, label.FontID, label.FontKey))
+                    {
+                        string[] parts = label.FontKey.Split('_');
+                        if (parts.Length < 2)
+                        {
+                            return label;
+                        }
+
+                        string fontName = parts[0];
+                        string[] installedFonts = FontsManager.GetFontNamesFromPath(FontsManager.GetUserFontPath());
+                        foreach (string installedFont in installedFonts)
+                        {
+                            if (fontName.ToLower().Equals(installedFont.ToLower()))
+                            {
+                                int fontSize = int.TryParse(parts[1], out int size) ? size : 16;
+                                bool cnjp = label.FontKey.Contains("_cnjp");
+                                bool kr = label.FontKey.Contains("_kr");
+                                FontData fontData = new FontData(fontName, fontSize, cnjp, kr);
+                                Singletons.Get<XIVAurasConfig>().FontConfig.AddFont(fontData);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                PluginLog.Warning(ex.ToString());    
             }
 
-            return Array.Empty<uint>();
+            return label;
         }
 
         public override bool CanRead
@@ -191,53 +216,7 @@ namespace XIVAuras.Helpers
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType.IsEnum;
-        }
-    }
-
-    public class ArrayConvertor<T> : JsonConverter
-    {
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
-        {
-            throw new NotImplementedException("Write not supported.");
-        }
-
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-        {
-            if (!objectType.IsArray ||
-                objectType.GetElementType() != typeof(T))
-            {
-                return serializer.Deserialize(reader, objectType);
-            }
-            
-            try
-            {
-                T? value = (T?)serializer.Deserialize(reader, typeof(T));
-                if (value is not null && value.GetType() == typeof(T))
-                {
-                    return new T[] { value };
-                }
-            }
-            catch
-            {
-            }
-
-            return Array.Empty<T>();
-        }
-
-        public override bool CanRead
-        {
-            get { return true; }
-        }
-
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType.IsEnum;
+            return typeof(LabelStyleConfig) == objectType;
         }
     }
 
