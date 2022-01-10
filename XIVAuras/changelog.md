@@ -1,6 +1,11 @@
+# Version 0.2.0.1
+- New fonts are now automatically added to the font list on import
+- Added 'Solid Color' Icon type
+- Fixed labels appearing on top of other Icons when stacked
+
 # Version 0.2.0.0
 - Re-designed the entire trigger system
-- Tons of new features, performance inprovements, and bug fixes.
+- Tons of new features, performance inprovements, and bug fixes
 
 # Version 0.1.4.0
 - Improved font management
