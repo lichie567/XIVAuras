@@ -22,6 +22,8 @@ namespace XIVAuras.Config
 
         public string TriggerName = string.Empty;
 
+        public bool Adjust = false;
+
         public bool Cooldown = false;
         public TriggerDataOp CooldownOp = TriggerDataOp.GreaterThan;
         public float CooldownValue;
@@ -64,7 +66,7 @@ namespace XIVAuras.Config
 
             SpellHelpers helper = Singletons.Get<SpellHelpers>();
             TriggerData actionTrigger = this.TriggerData.First();
-            uint actionId = actionTrigger.Id;
+            uint actionId = this.Adjust ? helper.GetAdjustedActionId(actionTrigger.Id) : actionTrigger.Id;
             helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
 
             int stacks = recastInfo.RecastTime == 0f
@@ -117,7 +119,7 @@ namespace XIVAuras.Config
             data.MaxValue = chargeTime;
             data.Stacks = stacks;
             data.MaxStacks = recastInfo.MaxCharges;
-            data.Icon = actionTrigger.Icon;
+            data.Icon = this.Adjust ? helper.GetIconIdForAction(actionId) : actionTrigger.Icon;
 
             return preview ||
                 (!this.Combo || (this.ComboValue == 0 ? comboActive : !comboActive)) &&
@@ -144,6 +146,14 @@ namespace XIVAuras.Config
                 }
 
                 _triggerNameInput = TriggerName;
+            }
+            ImGui.Checkbox("Use Adjusted Action", ref this.Adjust);
+            if (ImGui.IsItemHovered())
+            {
+                ImGui.SetTooltip("Enable to dynamically track abilities that upgrade or change during combat.\n" +
+                                 "Examples: Standard Step -> Standard Finish, Gallows -> Cross Reaping, etc.\n\n" +
+                                 "Best when used with the 'Automatic Icon' option.\n" +
+                                 "WARNING: May have unexpected behavior when used with XIVCombo!");
             }
 
             DrawHelpers.DrawSpacing(1);
