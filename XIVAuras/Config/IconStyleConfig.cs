@@ -34,6 +34,8 @@ namespace XIVAuras.Config
         public int IconOption = 0;
         public ushort CustomIcon = 0;
         public bool CropIcon = false;
+        
+        public ConfigColor IconColor = new ConfigColor(1, 0, 0, 1);
 
         public IConfigPage GetDefault() => new IconStyleConfig();
 
@@ -60,6 +62,8 @@ namespace XIVAuras.Config
                 ImGui.RadioButton("Custom Icon", ref this.IconOption, 1);
                 ImGui.SameLine();
                 ImGui.RadioButton("No Icon", ref this.IconOption, 2);
+                ImGui.SameLine();
+                ImGui.RadioButton("Solid Color", ref this.IconOption, 3);
                 
                 if (this.IconOption == 1)
                 {
@@ -112,13 +116,26 @@ namespace XIVAuras.Config
 
                 if (this.IconOption != 2)
                 {
-                    ImGui.Checkbox("Crop Icon", ref this.CropIcon);
-                    DrawHelpers.DrawSpacing(1);
+                    if (this.IconOption < 2)
+                    {
+                        ImGui.Checkbox("Crop Icon", ref this.CropIcon);
+                    }
+                    else if (this.IconOption == 3)
+                    {
+                        Vector4 vector = this.IconColor.Vector;
+                        ImGui.ColorEdit4("Icon Color", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.IconColor.Vector = vector;
+                    }
 
+                    DrawHelpers.DrawSpacing(1);
                     ImGui.DragFloat2("Position", ref this.Position, 1, -_screenSize.X / 2, _screenSize.X / 2);
                     ImGui.DragFloat2("Icon Size", ref this.Size, 1, 0, _screenSize.Y);
-                    ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
-                    ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
+
+                    if (this.IconOption < 2)
+                    {
+                        ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
+                        ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
+                    }
                     DrawHelpers.DrawSpacing(1);
 
                     ImGui.Checkbox("Show Border", ref this.ShowBorder);

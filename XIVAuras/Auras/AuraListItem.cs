@@ -116,6 +116,11 @@ namespace XIVAuras.Auras
                 this.StartData = data;
                 this.StartTime = DateTime.UtcNow;
             }
+
+            if (this.StartData is not null && data.MaxValue == 0)
+            {
+                data.MaxValue = this.StartData.Value;
+            }
         }
     }
 }
