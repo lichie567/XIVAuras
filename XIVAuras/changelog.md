@@ -1,3 +1,7 @@
+# Version 0.2.0.2
+- Fixed some issues that were causing performance issues with large amounts of auras.
+- Fixed issue where aura positions would change if the game resolution changed after startup
+
 # Version 0.2.0.1
 - New fonts are now automatically added to the font list on import
 - Added 'Solid Color' Icon type

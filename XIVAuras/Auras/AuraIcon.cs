@@ -69,7 +69,12 @@ namespace XIVAuras.Auras
             }
 
             bool visible = this.VisibilityConfig.IsVisible(parentVisible);
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && visible;
+            if (!visible && !this.Preview)
+            {
+                return;
+            }
+
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
             IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
 
             Vector2 localPos = pos + style.Position;
