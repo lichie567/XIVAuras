@@ -214,5 +214,33 @@ namespace XIVAuras.Helpers
             // text
             drawList.AddText(new Vector2(pos.X, pos.Y), color, text);
         }
+
+        public static void DrawSegmentedLine(
+            ImDrawListPtr drawList,
+            Vector2 start,
+            Vector2 end,
+            float anim,
+            int segments,
+            uint color1,
+            uint color2,
+            int thickness = 2)
+        {
+            Vector2 interval = (end - start) / segments;
+            Vector2 first = interval * (anim < 0.5 ? anim * 2 : (anim - 0.5f) * 2);
+            Vector2 last = interval - first;
+
+            uint[] colors = new uint[2] { anim < 0.5 ? color2 : color1, anim < 0.5 ? color1 : color2 };
+            drawList.AddLine(start, start + first, colors[1], thickness);
+            start += first;
+
+            for (int i = 0; i < segments - 1; i++)
+            {
+                uint col = colors[i % colors.Length];
+                drawList.AddLine(start, start + interval, col, thickness);
+                start += interval;
+            }
+
+            drawList.AddLine(start, end, colors[1], thickness);
+        }
     }
 }
