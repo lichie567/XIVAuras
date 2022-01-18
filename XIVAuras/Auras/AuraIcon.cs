@@ -69,7 +69,12 @@ namespace XIVAuras.Auras
             }
 
             bool visible = this.VisibilityConfig.IsVisible(parentVisible);
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data) && visible;
+            if (!visible && !this.Preview)
+            {
+                return;
+            }
+
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
             IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
 
             Vector2 localPos = pos + style.Position;
@@ -129,6 +134,11 @@ namespace XIVAuras.Auras
                                 Vector4 color = style.BorderColor.Vector.AddTransparency(alpha);
                                 drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
                             }
+                        }
+
+                        if (style.Glow)
+                        {
+                            this.DrawIconGlow(localPos, size, style.GlowThickness, style.GlowSegments, style.GlowColor, drawList);
                         }
                     }
                 });
@@ -198,6 +208,21 @@ namespace XIVAuras.Auras
 
                 ImGui.PopClipRect();
             }
+        }
+
+        private void DrawIconGlow(Vector2 pos, Vector2 size, int thickness, int segments, ConfigColor glowColor, ImDrawListPtr drawList)
+        {
+            long time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            float anim = (float)(time % 250) / 250f;
+            float lengthX = size.X + thickness / 2f;
+            float lengthY = size.Y + thickness / 2f;
+            uint col1 = glowColor.Base;
+            uint col2 = 0xFF000000;
+
+            DrawHelpers.DrawSegmentedLine(drawList, pos, pos.AddX(lengthX), anim, segments, col1, col2, thickness);
+            DrawHelpers.DrawSegmentedLine(drawList, pos.AddX(size.X), pos + new Vector2(size.X, lengthY), anim, segments, col1, col2, thickness);
+            DrawHelpers.DrawSegmentedLine(drawList, pos + size, pos + new Vector2(-thickness / 2, size.Y), anim, segments, col1, col2, thickness);
+            DrawHelpers.DrawSegmentedLine(drawList, pos.AddY(size.Y), pos.AddY(-thickness / 2), anim, segments, col1, col2, thickness);
         }
 
         public static AuraIcon GetDefaultAuraIcon(string name)

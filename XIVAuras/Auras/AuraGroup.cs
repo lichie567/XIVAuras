@@ -72,7 +72,10 @@ namespace XIVAuras.Auras
                     aura.Preview |= this.Preview;
                 }
 
-                aura.Draw(pos + this.GroupConfig.Position, null, visible);
+                if (visible || Singletons.Get<PluginManager>().IsConfigOpen())
+                {
+                    aura.Draw(pos + this.GroupConfig.Position, null, visible);
+                }
             }
 
             this.LastFrameWasPreview = this.Preview;

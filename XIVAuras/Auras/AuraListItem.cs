@@ -64,6 +64,7 @@ namespace XIVAuras.Auras
                 return new DataSource()
                 {
                     Value = newValue,
+                    MaxValue = data.MaxValue,
                     Stacks = data.Stacks,
                     MaxStacks = data.MaxStacks,
                     Hp = data.Hp,

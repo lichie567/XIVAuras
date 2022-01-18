@@ -34,6 +34,11 @@ namespace XIVAuras.Config
         public int IconOption = 0;
         public ushort CustomIcon = 0;
         public bool CropIcon = false;
+
+        public bool Glow = false;
+        public int GlowThickness = 3;
+        public int GlowSegments = 8;
+        public ConfigColor GlowColor = new ConfigColor(230f / 255f, 111f / 255f, 0f / 255f, 1);
         
         public ConfigColor IconColor = new ConfigColor(1, 0, 0, 1);
 
@@ -136,8 +141,23 @@ namespace XIVAuras.Config
                         ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
                         ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
                     }
-                    DrawHelpers.DrawSpacing(1);
 
+                    ImGui.Checkbox("Glow", ref this.Glow);
+                    if (this.Glow)
+                    {
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragInt("Thickness##Glow", ref this.GlowThickness, 1, 1, 16);
+                        
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragInt("Glow Segments##Glow", ref this.GlowSegments, 1, 2, 16);
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        Vector4 vector = this.GlowColor.Vector;
+                        ImGui.ColorEdit4("Glow Color##Glow", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.GlowColor.Vector = vector;
+                    }
+                    
+                    DrawHelpers.DrawSpacing(1);
                     ImGui.Checkbox("Show Border", ref this.ShowBorder);
                     if (this.ShowBorder)
                     {
