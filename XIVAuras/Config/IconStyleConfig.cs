@@ -36,9 +36,11 @@ namespace XIVAuras.Config
         public bool CropIcon = false;
 
         public bool Glow = false;
-        public int GlowThickness = 3;
+        public int GlowThickness = 2;
         public int GlowSegments = 8;
-        public ConfigColor GlowColor = new ConfigColor(230f / 255f, 111f / 255f, 0f / 255f, 1);
+        public float GlowSpeed = 1f;
+        public ConfigColor GlowColor = new ConfigColor(230f / 255f, 150f / 255f, 0f / 255f, 1f);
+        public ConfigColor GlowColor2 = new ConfigColor(0f / 255f, 0f / 255f, 0f / 255f, 0f);
         
         public ConfigColor IconColor = new ConfigColor(1, 0, 0, 1);
 
@@ -152,9 +154,17 @@ namespace XIVAuras.Config
                         ImGui.DragInt("Glow Segments##Glow", ref this.GlowSegments, 1, 2, 16);
 
                         DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragFloat("Animation Speed##Glow", ref this.GlowSpeed, 0.05f, 0, 2f);
+
+                        DrawHelpers.DrawNestIndicator(1);
                         Vector4 vector = this.GlowColor.Vector;
                         ImGui.ColorEdit4("Glow Color##Glow", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
                         this.GlowColor.Vector = vector;
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        vector = this.GlowColor2.Vector;
+                        ImGui.ColorEdit4("Glow Color 2##Glow", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.GlowColor2.Vector = vector;
                     }
                     
                     DrawHelpers.DrawSpacing(1);

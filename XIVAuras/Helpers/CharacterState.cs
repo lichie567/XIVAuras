@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.Gui;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace XIVAuras.Helpers
 {
@@ -58,6 +61,32 @@ namespace XIVAuras.Helpers
             {
                 return (Job)((Character*)player.Address)->ClassJob;
             }
+        }
+
+        public static int GetCharacterLevel()
+        {
+            return Singletons.Get<ClientState>().LocalPlayer?.Level ?? 0;
+        }
+
+        public static bool IsWeaponDrawn()
+        {
+            var player = Singletons.Get<ClientState>().LocalPlayer;
+            return player != null && player.StatusFlags.HasFlag(StatusFlags.WeaponOut);
+        }
+
+        public static unsafe bool ShouldBeVisible()
+        {
+            if (Singletons.Get<ClientState>().LocalPlayer == null)
+            {
+                return false;
+            }
+
+            var gameGui = Singletons.Get<GameGui>();
+            var parameterWidget = (AtkUnitBase*)gameGui.GetAddonByName("_ParameterWidget", 1);
+            var fadeMiddleWidget = (AtkUnitBase*)gameGui.GetAddonByName("FadeMiddle", 1);
+            var paramenterVisible = parameterWidget != null && parameterWidget->IsVisible;
+            var fadeMiddleVisible = fadeMiddleWidget != null && fadeMiddleWidget->IsVisible;
+            return paramenterVisible && !fadeMiddleVisible;
         }
 
         public static bool IsJobType(Job job, JobType type, IEnumerable<Job>? jobList = null) => type switch

@@ -1,3 +1,9 @@
+# Version 0.2.1.0
+- Added Visibility option 'Hide While Weapon Sheathed'
+- Added Visibility option to Hide by Player Level
+- Added Icon "Glow" option to mimic default hotbar proc indicators
+- Added buttons to move Auras/Triggers/Conditions up or down in lists
+
 # Version 0.2.0.2
 - Fixed some issues that were causing performance issues with large amounts of auras
 - Fixed issue where aura positions would change if the game resolution changed after startup

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using System.Threading;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.Command;
 using Dalamud.Interface;
@@ -68,18 +67,9 @@ namespace XIVAuras
             this.PluginInterface.UiBuilder.Draw += Draw;
         }
 
-        private bool _disposing = false;
-        private bool _drawing = false;
-
         private void Draw()
         {
-            if (_disposing)
-            {
-                return;
-            }
-
-            _drawing = true;
-            if (this.ClientState.LocalPlayer == null || CharacterState.IsCharacterBusy())
+            if (!CharacterState.ShouldBeVisible())
             {
                 return;
             }
@@ -99,7 +89,6 @@ namespace XIVAuras
             }
 
             ImGui.End();
-            _drawing = false;
         }
 
         public void Edit(IConfigurable config)
@@ -144,12 +133,6 @@ namespace XIVAuras
         {
             if (disposing)
             {
-                _disposing = true;
-                while (_drawing)
-                {
-                    Thread.Sleep(10);
-                }
-
                 // Don't modify order
                 this.PluginInterface.UiBuilder.Draw -= Draw;
                 this.PluginInterface.UiBuilder.OpenConfigUi -= OpenConfigUi;

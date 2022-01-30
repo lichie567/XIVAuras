@@ -18,8 +18,8 @@ namespace XIVAuras.Config
         [JsonIgnore] private AuraType _selectedType = AuraType.Icon;
         [JsonIgnore] private string _input = string.Empty;
         [JsonIgnore] private string[] _options = new string[] { "Icon", "Bar", "Group" };
-        [JsonIgnore] private int swapX = -1;
-        [JsonIgnore] private int swapY = -1;
+        [JsonIgnore] private int _swapX = -1;
+        [JsonIgnore] private int _swapY = -1;
 
         public string Name => "Auras";
 
@@ -75,16 +75,17 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.ScrollY |
                 ImGuiTableFlags.NoSavedSettings;
 
-            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(size.X, size.Y - MenuBarHeight)))
+            if (ImGui.BeginTable("##Auras_Table", 4, flags, new Vector2(size.X, size.Y - MenuBarHeight)))
             {
-                Vector2 buttonsize = new Vector2(30, 0);
+                Vector2 buttonSize = new Vector2(30, 0);
                 int buttonCount = this.Auras.Count > 1 ? 5 : 3;
-                float actionsWidth = buttonsize.X * buttonCount + padX * (buttonCount - 1);
+                float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
                 float typeWidth = 75;
 
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 0, 0);
                 ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, typeWidth, 1);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 2);
+                ImGui.TableSetupColumn("Pre.", ImGuiTableColumnFlags.WidthFixed, 23, 2);
+                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 3);
 
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
@@ -117,44 +118,54 @@ namespace XIVAuras.Config
                     if (ImGui.TableSetColumnIndex(2))
                     {
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit", buttonsize);
+                        ImGui.Checkbox("##Preview", ref aura.Preview);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip("Preview");
+                        }
+                    }
+
+                    if (ImGui.TableSetColumnIndex(3))
+                    {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit", buttonSize);
 
                         if (this.Auras.Count > 1)
                         {
                             ImGui.SameLine();
-                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowUp, () => Swap(i, i - 1), "Move Up", buttonsize);
+                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowUp, () => Swap(i, i - 1), "Move Up", buttonSize);
 
                             ImGui.SameLine();
-                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowDown, () => Swap(i, i + 1), "Move Down", buttonsize);
+                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowDown, () => Swap(i, i + 1), "Move Down", buttonSize);
                         }
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export", buttonsize);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export", buttonSize);
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete", buttonsize);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete", buttonSize);
                     }
                 }
 
                 ImGui.EndTable();
             }
 
-            if (swapX < this.Auras.Count && swapX >= 0 &&
-                swapY < this.Auras.Count && swapY >= 0)
+            if (_swapX < this.Auras.Count && _swapX >= 0 &&
+                _swapY < this.Auras.Count && _swapY >= 0)
             {
-                AuraListItem temp = this.Auras[swapX];
-                this.Auras[swapX] = this.Auras[swapY];
-                this.Auras[swapY] = temp;
+                AuraListItem temp = this.Auras[_swapX];
+                this.Auras[_swapX] = this.Auras[_swapY];
+                this.Auras[_swapY] = temp;
 
-                swapX = -1;
-                swapY = -1;
+                _swapX = -1;
+                _swapY = -1;
             }
         }
 
         private void Swap(int x, int y)
         {
-            this.swapX = x;
-            this.swapY = y;
+            _swapX = x;
+            _swapY = y;
         }
 
         private void CreateAura(AuraType type, string name)

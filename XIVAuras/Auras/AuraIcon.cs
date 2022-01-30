@@ -138,7 +138,7 @@ namespace XIVAuras.Auras
 
                         if (style.Glow)
                         {
-                            this.DrawIconGlow(localPos, size, style.GlowThickness, style.GlowSegments, style.GlowColor, drawList);
+                            this.DrawIconGlow(localPos, size, style.GlowThickness, style.GlowSegments, style.GlowSpeed, style.GlowColor, style.GlowColor2, drawList);
                         }
                     }
                 });
@@ -210,19 +210,23 @@ namespace XIVAuras.Auras
             }
         }
 
-        private void DrawIconGlow(Vector2 pos, Vector2 size, int thickness, int segments, ConfigColor glowColor, ImDrawListPtr drawList)
+        private void DrawIconGlow(Vector2 pos, Vector2 size, int thickness, int segments, float speed, ConfigColor col1, ConfigColor col2, ImDrawListPtr drawList)
         {
-            long time = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            float anim = (float)(time % 250) / 250f;
-            float lengthX = size.X + thickness / 2f;
-            float lengthY = size.Y + thickness / 2f;
-            uint col1 = glowColor.Base;
-            uint col2 = 0xFF000000;
+            speed = Math.Abs(speed);
+            int mod = speed == 0 ? 1 : (int)(250 / speed);
+            float prog = (float)(DateTimeOffset.Now.ToUnixTimeMilliseconds() % mod) / mod;
 
-            DrawHelpers.DrawSegmentedLine(drawList, pos, pos.AddX(lengthX), anim, segments, col1, col2, thickness);
-            DrawHelpers.DrawSegmentedLine(drawList, pos.AddX(size.X), pos + new Vector2(size.X, lengthY), anim, segments, col1, col2, thickness);
-            DrawHelpers.DrawSegmentedLine(drawList, pos + size, pos + new Vector2(-thickness / 2, size.Y), anim, segments, col1, col2, thickness);
-            DrawHelpers.DrawSegmentedLine(drawList, pos.AddY(size.Y), pos.AddY(-thickness / 2), anim, segments, col1, col2, thickness);
+            float offset = thickness / 2 + thickness % 2;
+            Vector2 pad = new Vector2(offset);
+            Vector2 c1 = new Vector2(pos.X, pos.Y);
+            Vector2 c2 = new Vector2(pos.X + size.X, pos.Y);
+            Vector2 c3 = new Vector2(pos.X + size.X, pos.Y + size.Y);
+            Vector2 c4 = new Vector2(pos.X, pos.Y + size.Y);
+
+            DrawHelpers.DrawSegmentedLineHorizontal(drawList, c1, size.X, thickness, prog, segments, col1, col2);
+            DrawHelpers.DrawSegmentedLineVertical(drawList, c2.AddX(-thickness), thickness, size.Y, prog, segments, col1, col2);
+            DrawHelpers.DrawSegmentedLineHorizontal(drawList, c3.AddY(-thickness), -size.X, thickness, prog, segments, col1, col2);
+            DrawHelpers.DrawSegmentedLineVertical(drawList, c4, thickness, -size.Y, prog, segments, col1, col2);
         }
 
         public static AuraIcon GetDefaultAuraIcon(string name)

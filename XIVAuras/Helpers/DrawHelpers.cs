@@ -4,6 +4,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Internal.Notifications;
 using ImGuiNET;
 using ImGuiScene;
+using XIVAuras.Config;
 
 namespace XIVAuras.Helpers
 {
@@ -57,7 +58,7 @@ namespace XIVAuras.Helpers
             ImGui.SetCursorPosY(oldCursor.Y);
         }
 
-        public static void DrawSpacing(int spacingSize)
+        public static void DrawSpacing(int spacingSize = 1)
         {
             for (int i = 0; i < spacingSize; i++)
             {
@@ -143,6 +144,12 @@ namespace XIVAuras.Helpers
             Action<ImDrawListPtr> drawAction,
             ImGuiWindowFlags extraFlags = ImGuiWindowFlags.None)
         {
+            if (!needsInput && !needsWindow)
+            {
+                drawAction(ImGui.GetWindowDrawList());
+                return;
+            }
+
             ImGuiWindowFlags windowFlags =
                 ImGuiWindowFlags.NoSavedSettings |
                 ImGuiWindowFlags.NoTitleBar |
@@ -159,12 +166,6 @@ namespace XIVAuras.Helpers
             if (!needsFocus)
             {
                 windowFlags |= ImGuiWindowFlags.NoFocusOnAppearing | ImGuiWindowFlags.NoBringToFrontOnFocus;
-            }
-
-            if (!needsInput && !needsWindow)
-            {
-                drawAction(ImGui.GetWindowDrawList());
-                return;
             }
 
             ImGui.SetNextWindowSize(size);
@@ -214,33 +215,61 @@ namespace XIVAuras.Helpers
             // text
             drawList.AddText(new Vector2(pos.X, pos.Y), color, text);
         }
-
-        public static void DrawSegmentedLine(
+        
+        public static void DrawSegmentedLineHorizontal(
             ImDrawListPtr drawList,
             Vector2 start,
-            Vector2 end,
-            float anim,
+            float width,
+            float height,
+            float prog,
             int segments,
-            uint color1,
-            uint color2,
-            int thickness = 2)
+            ConfigColor color1,
+            ConfigColor color2)
         {
-            Vector2 interval = (end - start) / segments;
-            Vector2 first = interval * (anim < 0.5 ? anim * 2 : (anim - 0.5f) * 2);
-            Vector2 last = interval - first;
+            float segWidth = width / segments;
+            Vector2 interval = new(segWidth, height);
+            Vector2 first = new(segWidth * (prog < 0.5 ? prog * 2 : (prog - 0.5f) * 2), height);
+            Vector2 last = interval.AddX(-first.X);
+            uint[] colors = new uint[2] { prog < 0.5 ? color2.Base : color1.Base, prog < 0.5 ? color1.Base : color2.Base };
 
-            uint[] colors = new uint[2] { anim < 0.5 ? color2 : color1, anim < 0.5 ? color1 : color2 };
-            drawList.AddLine(start, start + first, colors[1], thickness);
-            start += first;
+            drawList.AddRectFilled(start, start + first, colors[1]);
+            start = start.AddX(first.X);
 
-            for (int i = 0; i < segments - 1; i++)
+            for (int i = 0; i < segments - 1; i ++)
             {
-                uint col = colors[i % colors.Length];
-                drawList.AddLine(start, start + interval, col, thickness);
-                start += interval;
+                drawList.AddRectFilled(start, start + interval, colors[i % colors.Length]);
+                start = start.AddX(segWidth);
             }
 
-            drawList.AddLine(start, end, colors[1], thickness);
+            drawList.AddRectFilled(start, start + last, colors[1]);
+        }
+        
+        public static void DrawSegmentedLineVertical(
+            ImDrawListPtr drawList,
+            Vector2 start,
+            float width,
+            float height,
+            float prog,
+            int segments,
+            ConfigColor color1,
+            ConfigColor color2)
+        {
+            float segHeight = height / segments;
+            Vector2 interval = new(width, segHeight);
+            Vector2 first = new(width, segHeight * (prog < 0.5 ? prog * 2 : (prog - 0.5f) * 2));
+            Vector2 last = interval.AddY(-first.Y);
+            uint[] colors = new uint[2] { prog < 0.5 ? color2.Base : color1.Base, prog < 0.5 ? color1.Base : color2.Base };
+
+            drawList.AddRectFilled(start, start + first, colors[1]);
+            start = start.AddY(first.Y);
+
+            for (int i = 0; i < segments - 1; i ++)
+            {
+                drawList.AddRectFilled(start, start + interval, colors[i % colors.Length]);
+                start = start.AddY(segHeight);
+            }
+
+            drawList.AddRectFilled(start, start + last, colors[1]);
         }
     }
 }

@@ -101,8 +101,8 @@ namespace XIVAuras.Config
             {
                 case 0:
                     return active &&
-                        (!this.Duration || GetResult(data.Value, this.DurationOp, this.DurationValue)) &&
-                        (!this.StackCount || GetResult(data.Stacks, this.StackCountOp, this.StackCountValue));
+                        (!this.Duration || Utils.GetResult(data.Value, this.DurationOp, this.DurationValue)) &&
+                        (!this.StackCount || Utils.GetResult(data.Stacks, this.StackCountOp, this.StackCountValue));
                 case 1:
                     return !active;
                 default:

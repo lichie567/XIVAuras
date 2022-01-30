@@ -62,6 +62,23 @@ namespace XIVAuras.Helpers
 
             return null;
         }
+        
+        public static bool GetResult(
+            float dataValue,
+            TriggerDataOp op,
+            float value)
+        {
+            return op switch
+            {
+                TriggerDataOp.Equals => dataValue == value,
+                TriggerDataOp.NotEquals => dataValue != value,
+                TriggerDataOp.LessThan => dataValue < value,
+                TriggerDataOp.GreaterThan => dataValue > value,
+                TriggerDataOp.LessThanEq => dataValue <= value,
+                TriggerDataOp.GreaterThanEq => dataValue >= value,
+                _ => false
+            };
+        }
 
         public static string GetTagsTooltip(string[] textTags)
         {
