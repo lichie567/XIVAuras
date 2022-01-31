@@ -63,6 +63,8 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
         [JsonIgnore] private static readonly float _yOffset = ImGui.CalcTextSize(_text).Y;
         [JsonIgnore] private string _styleConditionValueInput = string.Empty;
+        [JsonIgnore] private int _swapX = -1;
+        [JsonIgnore] private int _swapY = -1;
 
         public string Name => "Conditions";
         public IConfigPage GetDefault() => new StyleConditions<T>();
@@ -103,11 +105,14 @@ namespace XIVAuras.Config
 
                 if (ImGui.BeginTable("##Conditions_Table", 5, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
                 {
+                    Vector2 buttonSize = new(30, 0);
+                    int buttonCount = this.Conditions.Count > 1 ? 4 : 2;
+                    float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
                     ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
                     ImGui.TableSetupColumn("Data Source", ImGuiTableColumnFlags.WidthFixed, 90, 1);
                     ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 80, 2);
                     ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 3);
-                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, 90, 4);
+                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 4);
 
                     ImGui.TableSetupScrollFreeze(0, 1);
                     ImGui.TableHeadersRow();
@@ -123,11 +128,23 @@ namespace XIVAuras.Config
                     ImGui.PushID(this.Conditions.Count.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
                     ImGui.TableSetColumnIndex(4);
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => this.Conditions.Add(new StyleCondition<T>()), "New Condition", new(40, 0));
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => this.Conditions.Add(new StyleCondition<T>()), "New Condition", buttonSize);
                 }
 
                 ImGui.EndTable();
+
+                if (_swapX < this.Conditions.Count && _swapX >= 0 &&
+                    _swapY < this.Conditions.Count && _swapY >= 0)
+                {
+                    var temp = this.Conditions[_swapX];
+                    this.Conditions[_swapX] = this.Conditions[_swapY];
+                    this.Conditions[_swapY] = temp;
+
+                    _swapX = -1;
+                    _swapY = -1;
+                }
             }
+            
 
             ImGui.EndChild();
         }
@@ -184,10 +201,27 @@ namespace XIVAuras.Config
             if (ImGui.TableSetColumnIndex(4))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => Singletons.Get<PluginManager>().Edit(condition), "Edit Style", new(40, 0));
+                Vector2 buttonSize = new(30, 0);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => Singletons.Get<PluginManager>().Edit(condition), "Edit Style", buttonSize);
+       
+                if (this.Conditions.Count > 1)
+                {
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowUp, () => Swap(i, i - 1), "Move Up", buttonSize);
+
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowDown, () => Swap(i, i + 1), "Move Down", buttonSize);
+                }
+
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => this.Conditions.Remove(condition), "Remove Condition", new(40, 0));
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => this.Conditions.Remove(condition), "Remove Condition", buttonSize);
             }
+        }
+
+        private void Swap(int x, int y)
+        {
+            _swapX = x;
+            _swapY = y;
         }
     }
 }

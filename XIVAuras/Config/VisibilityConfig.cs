@@ -12,11 +12,9 @@ namespace XIVAuras.Config
 
     public class VisibilityConfig : IConfigPage
     {
-        public string Name => "Visibility";
-
-        [JsonIgnore] private static readonly string[] _sourceOptions = new string[] { "Value", "Stacks", "MaxStacks" };
-
         [JsonIgnore] private string _customJobInput = string.Empty;
+        
+        public string Name => "Visibility";
 
         public bool AlwaysHide = false;
         public bool HideInCombat = false;
@@ -24,6 +22,11 @@ namespace XIVAuras.Config
         public bool HideOutsideDuty = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
+        public bool HideWhenSheathed = false;
+
+        public bool HideIfLevel = false;
+        public TriggerDataOp HideIfLevelOp = TriggerDataOp.LessThan;
+        public int HideIfLevelValue = 90;
 
         public JobType ShowForJobTypes = JobType.All;
         public string CustomJobString = string.Empty;
@@ -63,6 +66,17 @@ namespace XIVAuras.Config
                 return false;
             }
 
+            if (this.HideWhenSheathed && !CharacterState.IsWeaponDrawn())
+            {
+                return false;
+            }
+
+            if (this.HideIfLevel &&
+                Utils.GetResult(CharacterState.GetCharacterLevel(), this.HideIfLevelOp, this.HideIfLevelValue))
+            {
+                return false;
+            }
+
             return parentVisible && CharacterState.IsJobType(CharacterState.GetCharacterJob(), this.ShowForJobTypes, this.CustomJobList);
         }
 
@@ -76,8 +90,25 @@ namespace XIVAuras.Config
                 ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
                 ImGui.Checkbox("Hide While Performing", ref this.HideWhilePerforming);
                 ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
+                ImGui.Checkbox("Hide While Weapon Sheathed", ref this.HideWhenSheathed);
+
+                DrawHelpers.DrawSpacing();
+                ImGui.Checkbox("Hide if Level", ref this.HideIfLevel);
+                if (this.HideIfLevel)
+                {
+                    ImGui.SameLine();
+                    string[] options = TriggerOptions.OperatorOptions;
+                    ImGui.PushItemWidth(55);
+                    ImGui.Combo("##HideIfLevelOpCombo", ref Unsafe.As<TriggerDataOp, int>(ref this.HideIfLevelOp), options, options.Length);
+                    ImGui.PopItemWidth();
+
+                    ImGui.SameLine();
+                    ImGui.PushItemWidth(45);
+                    ImGui.InputInt(string.Empty, ref this.HideIfLevelValue, 0, 0);
+                    ImGui.PopItemWidth();
+                }
                 
-                DrawHelpers.DrawSpacing(1);
+                DrawHelpers.DrawSpacing();
                 string[] jobTypeOptions = Enum.GetNames(typeof(JobType));
                 ImGui.Combo("Show for Jobs", ref Unsafe.As<JobType, int>(ref this.ShowForJobTypes), jobTypeOptions, jobTypeOptions.Length);
 

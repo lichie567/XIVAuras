@@ -1,3 +1,17 @@
+# Version 0.2.1.0
+- Added Visibility option 'Hide While Weapon Sheathed'
+- Added Visibility option to Hide by Player Level
+- Added Icon "Glow" option to mimic default hotbar proc indicators
+- Added buttons to move Auras/Triggers/Conditions up or down in lists
+- Added option to show GCD swipe when cooldown is inactive
+- Added Level as data source for conditions
+- Added new Number Formatting options to Labels
+
+# Version 0.2.0.2
+- Fixed some issues that were causing performance issues with large amounts of auras
+- Fixed issue where aura positions would change if the game resolution changed after startup
+- Fixed issue where progress swipe was not showing during preview
+
 # Version 0.2.0.1
 - New fonts are now automatically added to the font list on import
 - Added 'Solid Color' Icon type

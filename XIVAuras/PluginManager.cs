@@ -27,8 +27,6 @@ namespace XIVAuras
 
         private XIVAurasConfig Config { get; init; }
 
-        private readonly Vector2 _origin = ImGui.GetMainViewport().Size / 2f;
-
         private readonly Vector2 _configSize = new Vector2(550, 600);
 
         private readonly ImGuiWindowFlags _mainWindowFlags = 
@@ -51,7 +49,7 @@ namespace XIVAuras
             this.PluginInterface = pluginInterface;
             this.Config = config;
 
-            this.ConfigRoot = new ConfigWindow("ConfigRoot", _origin, _configSize);
+            this.ConfigRoot = new ConfigWindow("ConfigRoot", ImGui.GetMainViewport().Size / 2, _configSize);
             this.WindowSystem = new WindowSystem("XIVAuras");
             this.WindowSystem.AddWindow(this.ConfigRoot);
 
@@ -71,20 +69,22 @@ namespace XIVAuras
 
         private void Draw()
         {
-            if (this.ClientState.LocalPlayer == null || CharacterState.IsCharacterBusy())
+            if (!CharacterState.ShouldBeVisible())
             {
                 return;
             }
 
             this.WindowSystem.Draw();
+
+            Vector2 viewPortSize = ImGui.GetMainViewport().Size;
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
-            ImGui.SetNextWindowSize(ImGui.GetMainViewport().Size);
+            ImGui.SetNextWindowSize(viewPortSize);
             if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
             {
                 foreach (AuraListItem aura in this.Config.AuraList.Auras)
                 {
-                    aura.Draw(_origin + this.Config.GroupConfig.Position);
+                    aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
                 }
             }
 

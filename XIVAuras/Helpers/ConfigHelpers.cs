@@ -117,11 +117,11 @@ namespace XIVAuras.Helpers
                     try
                     {
                         File.Copy(path, backupPath);
-                        PluginLog.Information($"Backed up LMeter config to '{backupPath}'.");
+                        PluginLog.Information($"Backed up XIVAuras config to '{backupPath}'.");
                     }
                     catch
                     {
-                        PluginLog.Warning($"Unable to back up LMeter config.");
+                        PluginLog.Warning($"Unable to back up XIVAuras config.");
                     }
                 }
             }

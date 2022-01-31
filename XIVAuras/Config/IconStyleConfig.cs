@@ -28,12 +28,22 @@ namespace XIVAuras.Config
         public bool ShowSwipeLines = false;
         public ConfigColor ProgressLineColor = new ConfigColor(1, 1, 1, 1);
         public int ProgressLineThickness = 2;
+        public bool GcdSwipe = false;
+        public bool GcdSwipeOnly = false;
+
         public bool DesaturateIcon = false;
         public float Opacity = 1f;
 
         public int IconOption = 0;
         public ushort CustomIcon = 0;
         public bool CropIcon = false;
+
+        public bool Glow = false;
+        public int GlowThickness = 2;
+        public int GlowSegments = 8;
+        public float GlowSpeed = 1f;
+        public ConfigColor GlowColor = new ConfigColor(230f / 255f, 150f / 255f, 0f / 255f, 1f);
+        public ConfigColor GlowColor2 = new ConfigColor(0f / 255f, 0f / 255f, 0f / 255f, 0f);
         
         public ConfigColor IconColor = new ConfigColor(1, 0, 0, 1);
 
@@ -136,8 +146,31 @@ namespace XIVAuras.Config
                         ImGui.DragFloat("Icon Opacity", ref this.Opacity, .01f, 0, 1);
                         ImGui.Checkbox("Desaturate Icon", ref this.DesaturateIcon);
                     }
-                    DrawHelpers.DrawSpacing(1);
 
+                    ImGui.Checkbox("Glow", ref this.Glow);
+                    if (this.Glow)
+                    {
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragInt("Thickness##Glow", ref this.GlowThickness, 1, 1, 16);
+                        
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragInt("Glow Segments##Glow", ref this.GlowSegments, 1, 2, 16);
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.DragFloat("Animation Speed##Glow", ref this.GlowSpeed, 0.05f, 0, 2f);
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        Vector4 vector = this.GlowColor.Vector;
+                        ImGui.ColorEdit4("Glow Color##Glow", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.GlowColor.Vector = vector;
+
+                        DrawHelpers.DrawNestIndicator(1);
+                        vector = this.GlowColor2.Vector;
+                        ImGui.ColorEdit4("Glow Color 2##Glow", ref vector, ImGuiColorEditFlags.AlphaPreview | ImGuiColorEditFlags.AlphaBar);
+                        this.GlowColor2.Vector = vector;
+                    }
+                    
+                    DrawHelpers.DrawSpacing(1);
                     ImGui.Checkbox("Show Border", ref this.ShowBorder);
                     if (this.ShowBorder)
                     {
@@ -157,6 +190,14 @@ namespace XIVAuras.Config
                         ImGui.DragFloat("Swipe Opacity", ref this.ProgressSwipeOpacity, .01f, 0, 1);
                         DrawHelpers.DrawNestIndicator(1);
                         ImGui.Checkbox("Invert Swipe", ref this.InvertSwipe);
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.Checkbox("Show GCD Swipe When Inactive", ref this.GcdSwipe);
+                        if (this.GcdSwipe)
+                        {
+                            DrawHelpers.DrawNestIndicator(2);
+                            ImGui.Checkbox("Only show GCD swipe", ref this.GcdSwipeOnly);
+                        }
+                        
                         DrawHelpers.DrawNestIndicator(1);
                         ImGui.Checkbox("Show Swipe Lines", ref this.ShowSwipeLines);
                         if (this.ShowSwipeLines)

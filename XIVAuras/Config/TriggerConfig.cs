@@ -17,6 +17,8 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _typeOptions = Enum.GetNames<TriggerType>();
         [JsonIgnore] private static readonly string[] _condOptions = new string[] { "AND", "OR", "XOR" };
         [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
+        [JsonIgnore] private int _swapX = -1;
+        [JsonIgnore] private int _swapY = -1;
 
         [JsonIgnore] private int _selectedIndex = 0;
         [JsonIgnore] private TriggerType _selectedType = 0;
@@ -110,8 +112,9 @@ namespace XIVAuras.Config
 
                 if (ImGui.BeginTable("##Trigger_Table", 4, tableFlags, new Vector2(size.X - padX * 2, (size.Y - ImGui.GetCursorPosY() - padY * 2) / 4)))
                 {
-                    Vector2 buttonsize = new Vector2(30, 0);
-                    float actionsWidth = buttonsize.X * 3 + padX * 2;
+                    Vector2 buttonSize = new(30, 0);
+                    int buttonCount = this.TriggerOptions.Count > 1 ? 5 : 3;
+                    float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
                     ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
                     ImGui.TableSetupColumn("Trigger Name", ImGuiTableColumnFlags.WidthStretch, 0, 1);
                     ImGui.TableSetupColumn("Trigger Type", ImGuiTableColumnFlags.WidthStretch, 0, 2);
@@ -131,11 +134,22 @@ namespace XIVAuras.Config
                     ImGui.PushID(this.TriggerOptions.Count.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
                     ImGui.TableSetColumnIndex(3);
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonsize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddTrigger(), "New Trigger", buttonSize);
                     ImGui.SameLine();
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportTrigger(), "Import Trigger", buttonsize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportTrigger(), "Import Trigger", buttonSize);
 
                     ImGui.EndTable();
+
+                    if (_swapX < this.TriggerOptions.Count && _swapX >= 0 &&
+                        _swapY < this.TriggerOptions.Count && _swapY >= 0)
+                    {
+                        var temp = this.TriggerOptions[_swapX];
+                        this.TriggerOptions[_swapX] = this.TriggerOptions[_swapY];
+                        this.TriggerOptions[_swapY] = temp;
+
+                        _swapX = -1;
+                        _swapY = -1;
+                    }
                 }
 
                 ImGui.Text($"Edit Trigger {_selectedIndex + 1}");
@@ -207,6 +221,16 @@ namespace XIVAuras.Config
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 Vector2 buttonSize = new Vector2(30, 0);
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => SelectTrigger(i), "Edit Trigger", buttonSize);
+       
+                if (this.TriggerOptions.Count > 1)
+                {
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowUp, () => Swap(i, i - 1), "Move Up", buttonSize);
+
+                    ImGui.SameLine();
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowDown, () => Swap(i, i + 1), "Move Down", buttonSize);
+                }
+
                 ImGui.SameLine();
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportTrigger(i), "Export Trigger", buttonSize);
                 if (this.TriggerOptions.Count > 1)
@@ -260,6 +284,12 @@ namespace XIVAuras.Config
                     this.DataTrigger = 0;
                 }
             }
+        }
+
+        private void Swap(int x, int y)
+        {
+            _swapX = x;
+            _swapY = y;
         }
     }
 }

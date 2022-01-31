@@ -10,9 +10,9 @@
     <!-- Assembly Configuration -->
     <PropertyGroup>
         <AssemblyName>XIVAuras</AssemblyName>
-        <AssemblyVersion>0.2.0.1</AssemblyVersion>
-        <FileVersion>0.2.0.1</FileVersion>
-        <InformationalVersion>0.2.0.1</InformationalVersion>
+        <AssemblyVersion>0.2.1.0</AssemblyVersion>
+        <FileVersion>0.2.1.0</FileVersion>
+        <InformationalVersion>0.2.1.0</InformationalVersion>
     </PropertyGroup>
 
     <!-- Build Configuration -->
@@ -56,7 +56,7 @@
         <Content Include="XIVAuras.json" CopyToOutputDirectory="Always" />
         <Content Include="changelog.md" CopyToOutputDirectory="Always" />
         <Content Include="Media\**" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="Media\images\icon.png" Link="images/icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+        <Content Include="Media\Images\icon.png" Link="images/icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
     </ItemGroup>
 
     <!-- Library References -->

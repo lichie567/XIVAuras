@@ -18,6 +18,8 @@ namespace XIVAuras.Config
         [JsonIgnore] private AuraType _selectedType = AuraType.Icon;
         [JsonIgnore] private string _input = string.Empty;
         [JsonIgnore] private string[] _options = new string[] { "Icon", "Bar", "Group" };
+        [JsonIgnore] private int _swapX = -1;
+        [JsonIgnore] private int _swapY = -1;
 
         public string Name => "Auras";
 
@@ -45,7 +47,7 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##Buttons", new Vector2(size.X, MenuBarHeight), true))
             {
                 ImGui.PushItemWidth(textInputWidth);
-                ImGui.InputTextWithHint("##Input", "Aura Name/Import String", ref _input, 10000);
+                ImGui.InputTextWithHint("##Input", "New Aura Name", ref _input, 100);
                 ImGui.PopItemWidth();
 
                 ImGui.SameLine();
@@ -56,7 +58,7 @@ namespace XIVAuras.Config
                 DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => CreateAura(_selectedType, _input), "Create new Aura or Group", buttonSize);
 
                 ImGui.SameLine();
-                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportAura(_input), "Import new Aura or Group", buttonSize);
+                DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportAura(), "Import new Aura or Group from Clipboard", buttonSize);
                 ImGui.PopItemWidth();
 
                 ImGui.EndChild();
@@ -73,15 +75,17 @@ namespace XIVAuras.Config
                 ImGuiTableFlags.ScrollY |
                 ImGuiTableFlags.NoSavedSettings;
 
-            if (ImGui.BeginTable("##Auras_Table", 3, flags, new Vector2(size.X, size.Y - MenuBarHeight)))
+            if (ImGui.BeginTable("##Auras_Table", 4, flags, new Vector2(size.X, size.Y - MenuBarHeight)))
             {
-                Vector2 buttonsize = new Vector2(30, 0);
-                float actionsWidth = buttonsize.X * 3 + padX * 2;
+                Vector2 buttonSize = new Vector2(30, 0);
+                int buttonCount = this.Auras.Count > 1 ? 5 : 3;
+                float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
                 float typeWidth = 75;
 
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 0, 0);
                 ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed, typeWidth, 1);
-                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 2);
+                ImGui.TableSetupColumn("Pre.", ImGuiTableColumnFlags.WidthFixed, 23, 2);
+                ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 3);
 
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableHeadersRow();
@@ -114,18 +118,54 @@ namespace XIVAuras.Config
                     if (ImGui.TableSetColumnIndex(2))
                     {
                         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit", buttonsize);
+                        ImGui.Checkbox("##Preview", ref aura.Preview);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip("Preview");
+                        }
+                    }
+
+                    if (ImGui.TableSetColumnIndex(3))
+                    {
+                        ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Pen, () => EditAura(aura), "Edit", buttonSize);
+
+                        if (this.Auras.Count > 1)
+                        {
+                            ImGui.SameLine();
+                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowUp, () => Swap(i, i - 1), "Move Up", buttonSize);
+
+                            ImGui.SameLine();
+                            DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.ArrowDown, () => Swap(i, i + 1), "Move Down", buttonSize);
+                        }
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export", buttonsize);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Upload, () => ExportAura(aura), "Export", buttonSize);
 
                         ImGui.SameLine();
-                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete", buttonsize);
+                        DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Trash, () => DeleteAura(aura), "Delete", buttonSize);
                     }
                 }
 
                 ImGui.EndTable();
             }
+
+            if (_swapX < this.Auras.Count && _swapX >= 0 &&
+                _swapY < this.Auras.Count && _swapY >= 0)
+            {
+                AuraListItem temp = this.Auras[_swapX];
+                this.Auras[_swapX] = this.Auras[_swapY];
+                this.Auras[_swapY] = temp;
+
+                _swapX = -1;
+                _swapY = -1;
+            }
+        }
+
+        private void Swap(int x, int y)
+        {
+            _swapX = x;
+            _swapY = y;
         }
 
         private void CreateAura(AuraType type, string name)
@@ -159,12 +199,17 @@ namespace XIVAuras.Config
             this.Auras.Remove(aura);
         }
 
-        private void ImportAura(string input)
+        private void ImportAura()
         {
-            string importString = input;
-            if (string.IsNullOrEmpty(importString))
+            string importString = string.Empty;
+            try
             {
                 importString = ImGui.GetClipboardText();
+            }
+            catch
+            {
+                DrawHelpers.DrawNotification("Failed to read from clipboard!", NotificationType.Error);
+                return;
             }
 
             AuraListItem? newAura = ConfigHelpers.GetFromImportString<AuraListItem>(importString);

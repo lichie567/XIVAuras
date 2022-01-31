@@ -65,7 +65,7 @@ namespace XIVAuras.Auras
             LabelStyleConfig style = this.StyleConditions.GetStyle(_data) ?? this.LabelStyleConfig;
 
             string text = _data is not null
-                ? _data.GetFormattedString(style.TextFormat, "N")
+                ? _data.GetFormattedString(style.TextFormat, "N", style.Rounding)
                 : style.TextFormat;
 
             using (FontsManager.PushFont(style.FontKey))

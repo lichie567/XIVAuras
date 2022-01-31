@@ -118,7 +118,7 @@ namespace XIVAuras.Config
                 {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                     ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                    ImGui.InputTextWithHint("##LabelInput", "New Label Name/Import String", ref _labelInput, 10000);
+                    ImGui.InputTextWithHint("##LabelInput", "New Label Name", ref _labelInput, 10000);
                     ImGui.PopItemWidth();
                 }
 
@@ -128,7 +128,7 @@ namespace XIVAuras.Config
                     DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => AddLabel(_labelInput), "Create Label", buttonSize);
 
                     ImGui.SameLine();
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportLabel(_labelInput), "Import Label", buttonSize);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Download, () => ImportLabel(), "Import Label", buttonSize);
                 }
 
                 ImGui.EndTable();
@@ -142,15 +142,20 @@ namespace XIVAuras.Config
                 this.AuraLabels.Add(new AuraLabel(name));
             }
 
-            this._labelInput = string.Empty;
+            _labelInput = string.Empty;
         }
 
-        private void ImportLabel(string input)
+        private void ImportLabel()
         {
-            string importString = input;
-            if (string.IsNullOrEmpty(importString))
+            string importString = string.Empty;
+            try
             {
                 importString = ImGui.GetClipboardText();
+            }
+            catch
+            {
+                DrawHelpers.DrawNotification("Failed to read from clipboard!", NotificationType.Error);
+                return;
             }
             
             AuraListItem? newAura = ConfigHelpers.GetFromImportString<AuraListItem>(importString);
@@ -164,7 +169,7 @@ namespace XIVAuras.Config
                 DrawHelpers.DrawNotification("Failed to Import Aura!", NotificationType.Error);
             }
 
-            this._labelInput = string.Empty;
+            _labelInput = string.Empty;
         }
 
         private void EditLabel(AuraLabel label)

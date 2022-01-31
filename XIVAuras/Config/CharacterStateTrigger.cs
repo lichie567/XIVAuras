@@ -100,11 +100,11 @@ namespace XIVAuras.Config
             }
 
             return preview ||
-                (!this.Hp || GetResult(data.Hp, this.HpOp, this.MaxHp ? data.MaxHp : this.HpValue)) &&
-                (!this.Mp || GetResult(data.Mp, this.MpOp, this.MaxMp ? data.MaxMp : this.MpValue)) &&
-                (!this.Cp || GetResult(data.Cp, this.CpOp, this.MaxCp ? data.MaxCp : this.CpValue)) &&
-                (!this.Gp || GetResult(data.Gp, this.GpOp, this.MaxGp ? data.MaxGp : this.GpValue)) &&
-                (!this.Level || GetResult(data.Level, this.LevelOp, this.LevelValue)) &&
+                (!this.Hp || Utils.GetResult(data.Hp, this.HpOp, this.MaxHp ? data.MaxHp : this.HpValue)) &&
+                (!this.Mp || Utils.GetResult(data.Mp, this.MpOp, this.MaxMp ? data.MaxMp : this.MpValue)) &&
+                (!this.Cp || Utils.GetResult(data.Cp, this.CpOp, this.MaxCp ? data.MaxCp : this.CpValue)) &&
+                (!this.Gp || Utils.GetResult(data.Gp, this.GpOp, this.MaxGp ? data.MaxGp : this.GpValue)) &&
+                (!this.Level || Utils.GetResult(data.Level, this.LevelOp, this.LevelValue)) &&
                 (!this.PetCheck || (this.PetValue == 0 ? data.HasPet : !data.HasPet));
         }
 

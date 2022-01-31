@@ -126,8 +126,8 @@ namespace XIVAuras.Config
                 (!this.Usable || (this.UsableValue == 0 ? usable : !usable)) &&
                 (!this.RangeCheck || (this.RangeValue == 0 ? inRange : !inRange)) &&
                 (!this.LosCheck || (this.LosValue == 0 ? inLos : !inLos)) &&
-                (!this.Cooldown || GetResult(data.Value, this.CooldownOp, this.CooldownValue)) &&
-                (!this.ChargeCount || GetResult(data.Stacks, this.ChargeCountOp, this.ChargeCountValue));
+                (!this.Cooldown || Utils.GetResult(data.Value, this.CooldownOp, this.CooldownValue)) &&
+                (!this.ChargeCount || Utils.GetResult(data.Stacks, this.ChargeCountOp, this.ChargeCountValue));
         }
 
         public override void DrawTriggerOptions(Vector2 size, float padX, float padY)
