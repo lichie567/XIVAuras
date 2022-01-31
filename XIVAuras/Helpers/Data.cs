@@ -97,6 +97,7 @@ namespace XIVAuras.Helpers
             TriggerDataSource.MP        => this.Mp,
             TriggerDataSource.CP        => this.Cp,
             TriggerDataSource.GP        => this.Gp,
+            TriggerDataSource.Level     => this.Level,
             _                           => 0
         };
 

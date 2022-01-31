@@ -3,6 +3,8 @@
 - Added Visibility option to Hide by Player Level
 - Added Icon "Glow" option to mimic default hotbar proc indicators
 - Added buttons to move Auras/Triggers/Conditions up or down in lists
+- Added option to show GCD swipe when cooldown is inactive
+- Added Level as data source for conditions
 
 # Version 0.2.0.2
 - Fixed some issues that were causing performance issues with large amounts of auras

@@ -38,7 +38,8 @@ namespace XIVAuras.Helpers
         HP,
         MP,
         CP,
-        GP
+        GP,
+        Level
     }
 
     public enum TriggerDataOp

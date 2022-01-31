@@ -28,6 +28,9 @@ namespace XIVAuras.Config
         public bool ShowSwipeLines = false;
         public ConfigColor ProgressLineColor = new ConfigColor(1, 1, 1, 1);
         public int ProgressLineThickness = 2;
+        public bool GcdSwipe = false;
+        public bool GcdSwipeOnly = false;
+
         public bool DesaturateIcon = false;
         public float Opacity = 1f;
 
@@ -187,6 +190,14 @@ namespace XIVAuras.Config
                         ImGui.DragFloat("Swipe Opacity", ref this.ProgressSwipeOpacity, .01f, 0, 1);
                         DrawHelpers.DrawNestIndicator(1);
                         ImGui.Checkbox("Invert Swipe", ref this.InvertSwipe);
+                        DrawHelpers.DrawNestIndicator(1);
+                        ImGui.Checkbox("Show GCD Swipe When Inactive", ref this.GcdSwipe);
+                        if (this.GcdSwipe)
+                        {
+                            DrawHelpers.DrawNestIndicator(2);
+                            ImGui.Checkbox("Only show GCD swipe", ref this.GcdSwipeOnly);
+                        }
+                        
                         DrawHelpers.DrawNestIndicator(1);
                         ImGui.Checkbox("Show Swipe Lines", ref this.ShowSwipeLines);
                         if (this.ShowSwipeLines)

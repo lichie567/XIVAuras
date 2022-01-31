@@ -96,6 +96,11 @@ namespace XIVAuras.Auras
                             style.Position = localPos - pos;
                         }
                     }
+
+                    if (style.IconOption == 2)
+                    {
+                        return;
+                    }
                     
                     bool desaturate = style.DesaturateIcon;
                     float alpha = style.Opacity;
@@ -119,27 +124,32 @@ namespace XIVAuras.Auras
                         }
                     }
 
-                    if (style.IconOption != 2)
+                    if (style.ShowProgressSwipe)
                     {
-                        if (style.ShowProgressSwipe)
+                        if (style.GcdSwipe && (data.Value == 0 || data.MaxValue == 0 || style.GcdSwipeOnly))
                         {
-                            this.DrawProgressSwipe(style, localPos, size, data.Value, data.MaxValue, alpha, drawList);
+                            SpellHelpers.GetGCDInfo(out var recastInfo);
+                            DrawProgressSwipe(style, localPos, size, recastInfo.RecastTime - recastInfo.RecastTimeElapsed, recastInfo.RecastTime, alpha, drawList);
                         }
+                        else
+                        {
+                            DrawProgressSwipe(style, localPos, size, data.Value, data.MaxValue, alpha, drawList);
+                        }
+                    }
 
-                        if (style.ShowBorder)
+                    if (style.ShowBorder)
+                    {
+                        for (int i = 0; i < style.BorderThickness; i++)
                         {
-                            for (int i = 0; i < style.BorderThickness; i++)
-                            {
-                                Vector2 offset = new Vector2(i, i);
-                                Vector4 color = style.BorderColor.Vector.AddTransparency(alpha);
-                                drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
-                            }
+                            Vector2 offset = new Vector2(i, i);
+                            Vector4 color = style.BorderColor.Vector.AddTransparency(alpha);
+                            drawList.AddRect(localPos + offset, localPos + size - offset, ImGui.ColorConvertFloat4ToU32(color));
                         }
+                    }
 
-                        if (style.Glow)
-                        {
-                            this.DrawIconGlow(localPos, size, style.GlowThickness, style.GlowSegments, style.GlowSpeed, style.GlowColor, style.GlowColor2, drawList);
-                        }
+                    if (style.Glow)
+                    {
+                        this.DrawIconGlow(localPos, size, style.GlowThickness, style.GlowSegments, style.GlowSpeed, style.GlowColor, style.GlowColor2, drawList);
                     }
                 });
             }
@@ -170,7 +180,7 @@ namespace XIVAuras.Auras
             this.LastFrameWasPreview = this.Preview;
         }
 
-        private void DrawProgressSwipe(
+        private static void DrawProgressSwipe(
             IconStyleConfig style,
             Vector2 pos,
             Vector2 size,

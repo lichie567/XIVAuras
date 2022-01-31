@@ -27,6 +27,44 @@ namespace XIVAuras.Helpers
         private readonly unsafe ActionManager* _actionManager;
 
         private readonly Dictionary<uint, ushort> _actionIdToIconId;
+                
+        private static readonly Dictionary<Job, uint> _jobActionIDs = new()
+        {
+            [Job.GNB] = 16137, // Keen Edge
+            [Job.WAR] = 31,    // Heavy Swing
+            [Job.MRD] = 31,    // Heavy Swing
+            [Job.DRK] = 3617,  // Hard Slash
+            [Job.PLD] = 9,     // Fast Blade
+            [Job.GLA] = 9,     // Fast Blade
+
+            [Job.SCH] = 163,   // Ruin
+            [Job.AST] = 3596,  // Malefic
+            [Job.WHM] = 119,   // Stone
+            [Job.CNJ] = 119,   // Stone
+            [Job.SGE] = 24283, // Dosis
+
+            [Job.BRD] = 97,    // Heavy Shot
+            [Job.ARC] = 97,    // Heavy Shot
+            [Job.DNC] = 15989, // Cascade
+            [Job.MCH] = 2866,  // Split Shot
+
+            [Job.SMN] = 163,   // Ruin
+            [Job.ACN] = 163,   // Ruin
+            [Job.RDM] = 7504,  // Riposte
+            [Job.BLM] = 142,   // Blizzard
+            [Job.THM] = 142,   // Blizzard
+
+            [Job.SAM] = 7477,  // Hakaze
+            [Job.NIN] = 2240,  // Spinning Edge
+            [Job.ROG] = 2240,  // Spinning Edge
+            [Job.MNK] = 53,    // Bootshine
+            [Job.PGL] = 53,    // Bootshine
+            [Job.DRG] = 75,    // True Thrust
+            [Job.LNC] = 75,    // True Thrust
+            [Job.RPR] = 24373, // Slice
+
+            [Job.BLU] = 11385  // Water Cannon
+        };
 
         public unsafe SpellHelpers(SigScanner scanner)
         {
@@ -330,6 +368,18 @@ namespace XIVAuras.Helpers
             }
 
             return comboIds.ToArray();
+        }
+
+        public static unsafe void GetGCDInfo(out RecastInfo recastInfo, ActionType actionType = ActionType.Spell)
+        {
+            if (!_jobActionIDs.TryGetValue(CharacterState.GetCharacterJob(), out uint actionId))
+            {
+                recastInfo = new(0, 0, 0);
+                return;
+            }
+
+            var helper = Singletons.Get<SpellHelpers>();
+            helper.GetAdjustedRecastInfo(helper.GetAdjustedActionId(actionId), out recastInfo);
         }
     }
 }
