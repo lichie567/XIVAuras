@@ -74,11 +74,11 @@ namespace XIVAuras.Helpers
             "[maxcp]",
         };
 
-        public string GetFormattedString(string format, string numberFormat)
+        public string GetFormattedString(string format, string numberFormat, int rounding)
         {
             return TextTagFormatter.TextTagRegex.Replace(
                 format,
-                new TextTagFormatter(this, numberFormat, _fields).Evaluate);
+                new TextTagFormatter(this, numberFormat, rounding, _fields).Evaluate);
         }
 
         public DataSource()
