@@ -91,7 +91,6 @@ namespace XIVAuras.Config
 
             foreach (var condition in this.Conditions)
             {
-                // int index = Math.Clamp(condition.TriggerDataSourceIndex, 0, data.Length - 1);
                 int index = condition.TriggerDataSourceIndex == 0
                     ? triggeredIndex
                     : condition.TriggerDataSourceIndex - 1;
