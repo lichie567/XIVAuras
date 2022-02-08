@@ -96,7 +96,15 @@ namespace XIVAuras
             this.ConfigRoot.PushConfig(config);
         }
 
-        public bool IsConfigOpen() => this.ConfigRoot.IsOpen;
+        public bool IsConfigOpen()
+        {
+            return this.ConfigRoot.IsOpen;
+        }
+
+        public bool IsConfigurableOpen(IConfigurable configurable)
+        {
+            return this.ConfigRoot.IsConfigurableOpen(configurable);
+        }
 
         private void OpenConfigUi()
         {

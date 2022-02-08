@@ -23,6 +23,16 @@ namespace XIVAuras.Helpers
             SerializationBinder = new XIVAurasSerializationBinder()
         };
 
+        public static T? SerializedClone<T>(T? obj) where T: class?
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(obj, Formatting.None, _serializerSettings), _serializerSettings);
+        }
+
         public static void ExportToClipboard<T>(T toExport)
         {
             string? exportString = ConfigHelpers.GetExportString(toExport);

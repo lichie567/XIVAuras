@@ -63,7 +63,7 @@ namespace XIVAuras.Auras
             Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
-            LabelStyleConfig style = this.StyleConditions.GetStyle(_data) ?? this.LabelStyleConfig;
+            LabelStyleConfig style = this.StyleConditions.GetStyle(_data, _dataIndex) ?? this.LabelStyleConfig;
 
             string text = _data is not null && _dataIndex < _data.Length && _data[_dataIndex] is not null
                 ? _data[_dataIndex].GetFormattedString(style.TextFormat, "N", style.Rounding)

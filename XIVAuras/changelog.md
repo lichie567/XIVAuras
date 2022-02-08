@@ -1,3 +1,9 @@
+# Version 0.2.1.1
+- Fixed issue where auras would show during some cutscenes and quest dialogue.
+- Added option to select the trigger source for individual conditions.
+- Conditional appearances are now previewed while being edited.
+- When a new condition is created, the conditional appearance will copy the current icon configuration.
+
 # Version 0.2.1.0
 - Added Visibility option 'Hide While Weapon Sheathed'
 - Added Visibility option to Hide by Player Level
