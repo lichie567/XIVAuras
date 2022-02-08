@@ -12,6 +12,7 @@ namespace XIVAuras.Config
 {
     public class StyleCondition<T> : IConfigurable where T : class?, IConfigPage, new()
     {
+        public int TriggerDataSourceIndex = 0;
         public TriggerDataSource Source = TriggerDataSource.Value;
         public TriggerDataOp Op = TriggerDataOp.GreaterThan;
         public float Value = 0;
@@ -62,16 +63,18 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
         [JsonIgnore] private static readonly string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
         [JsonIgnore] private static readonly float _yOffset = ImGui.CalcTextSize(_text).Y;
+        [JsonIgnore] private static string[] _triggerOptions = new string[0];
         [JsonIgnore] private string _styleConditionValueInput = string.Empty;
         [JsonIgnore] private int _swapX = -1;
         [JsonIgnore] private int _swapY = -1;
+        [JsonIgnore] private int _triggerCount = 0;
 
         public string Name => "Conditions";
         public IConfigPage GetDefault() => new StyleConditions<T>();
       
         public List<StyleCondition<T>> Conditions { get; set; } = new List<StyleCondition<T>>();
 
-        public T? GetStyle(DataSource? data)
+        public T? GetStyle(DataSource[]? data)
         {
             if (!this.Conditions.Any() || data is null)
             {
@@ -80,13 +83,37 @@ namespace XIVAuras.Config
 
             foreach (var condition in this.Conditions)
             {
-                if (condition.GetResult(data))
+                int index = Math.Clamp(condition.TriggerDataSourceIndex, 0, data.Length - 1);
+
+                if (condition.GetResult(data[index]))
                 {
                     return condition.Style;
                 }
             }
 
             return null;
+        }
+
+        public void UpdateTriggerCount(int count)
+        {
+            if (count < _triggerCount)
+            {
+                foreach (var condition in this.Conditions)
+                {
+                    condition.TriggerDataSourceIndex = Math.Clamp(condition.TriggerDataSourceIndex, 0, count - 1);
+                }
+            }
+
+            if (count > _triggerOptions.Length)
+            {
+                _triggerOptions = new string[count];
+                for (int i = 0; i < _triggerOptions.Length; i++)
+                {
+                    _triggerOptions[i] = $"Trigger {i + 1}";
+                }
+            }
+
+            _triggerCount = count;
         }
 
         public void DrawConfig(Vector2 size, float padX, float padY)
@@ -103,16 +130,17 @@ namespace XIVAuras.Config
                     ImGuiTableFlags.ScrollY |
                     ImGuiTableFlags.NoSavedSettings;
 
-                if (ImGui.BeginTable("##Conditions_Table", 5, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
+                if (ImGui.BeginTable("##Conditions_Table", 6, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
                 {
                     Vector2 buttonSize = new(30, 0);
                     int buttonCount = this.Conditions.Count > 1 ? 4 : 2;
                     float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
-                    ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
-                    ImGui.TableSetupColumn("Data Source", ImGuiTableColumnFlags.WidthFixed, 90, 1);
-                    ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 80, 2);
-                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 3);
-                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 4);
+                    ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 55, 0);
+                    ImGui.TableSetupColumn("Trigger Source", ImGuiTableColumnFlags.WidthFixed, 90, 1);
+                    ImGui.TableSetupColumn("Data Source", ImGuiTableColumnFlags.WidthFixed, 90, 2);
+                    ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 55, 3);
+                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 4);
+                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 5);
 
                     ImGui.TableSetupScrollFreeze(0, 1);
                     ImGui.TableHeadersRow();
@@ -127,7 +155,7 @@ namespace XIVAuras.Config
                     
                     ImGui.PushID(this.Conditions.Count.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
-                    ImGui.TableSetColumnIndex(4);
+                    ImGui.TableSetColumnIndex(5);
                     DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => this.Conditions.Add(new StyleCondition<T>()), "New Condition", buttonSize);
                 }
 
@@ -171,7 +199,7 @@ namespace XIVAuras.Config
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref condition.Source), _sourceOptions, _sourceOptions.Length);
+                ImGui.Combo("##TriggerCombo", ref condition.TriggerDataSourceIndex, _triggerOptions, _triggerCount);
                 ImGui.PopItemWidth();
             }
 
@@ -179,11 +207,19 @@ namespace XIVAuras.Config
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                ImGui.Combo("##OpCombo", ref Unsafe.As<TriggerDataOp, int>(ref condition.Op), _operatorOptions, _operatorOptions.Length);
+                ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref condition.Source), _sourceOptions, _sourceOptions.Length);
                 ImGui.PopItemWidth();
             }
 
             if (ImGui.TableSetColumnIndex(3))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                ImGui.Combo("##OpCombo", ref Unsafe.As<TriggerDataOp, int>(ref condition.Op), _operatorOptions, _operatorOptions.Length);
+                ImGui.PopItemWidth();
+            }
+
+            if (ImGui.TableSetColumnIndex(4))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
@@ -198,7 +234,7 @@ namespace XIVAuras.Config
                 ImGui.PopItemWidth();
             }
 
-            if (ImGui.TableSetColumnIndex(4))
+            if (ImGui.TableSetColumnIndex(5))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 Vector2 buttonSize = new(30, 0);

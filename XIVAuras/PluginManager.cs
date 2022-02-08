@@ -27,7 +27,7 @@ namespace XIVAuras
 
         private XIVAurasConfig Config { get; init; }
 
-        private readonly Vector2 _configSize = new Vector2(550, 600);
+        private readonly Vector2 _configSize = new Vector2(600, 650);
 
         private readonly ImGuiWindowFlags _mainWindowFlags = 
             ImGuiWindowFlags.NoTitleBar |

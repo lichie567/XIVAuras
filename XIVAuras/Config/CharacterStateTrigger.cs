@@ -90,6 +90,7 @@ namespace XIVAuras.Config
                 data.Gp = chara.CurrentGp;
                 data.MaxGp = chara.MaxGp;
                 data.Level = chara.Level;
+                data.Distance = chara.YalmDistanceX;
                 data.HasPet = this.TriggerSource == TriggerSource.Player &&
                     Singletons.Get<BuddyList>().PetBuddy != null;  
 

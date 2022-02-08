@@ -98,6 +98,7 @@ namespace XIVAuras.Helpers
             TriggerDataSource.CP        => this.Cp,
             TriggerDataSource.GP        => this.Gp,
             TriggerDataSource.Level     => this.Level,
+            TriggerDataSource.Distance  => this.Distance,
             _                           => 0
         };
 
@@ -124,5 +125,6 @@ namespace XIVAuras.Helpers
         public float Cp;
         public float MaxCp;
         public bool HasPet;
+        public float Distance;
     }
 }

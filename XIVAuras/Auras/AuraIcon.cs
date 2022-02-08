@@ -35,6 +35,10 @@ namespace XIVAuras.Auras
             yield return this.IconStyleConfig;
             yield return this.LabelListConfig;
             yield return this.TriggerConfig;
+
+            // ugly hack
+            this.StyleConditions.UpdateTriggerCount(this.TriggerConfig.TriggerOptions.Count);
+
             yield return this.StyleConditions;
             yield return this.VisibilityConfig;
         }
@@ -74,8 +78,9 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
-            IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource[] datas, out int triggeredIndex);
+            DataSource data = datas[triggeredIndex];
+            IconStyleConfig style = this.StyleConditions.GetStyle(datas) ?? this.IconStyleConfig;
 
             Vector2 localPos = pos + style.Position;
             Vector2 size = style.Size;
@@ -172,7 +177,7 @@ namespace XIVAuras.Auras
 
                 if (triggered || label.Preview)
                 {
-                    label.SetData(data);
+                    label.SetData(datas, triggeredIndex);
                     label.Draw(localPos, size, visible);
                 }
             }
