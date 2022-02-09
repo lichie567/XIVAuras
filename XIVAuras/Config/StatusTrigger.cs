@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ImGuiNET;
@@ -15,6 +16,7 @@ namespace XIVAuras.Config
     public class StatusTrigger : TriggerOptions
     {
         [JsonIgnore] private static readonly string[] _sourceOptions = Enum.GetNames<TriggerSource>();
+        [JsonIgnore] private static readonly string[] _sourceTypeOptions = Enum.GetNames<TriggerSourceType>();
         [JsonIgnore] private static readonly string[] _triggerConditions = new string[] { "Status Active", "Status Not Active" };
         
         [JsonIgnore] private string _triggerNameInput = string.Empty;
@@ -23,6 +25,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private string _stackCountValueInput = string.Empty;
 
         public TriggerSource TriggerSource = TriggerSource.Player;
+        public TriggerSourceType TriggerSourceType = TriggerSourceType.Any;
         public string TriggerName = string.Empty;
         public int TriggerCondition = 0;
 
@@ -77,6 +80,10 @@ namespace XIVAuras.Config
                 return false;
             }
 
+            // If the actor DOES NOT match the TriggerSourceType configured, the aura should not be triggered. We can ignore all subsequent checks.
+            // Players are always friendly, and we don't want to check TriggerSourceType if the TriggerSource is set to Player in the case TriggerSourceType is set to Enemy somehow.
+            if (this.TriggerSource is not TriggerSource.Player && !DoesActorMatchTriggerSourceType(actor, this.TriggerSourceType)) return false;
+
             bool active = false;
             data.Icon = this.TriggerData.FirstOrDefault().Icon;
             foreach (TriggerData trigger in this.TriggerData)
@@ -114,6 +121,11 @@ namespace XIVAuras.Config
         {
             ImGui.Combo("Trigger Source", ref Unsafe.As<TriggerSource, int>(ref this.TriggerSource), _sourceOptions, _sourceOptions.Length);
 
+            // Don't even display this option if the TriggerSource is set to Player, since player will always be friendly.
+            if( this.TriggerSource is not TriggerSource.Player) { 
+                ImGui.Combo("Trigger Source Type", ref Unsafe.As<TriggerSourceType, int>(ref this.TriggerSourceType), _sourceTypeOptions, _sourceTypeOptions.Length);
+            }
+
             if (string.IsNullOrEmpty(_triggerNameInput))
             {
                 _triggerNameInput = this.TriggerName;
@@ -132,6 +144,7 @@ namespace XIVAuras.Config
 
             ImGui.Checkbox("Only Mine", ref this.OnlyMine);
             DrawHelpers.DrawSpacing(1);
+
             ImGui.Combo("Trigger Condition", ref this.TriggerCondition, _triggerConditions, _triggerConditions.Length);
             if (this.TriggerCondition == 0)
             {
@@ -208,6 +221,22 @@ namespace XIVAuras.Config
             this.TriggerName = triggerData.Name.ToString();
             _triggerNameInput = this.TriggerName;
             this.TriggerData.Add(triggerData);
+        }
+
+        private Boolean DoesActorMatchTriggerSourceType(GameObject actor, TriggerSourceType sourceType) {
+            // Any basically means we don't care about checking the type, so just return true
+            if (sourceType is TriggerSourceType.Any) return true;
+
+            // Sanity check
+            if (actor == null || actor is not BattleChara) return false;
+
+            // Do we want to include BattleNpcSubKind.Pet or BattleNpcSubKind.Chocobo as friendly?
+            if (sourceType is TriggerSourceType.Friendly && actor is PlayerCharacter) return true;
+
+            if (sourceType is TriggerSourceType.Enemy && actor is BattleNpc && ((BattleNpc)actor).BattleNpcKind is BattleNpcSubKind.Enemy) return true;
+
+            // If none of the above cases are hit, then the actor and SourceType mismatch and the aura should not be triggered.
+            return false;
         }
     }
 }
