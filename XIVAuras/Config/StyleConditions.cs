@@ -114,7 +114,7 @@ namespace XIVAuras.Config
                 }
             }
 
-            if (count > _triggerOptions.Length)
+            if (count + 1 > _triggerOptions.Length)
             {
                 _triggerOptions = new string[count + 1];
                 _triggerOptions[0] = "Dynamic";
