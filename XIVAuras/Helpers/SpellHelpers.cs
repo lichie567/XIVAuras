@@ -17,7 +17,7 @@ namespace XIVAuras.Helpers
     public class SpellHelpers
     {
         private const string CastRaySig = "48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1";
-        private const string ComboSig = "48 89 2D ?? ?? ?? ?? 85 C0";
+        private const string ComboSig = "E8 ?? ?? ?? ?? 80 7E 21 00";
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool CastRayNative(float* origin, float* direction, float distance, float* worldPos, int* flags);
