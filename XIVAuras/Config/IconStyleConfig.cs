@@ -94,7 +94,7 @@ namespace XIVAuras.Config
                         }
                         else if (!string.IsNullOrEmpty(_iconSearchInput))
                         {
-                            _iconSearchResults.AddRange(SpellHelpers.FindActionEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(SpellHelpers.FindActionEntries(_iconSearchInput, CombatType.All));
                             _iconSearchResults.AddRange(SpellHelpers.FindStatusEntries(_iconSearchInput));
                         }
                     }

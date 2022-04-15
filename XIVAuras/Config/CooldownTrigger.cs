@@ -15,6 +15,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _usableOptions = new[] { "Usable", "Not Usable" };
         [JsonIgnore] private static readonly string[] _rangeOptions = new[] { "In Range", "Not in Range" };
         [JsonIgnore] private static readonly string[] _losOptions = new[] { "In LoS", "Not in LoS" };
+        [JsonIgnore] private static readonly string[] _combatTypeOptions = new[] { "PvE", "PvP" };
         
         [JsonIgnore] private string _triggerNameInput = string.Empty;
         [JsonIgnore] private string _cooldownValueInput = string.Empty;
@@ -22,6 +23,7 @@ namespace XIVAuras.Config
 
         public string TriggerName = string.Empty;
 
+        public CombatType CombatType = CombatType.PvE;
         public bool Adjust = false;
 
         public bool Cooldown = false;
@@ -134,7 +136,14 @@ namespace XIVAuras.Config
         {
             if (string.IsNullOrEmpty(_triggerNameInput))
             {
-                _triggerNameInput = TriggerName;
+                _triggerNameInput = this.TriggerName;
+            }
+
+            if (ImGui.Combo("Trigger Condition", ref Unsafe.As<CombatType, int>(ref this.CombatType), _combatTypeOptions, _combatTypeOptions.Length))
+            {
+                this.TriggerData.Clear();
+                this.TriggerName = string.Empty;
+                this._triggerNameInput = string.Empty;
             }
 
             if (ImGui.InputTextWithHint("Action", "Action Name or ID", ref _triggerNameInput, 32, ImGuiInputTextFlags.EnterReturnsTrue))
@@ -142,10 +151,10 @@ namespace XIVAuras.Config
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    SpellHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
+                    SpellHelpers.FindActionEntries(_triggerNameInput, this.CombatType).ForEach(t => AddTriggerData(t));
                 }
 
-                _triggerNameInput = TriggerName;
+                _triggerNameInput = this.TriggerName;
             }
             ImGui.Checkbox("Use Adjusted Action", ref this.Adjust);
             if (ImGui.IsItemHovered())
@@ -283,7 +292,7 @@ namespace XIVAuras.Config
         private void AddTriggerData(TriggerData triggerData)
         {
             this.TriggerName = triggerData.Name.ToString();
-            _triggerNameInput = TriggerName;
+            _triggerNameInput = this.TriggerName;
             this.TriggerData.Add(triggerData);
         }
     }

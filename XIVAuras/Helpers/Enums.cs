@@ -1,5 +1,12 @@
 namespace XIVAuras.Helpers
 {
+    public enum CombatType
+    {
+        PvE,
+        PvP,
+        All
+    }
+
     public enum AuraType
     {
         Icon,

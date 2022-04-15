@@ -206,13 +206,13 @@ namespace XIVAuras.Helpers
             return new List<TriggerData>();
         }
 
-        public static List<TriggerData> FindActionEntries(string input)
+        public static List<TriggerData> FindActionEntries(string input, CombatType type)
         {
             List<TriggerData> actionList = new List<TriggerData>();
-
+            
             if (!string.IsNullOrEmpty(input))
             {
-                actionList.AddRange(FindEntriesFromActionSheet(input));
+                actionList.AddRange(FindEntriesFromActionSheet(input, type));
 
                 if (!actionList.Any())
                 {
@@ -228,7 +228,7 @@ namespace XIVAuras.Helpers
             return actionList;
         }
 
-        public static List<TriggerData> FindEntriesFromActionSheet(string input)
+        public static List<TriggerData> FindEntriesFromActionSheet(string input, CombatType type)
         {
             List<TriggerData> actionList = new List<TriggerData>();
             ExcelSheet<LuminaAction>? actionSheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaAction>();
@@ -244,7 +244,9 @@ namespace XIVAuras.Helpers
                 if (value > 0)
                 {
                     LuminaAction? action = actionSheet.GetRow(value);
-                    if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
+                    if (action is not null &&
+                        (action.IsPlayerAction || action.IsRoleAction) &&
+                        (type == CombatType.All || (action.IsPvP && type == CombatType.PvP)))
                     {
                         actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
@@ -256,7 +258,9 @@ namespace XIVAuras.Helpers
             {
                 foreach(LuminaAction action in actionSheet)
                 {
-                    if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
+                    if (input.ToLower().Equals(action.Name.ToString().ToLower()) &&
+                        (action.IsPlayerAction || action.IsRoleAction) &&
+                        (type == CombatType.All || (action.IsPvP && type == CombatType.PvP)))
                     {
                         actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
                     }
