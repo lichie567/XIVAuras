@@ -1,3 +1,12 @@
+# Version 0.2.2.1
+- Added PvP Action cooldown support
+- Added Item cooldown tracking
+- Added ability to resize all Icons in a group under Group settings
+- Added visibility settings for root XIVAuras group
+
+# Version 0.2.2.0
+- Updated plugin for patch 6.1
+
 # Version 0.2.1.1
 - Fixed issue where auras would show during some cutscenes and quest dialogue.
 - Added option to select the trigger source for individual conditions.

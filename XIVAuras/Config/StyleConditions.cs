@@ -132,7 +132,7 @@ namespace XIVAuras.Config
             _defaultStyle = style;
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             ImGui.Text(_text);
             size = size.AddY(-(_yOffset + padY));

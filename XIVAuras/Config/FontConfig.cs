@@ -42,7 +42,7 @@ namespace XIVAuras.Config
             }
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (_fonts.Length == 0)
             {

@@ -245,6 +245,19 @@ namespace XIVAuras.Auras
             DrawHelpers.DrawSegmentedLineVertical(drawList, c4, thickness, -size.Y, prog, segments, col1, col2);
         }
 
+        public void Resize(Vector2 size, bool conditions)
+        {
+            this.IconStyleConfig.Size = size;
+
+            if (conditions)
+            {
+                foreach (var condition in this.StyleConditions.Conditions)
+                {
+                    condition.Style.Size = size;
+                }
+            }
+        }
+
         public static AuraIcon GetDefaultAuraIcon(string name)
         {
             AuraIcon newIcon = new AuraIcon(name);

@@ -80,7 +80,7 @@ namespace XIVAuras.Config
             return parentVisible && CharacterState.IsJobType(CharacterState.GetCharacterJob(), this.ShowForJobTypes, this.CustomJobList);
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X, size.Y), true))
             {

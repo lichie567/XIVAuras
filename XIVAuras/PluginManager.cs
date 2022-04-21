@@ -82,9 +82,12 @@ namespace XIVAuras
             ImGui.SetNextWindowSize(viewPortSize);
             if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
             {
-                foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                if (this.Config.VisibilityConfig.IsVisible(true))
                 {
-                    aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                    foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                    {
+                        aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                    }
                 }
             }
 

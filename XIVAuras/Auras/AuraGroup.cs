@@ -80,5 +80,20 @@ namespace XIVAuras.Auras
 
             this.LastFrameWasPreview = this.Preview;
         }
+
+        public void ResizeIcons(Vector2 size, bool recurse, bool conditions)
+        {
+            foreach (AuraListItem item in this.AuraList.Auras)
+            {
+                if (item is AuraIcon icon)
+                {
+                    icon.Resize(size, conditions);
+                }
+                else if (recurse && item is AuraGroup group)
+                {
+                    group.ResizeIcons(size, recurse, conditions);
+                }
+            }
+        }
     }
 }

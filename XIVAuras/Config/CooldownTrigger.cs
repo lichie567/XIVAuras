@@ -67,7 +67,7 @@ namespace XIVAuras.Config
             }
 
             SpellHelpers helper = Singletons.Get<SpellHelpers>();
-            TriggerData actionTrigger = this.TriggerData.First();
+            TriggerData actionTrigger = this.TriggerData.First(t => t.CombatType == this.CombatType);
             uint actionId = this.Adjust ? helper.GetAdjustedActionId(actionTrigger.Id) : actionTrigger.Id;
             helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
 
@@ -123,7 +123,7 @@ namespace XIVAuras.Config
             data.MaxStacks = recastInfo.MaxCharges;
             data.Icon = this.Adjust ? helper.GetIconIdForAction(actionId) : actionTrigger.Icon;
 
-            return preview ||
+            return
                 (!this.Combo || (this.ComboValue == 0 ? comboActive : !comboActive)) &&
                 (!this.Usable || (this.UsableValue == 0 ? usable : !usable)) &&
                 (!this.RangeCheck || (this.RangeValue == 0 ? inRange : !inRange)) &&
@@ -139,19 +139,13 @@ namespace XIVAuras.Config
                 _triggerNameInput = this.TriggerName;
             }
 
-            if (ImGui.Combo("Trigger Condition", ref Unsafe.As<CombatType, int>(ref this.CombatType), _combatTypeOptions, _combatTypeOptions.Length))
-            {
-                this.TriggerData.Clear();
-                this.TriggerName = string.Empty;
-                this._triggerNameInput = string.Empty;
-            }
-
+            ImGui.Combo("Combat Type", ref Unsafe.As<CombatType, int>(ref this.CombatType), _combatTypeOptions, _combatTypeOptions.Length);
             if (ImGui.InputTextWithHint("Action", "Action Name or ID", ref _triggerNameInput, 32, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    SpellHelpers.FindActionEntries(_triggerNameInput, this.CombatType).ForEach(t => AddTriggerData(t));
+                    SpellHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
                 }
 
                 _triggerNameInput = this.TriggerName;
@@ -287,6 +281,13 @@ namespace XIVAuras.Config
                 ImGui.Combo("##LosCombo", ref this.LosValue, _losOptions, _losOptions.Length);
                 ImGui.PopItemWidth();
             }
+        }
+
+        private void ResetTrigger()
+        {
+            this.TriggerData.Clear();
+            this.TriggerName = string.Empty;
+            this._triggerNameInput = string.Empty;
         }
         
         private void AddTriggerData(TriggerData triggerData)

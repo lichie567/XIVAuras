@@ -3,8 +3,7 @@ namespace XIVAuras.Helpers
     public enum CombatType
     {
         PvE,
-        PvP,
-        All
+        PvP
     }
 
     public enum AuraType
@@ -19,7 +18,8 @@ namespace XIVAuras.Helpers
     {
         Status,
         Cooldown,
-        CharacterState
+        CharacterState,
+        ItemCooldown
     }
 
     public enum TriggerSource
