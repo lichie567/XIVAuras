@@ -130,7 +130,7 @@ namespace XIVAuras.Helpers
             return;
         }
 
-        public unsafe bool CanUseAction(uint actionId, uint targetId = 0xE000_0000)
+        public unsafe bool CanUseAction(uint actionId, long targetId = 0xE000_0000)
         {
             return _actionManager->GetActionStatus(ActionType.Spell, actionId, targetId, 0, 1) == 0;
         }
