@@ -258,6 +258,17 @@ namespace XIVAuras.Auras
             }
         }
 
+        public void ScaleResolution(Vector2 scaleFactor)
+        {
+            this.IconStyleConfig.Position *= scaleFactor;
+            this.IconStyleConfig.Size *= scaleFactor;
+            foreach (var condition in this.StyleConditions.Conditions)
+            {
+                condition.Style.Position *= scaleFactor;
+                condition.Style.Size *= scaleFactor;
+            }
+        }
+
         public static AuraIcon GetDefaultAuraIcon(string name)
         {
             AuraIcon newIcon = new AuraIcon(name);

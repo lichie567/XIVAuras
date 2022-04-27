@@ -95,5 +95,21 @@ namespace XIVAuras.Auras
                 }
             }
         }
+
+        public void ScaleResolution(Vector2 scaleFactor, bool recurse)
+        {
+            this.GroupConfig.Position *= scaleFactor;
+            foreach (AuraListItem item in this.AuraList.Auras)
+            {
+                if (item is AuraIcon icon)
+                {
+                    icon.ScaleResolution(scaleFactor);
+                }
+                else if (recurse && item is AuraGroup group)
+                {
+                    group.ScaleResolution(scaleFactor, recurse);
+                }
+            }
+        }
     }
 }
