@@ -80,6 +80,9 @@ namespace XIVAuras
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
             ImGui.SetNextWindowSize(viewPortSize);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
             if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
             {
                 if (this.Config.VisibilityConfig.IsVisible(true))
@@ -92,6 +95,7 @@ namespace XIVAuras
             }
 
             ImGui.End();
+            ImGui.PopStyleVar(3);
         }
 
         public void Edit(IConfigurable config)
