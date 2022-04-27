@@ -1,3 +1,9 @@
+# Version 0.2.2.1
+- Updated for patch 6.11
+
+# Version 0.2.2.0
+- Updated for patch 6.1
+
 # Version 0.2.1.0
 - Added Visibility option 'Hide While Weapon Sheathed'
 - Added Visibility option to Hide by Player Level
