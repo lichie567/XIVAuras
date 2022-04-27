@@ -4,8 +4,8 @@
         "Name": "XIVAuras",
         "Description": "Customizable status and cooldown tracking.",
         "InternalName": "XIVAuras",
-        "AssemblyVersion": "0.2.2.0",
-        "TestingAssemblyVersion": "0.2.2.0",
+        "AssemblyVersion": "0.2.2.1",
+        "TestingAssemblyVersion": "0.2.2.1",
         "RepoUrl": "https://github.com/lichie567/XIVAuras",
         "ApplicableVersion": "any",
         "DalamudApiLevel": 6,
@@ -14,9 +14,9 @@
         "DownloadCount": 0,
         "LastUpdate": 0,
         "LoadPriority": 69420,
-        "DownloadLinkInstall": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.0/XIVAuras.zip",
-        "DownloadLinkTesting": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.0/XIVAuras.zip",
-        "DownloadLinkUpdate": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.0/XIVAuras.zip",
+        "DownloadLinkInstall": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.1/XIVAuras.zip",
+        "DownloadLinkTesting": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.1/XIVAuras.zip",
+        "DownloadLinkUpdate": "https://github.com/lichie567/XIVAuras/releases/download/0.2.2.1/XIVAuras.zip",
         "IconUrl": "https://raw.githubusercontent.com/lichie567/XIVAuras/main/XIVAuras/Media/Images/icon.png"
     }
 ]
