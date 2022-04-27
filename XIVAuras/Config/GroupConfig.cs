@@ -18,7 +18,6 @@ namespace XIVAuras.Config
         [JsonIgnore] private Vector2 _screenSize2 = _screenSize;
         [JsonIgnore] private bool _recusiveResize = false;
         [JsonIgnore] private bool _conditionsResize = false;
-        [JsonIgnore] private bool _recusiveScale = false;
         [JsonIgnore] private bool _scaleByHeight = false;
 
         public IConfigPage GetDefault() => new GroupConfig();
@@ -50,39 +49,37 @@ namespace XIVAuras.Config
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
                 if (ImGui.Button("Resize", new Vector2(60, 0)))
                 {
-                    if (parent is AuraGroup group)
+                    if (parent is AuraGroup g)
                     {
-                        group.ResizeIcons(_iconSize, _recusiveResize, _conditionsResize);
+                        g.ResizeIcons(_iconSize, _recusiveResize, _conditionsResize);
                     }
                 }
 
-                ImGui.NewLine();
-                ImGui.Text("Scale Resolution (Size & Position)");
-                ImGui.DragFloat2("Original Resolution", ref _screenSize1, 1, 0, _screenSize.Y);
-                ImGui.DragFloat2("Target Resolution", ref _screenSize2, 1, 0, _screenSize.Y);
-                ImGui.Checkbox("Recursive##Scale", ref _recusiveScale);
-                if (ImGui.IsItemHovered())
+                if (parent is AuraGroup group)
                 {
-                    ImGui.SetTooltip("Check to recursively scale sub-groups");
-                }
+                    ImGui.NewLine();
+                    ImGui.Text("Scale Resolution (Size & Position)");
+                    ImGui.DragFloat2("Original Resolution", ref _screenSize1, 1, 0, _screenSize.Y);
+                    ImGui.DragFloat2("Target Resolution", ref _screenSize2, 1, 0, _screenSize.Y);
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip("Check to recursively scale sub-groups");
+                    }
 
-                ImGui.SameLine();
-                ImGui.Checkbox("Scale by Height##Scale", ref _scaleByHeight);
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip("Check to scale by screen height, use this for ultra-wide aspect ratios.");
-                }
+                    ImGui.Checkbox("Scale by Height##Scale", ref _scaleByHeight);
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip("Check to scale by screen height, use this for ultra-wide aspect ratios.");
+                    }
 
-                ImGui.SameLine();
-                padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - 60 + padX;
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
-                if (ImGui.Button("Scale", new Vector2(60, 0)))
-                {
-                    if (parent is AuraGroup group)
+                    ImGui.SameLine();
+                    padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - 60 + padX;
+                    ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
+                    if (ImGui.Button("Scale", new Vector2(60, 0)))
                     {
                         Vector2 start = _scaleByHeight ? _screenSize1.Y * Vector2.One : _screenSize1;
                         Vector2 target = _scaleByHeight ? _screenSize2.Y * Vector2.One : _screenSize2;
-                        group.ScaleResolution(target / start, _recusiveScale);
+                        group.ScaleResolution(target / start);
                     }
                 }
                 

@@ -96,7 +96,7 @@ namespace XIVAuras.Auras
             }
         }
 
-        public void ScaleResolution(Vector2 scaleFactor, bool recurse)
+        public void ScaleResolution(Vector2 scaleFactor)
         {
             this.GroupConfig.Position *= scaleFactor;
             foreach (AuraListItem item in this.AuraList.Auras)
@@ -105,9 +105,9 @@ namespace XIVAuras.Auras
                 {
                     icon.ScaleResolution(scaleFactor);
                 }
-                else if (recurse && item is AuraGroup group)
+                else if (item is AuraGroup group)
                 {
-                    group.ScaleResolution(scaleFactor, recurse);
+                    group.ScaleResolution(scaleFactor);
                 }
             }
         }
