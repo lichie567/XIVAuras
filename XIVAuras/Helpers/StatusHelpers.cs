@@ -16,18 +16,18 @@ namespace XIVAuras.Helpers
     public class StatusHelpers
     {
         private readonly TriggerSource[] _sourceKeys = Enum.GetValues<TriggerSource>();
-        private readonly Dictionary<TriggerSource, Dictionary<uint, DalamudStatus>> _statusMap;
+        private readonly Dictionary<TriggerSource, Dictionary<uint, List<DalamudStatus>>> _statusMap;
 
         public StatusHelpers()
         {
-            _statusMap = new Dictionary<TriggerSource, Dictionary<uint, DalamudStatus>>(4);
+            _statusMap = new Dictionary<TriggerSource, Dictionary<uint, List<DalamudStatus>>>(4);
             foreach(var source in _sourceKeys)
             {
-                _statusMap.Add(source, new Dictionary<uint, DalamudStatus>(30));
+                _statusMap.Add(source, new Dictionary<uint, List<DalamudStatus>>(30));
             }
         }
         
-        public DalamudStatus? GetStatus(TriggerSource source, uint statusId)
+        public List<DalamudStatus> GetStatus(TriggerSource source, uint statusId)
         {
             var dict = _statusMap[source];
             if (dict.ContainsKey(statusId))
@@ -35,7 +35,7 @@ namespace XIVAuras.Helpers
                 return dict[statusId];
             }
 
-            return null;
+            return new List<DalamudStatus>(0);
         }
 
         private void ClearStatusMap()
@@ -79,7 +79,10 @@ namespace XIVAuras.Helpers
                 {
                     foreach (var status in chara.StatusList)
                     {
-                        _statusMap[source].Add(status.StatusId, status);
+                        if (!_statusMap[source].ContainsKey(status.StatusId))
+                            _statusMap[source].Add(status.StatusId, new List<DalamudStatus>());
+
+                        _statusMap[source][status.StatusId].Add(status);
                     }
                 }
             }

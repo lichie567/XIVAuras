@@ -83,20 +83,25 @@ namespace XIVAuras
             ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
-            if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
+            try
             {
-                if (this.Config.VisibilityConfig.IsVisible(true))
+                if (ImGui.Begin("XIVAuras_Root", _mainWindowFlags))
                 {
-                    Singletons.Get<StatusHelpers>().GenerateStatusMap();
-                    foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                    if (this.Config.VisibilityConfig.IsVisible(true))
                     {
-                        aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                        Singletons.Get<StatusHelpers>().GenerateStatusMap();
+                        foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                        {
+                            aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                        }
                     }
                 }
             }
-
-            ImGui.End();
-            ImGui.PopStyleVar(3);
+            finally
+            {
+                ImGui.End();
+                ImGui.PopStyleVar(3);
+            }
         }
 
         public void Edit(IConfigurable config)

@@ -67,17 +67,19 @@ namespace XIVAuras.Config
             StatusHelpers helper = Singletons.Get<StatusHelpers>();
             foreach(TriggerData trigger in this.TriggerData)
             {
-                var status = helper.GetStatus(this.Source, trigger.Id);
-                if (status is not null &&
-                    (status.SourceID == player.ObjectId || !this.OnlyMine))
+                foreach (var status in helper.GetStatus(this.Source, trigger.Id))
                 {
-                    active = true;
-                    data.Id = status.StatusId;
-                    data.Value = Math.Abs(status.RemainingTime);
-                    data.Stacks = status.StackCount;
-                    data.MaxStacks = trigger.MaxStacks;
-                    data.Icon = trigger.Icon;
-                    break;
+                    if (status is not null &&
+                        (status.SourceID == player.ObjectId || !this.OnlyMine))
+                    {
+                        active = true;
+                        data.Id = status.StatusId;
+                        data.Value = Math.Abs(status.RemainingTime);
+                        data.Stacks = status.StackCount;
+                        data.MaxStacks = trigger.MaxStacks;
+                        data.Icon = trigger.Icon;
+                        break;
+                    }
                 }
             }
 
