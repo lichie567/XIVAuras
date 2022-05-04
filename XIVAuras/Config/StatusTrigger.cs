@@ -57,15 +57,22 @@ namespace XIVAuras.Config
                 return true;
             }
 
+            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
+            if (player is null)
+            {
+                return false;
+            }
+
             bool active = false;
             StatusHelpers helper = Singletons.Get<StatusHelpers>();
             foreach(TriggerData trigger in this.TriggerData)
             {
                 var status = helper.GetStatus(this.Source, trigger.Id);
-                if (status is not null)
+                if (status is not null &&
+                    (status.SourceID == player.ObjectId || !this.OnlyMine))
                 {
                     active = true;
-                    data.Id = trigger.Id;
+                    data.Id = status.StatusId;
                     data.Value = Math.Abs(status.RemainingTime);
                     data.Stacks = status.StackCount;
                     data.MaxStacks = trigger.MaxStacks;
