@@ -134,7 +134,7 @@ namespace XIVAuras.Auras
                     {
                         if (style.GcdSwipe && (data.Value == 0 || data.MaxValue == 0 || style.GcdSwipeOnly))
                         {
-                            SpellHelpers.GetGCDInfo(out var recastInfo);
+                            ActionHelpers.GetGCDInfo(out var recastInfo);
                             DrawProgressSwipe(style, localPos, size, recastInfo.RecastTime - recastInfo.RecastTimeElapsed, recastInfo.RecastTime, alpha, drawList);
                         }
                         else

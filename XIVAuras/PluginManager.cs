@@ -87,6 +87,7 @@ namespace XIVAuras
             {
                 if (this.Config.VisibilityConfig.IsVisible(true))
                 {
+                    Singletons.Get<StatusHelpers>().GenerateStatusMap();
                     foreach (AuraListItem aura in this.Config.AuraList.Auras)
                     {
                         aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);

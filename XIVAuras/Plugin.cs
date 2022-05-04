@@ -4,6 +4,7 @@ using System.Reflection;
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Buddy;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.JobGauge;
 using Dalamud.Game.ClientState.Objects;
@@ -11,14 +12,13 @@ using Dalamud.Game.ClientState.Party;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.Interface;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using ImGuiScene;
 using XIVAuras.Config;
 using XIVAuras.Helpers;
-using SigScanner = Dalamud.Game.SigScanner;
-using Dalamud.Game.ClientState.Buddy;
-using Dalamud.Logging;
 
+using SigScanner = Dalamud.Game.SigScanner;
 
 namespace XIVAuras
 {
@@ -74,7 +74,8 @@ namespace XIVAuras
             Singletons.Register(targetManager);
             Singletons.Register(pluginInterface.UiBuilder);
             Singletons.Register(new TexturesCache(pluginInterface));
-            Singletons.Register(new SpellHelpers(sigScanner));
+            Singletons.Register(new ActionHelpers(sigScanner));
+            Singletons.Register(new StatusHelpers());
 
             // Load Icon
             Plugin.IconTexture = LoadIconTexture(pluginInterface.UiBuilder);

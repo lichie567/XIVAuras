@@ -94,9 +94,9 @@ namespace XIVAuras.Config
                         }
                         else if (!string.IsNullOrEmpty(_iconSearchInput))
                         {
-                            _iconSearchResults.AddRange(SpellHelpers.FindActionEntries(_iconSearchInput));
-                            _iconSearchResults.AddRange(SpellHelpers.FindStatusEntries(_iconSearchInput));
-                            _iconSearchResults.AddRange(SpellHelpers.FindItemEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(ActionHelpers.FindActionEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(StatusHelpers.FindStatusEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(ActionHelpers.FindItemEntries(_iconSearchInput));
                         }
                     }
                     ImGui.PopItemWidth();

@@ -66,7 +66,7 @@ namespace XIVAuras.Config
                 return true;
             }
 
-            SpellHelpers helper = Singletons.Get<SpellHelpers>();
+            ActionHelpers helper = Singletons.Get<ActionHelpers>();
             TriggerData actionTrigger = this.TriggerData.First(t => t.CombatType == this.CombatType);
             uint actionId = this.Adjust ? helper.GetAdjustedActionId(actionTrigger.Id) : actionTrigger.Id;
             helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
@@ -145,7 +145,7 @@ namespace XIVAuras.Config
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    SpellHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
+                    ActionHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
                 }
 
                 _triggerNameInput = this.TriggerName;

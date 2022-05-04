@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+
 using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
-using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using Dalamud.Game;
 
 namespace XIVAuras.Helpers
 {
-    public class SpellHelpers
+    public class ActionHelpers
     {
         private const string CastRaySig = "48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1";
         private const string ComboSig = "F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 45 ?? E8";
@@ -27,7 +27,6 @@ namespace XIVAuras.Helpers
         private readonly unsafe ActionManager* _actionManager;
 
         private readonly Dictionary<uint, ushort> _actionIdToIconId;
-                
         private static readonly Dictionary<Job, uint> _jobActionIDs = new()
         {
             [Job.GNB] = 16137, // Keen Edge
@@ -66,7 +65,7 @@ namespace XIVAuras.Helpers
             [Job.BLU] = 11385  // Water Cannon
         };
 
-        public unsafe SpellHelpers(SigScanner scanner)
+        public unsafe ActionHelpers(SigScanner scanner)
         {
             _actionManager = ActionManager.Instance();
             _castRay = Marshal.GetDelegateForFunctionPointer<CastRayNative>(scanner.ScanText(CastRaySig));
@@ -210,41 +209,6 @@ namespace XIVAuras.Helpers
                 }
 
                 return itemList;
-            }
-
-            return new List<TriggerData>();
-        }
-
-        public static List<TriggerData> FindStatusEntries(string input)
-        {
-            ExcelSheet<LuminaStatus>? sheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaStatus>();
-
-            if (!string.IsNullOrEmpty(input) && sheet is not null)
-            {
-                List<TriggerData> statusList = new List<TriggerData>();
-
-                // Add by id
-                if (uint.TryParse(input, out uint value))
-                {
-                    if (value > 0)
-                    {
-                        LuminaStatus? status = sheet.GetRow(value);
-                        if (status is not null)
-                        {
-                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
-                        }
-                    }
-                }
-
-                // Add by name
-                if (statusList.Count == 0)
-                {
-                    statusList.AddRange(
-                        sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
-                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
-                }
-
-                return statusList;
             }
 
             return new List<TriggerData>();
@@ -424,7 +388,7 @@ namespace XIVAuras.Helpers
                 return;
             }
 
-            var helper = Singletons.Get<SpellHelpers>();
+            var helper = Singletons.Get<ActionHelpers>();
             helper.GetAdjustedRecastInfo(helper.GetAdjustedActionId(actionId), out recastInfo);
         }
     }

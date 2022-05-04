@@ -57,43 +57,20 @@ namespace XIVAuras.Config
                 return true;
             }
 
-            PlayerCharacter? player = Singletons.Get<ClientState>().LocalPlayer;
-            if (player is null)
-            {
-                return false;
-            }
-
-            GameObject? actor = this.TriggerSource switch
-            {
-                TriggerSource.Player => player,
-                TriggerSource.Target => Utils.FindTarget(),
-                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(),
-                TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
-                _ => null
-            };
-
-            if (actor is not BattleChara chara)
-            {
-                return false;
-            }
-
             bool active = false;
-            data.Icon = this.TriggerData.FirstOrDefault().Icon;
-            foreach (TriggerData trigger in this.TriggerData)
+            StatusHelpers helper = Singletons.Get<StatusHelpers>();
+            foreach(TriggerData trigger in this.TriggerData)
             {
-                foreach (var status in chara.StatusList)
+                var status = helper.GetStatus(this.Source, trigger.Id);
+                if (status is not null)
                 {
-                    if (status is not null &&
-                        status.StatusId == trigger.Id &&
-                        (status.SourceID == player.ObjectId || !this.OnlyMine))
-                    {
-                        active = true;
-                        data.Id = trigger.Id;
-                        data.Value = Math.Abs(status.RemainingTime);
-                        data.Stacks = status.StackCount;
-                        data.MaxStacks = trigger.MaxStacks;
-                        data.Icon = trigger.Icon;
-                    }
+                    active = true;
+                    data.Id = trigger.Id;
+                    data.Value = Math.Abs(status.RemainingTime);
+                    data.Stacks = status.StackCount;
+                    data.MaxStacks = trigger.MaxStacks;
+                    data.Icon = trigger.Icon;
+                    break;
                 }
             }
 
@@ -124,7 +101,7 @@ namespace XIVAuras.Config
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    SpellHelpers.FindStatusEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
+                    StatusHelpers.FindStatusEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
                 }
 
                 _triggerNameInput = this.TriggerName;
