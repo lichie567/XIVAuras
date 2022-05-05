@@ -258,14 +258,18 @@ namespace XIVAuras.Auras
             }
         }
 
-        public void ScaleResolution(Vector2 scaleFactor)
+        public void ScaleResolution(Vector2 scaleFactor, bool positionOnly)
         {
             this.IconStyleConfig.Position *= scaleFactor;
-            this.IconStyleConfig.Size *= scaleFactor;
-            foreach (var condition in this.StyleConditions.Conditions)
+
+            if (!positionOnly)
             {
-                condition.Style.Position *= scaleFactor;
-                condition.Style.Size *= scaleFactor;
+                this.IconStyleConfig.Size *= scaleFactor;
+                foreach (var condition in this.StyleConditions.Conditions)
+                {
+                    condition.Style.Position *= scaleFactor;
+                    condition.Style.Size *= scaleFactor;
+                }
             }
         }
 

@@ -96,18 +96,18 @@ namespace XIVAuras.Auras
             }
         }
 
-        public void ScaleResolution(Vector2 scaleFactor)
+        public void ScaleResolution(Vector2 scaleFactor, bool positionOnly)
         {
             this.GroupConfig.Position *= scaleFactor;
             foreach (AuraListItem item in this.AuraList.Auras)
             {
                 if (item is AuraIcon icon)
                 {
-                    icon.ScaleResolution(scaleFactor);
+                    icon.ScaleResolution(scaleFactor, positionOnly);
                 }
                 else if (item is AuraGroup group)
                 {
-                    group.ScaleResolution(scaleFactor);
+                    group.ScaleResolution(scaleFactor, positionOnly);
                 }
             }
         }

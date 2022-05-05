@@ -14,11 +14,11 @@ namespace XIVAuras.Config
         public Vector2 Position = new Vector2(0, 0);
 
         [JsonIgnore] private Vector2 _iconSize = new Vector2(40, 40);
-        [JsonIgnore] private Vector2 _screenSize1 = _screenSize;
-        [JsonIgnore] private Vector2 _screenSize2 = _screenSize;
+        [JsonIgnore] private float _mX = 1f;
+        [JsonIgnore] private float _mY = 1f;
         [JsonIgnore] private bool _recusiveResize = false;
         [JsonIgnore] private bool _conditionsResize = false;
-        [JsonIgnore] private bool _scaleByHeight = false;
+        [JsonIgnore] private bool _positionOnly = false;
 
         public IConfigPage GetDefault() => new GroupConfig();
 
@@ -58,28 +58,16 @@ namespace XIVAuras.Config
                 if (parent is AuraGroup group)
                 {
                     ImGui.NewLine();
-                    ImGui.Text("Scale Resolution (Size & Position)");
-                    ImGui.DragFloat2("Original Resolution", ref _screenSize1, 1, 0, _screenSize.Y);
-                    ImGui.DragFloat2("Target Resolution", ref _screenSize2, 1, 0, _screenSize.Y);
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip("Check to recursively scale sub-groups");
-                    }
-
-                    ImGui.Checkbox("Scale by Height##Scale", ref _scaleByHeight);
-                    if (ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip("Check to scale by screen height, use this for ultra-wide aspect ratios.");
-                    }
-
+                    ImGui.Text("Scale Resolution (BACK UP YOUR CONFIG FIRST!)");
+                    ImGui.DragFloat("X Multiplier", ref _mX, 0.01f, 0.01f, 100f);
+                    ImGui.DragFloat("Y Multiplier", ref _mY, 0.01f, 0.01f, 100f);
+                    ImGui.Checkbox("Scale positions only", ref this._positionOnly);
                     ImGui.SameLine();
                     padWidth = ImGui.CalcItemWidth() - ImGui.GetCursorPosX() - 60 + padX;
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + padWidth);
                     if (ImGui.Button("Scale", new Vector2(60, 0)))
                     {
-                        Vector2 start = _scaleByHeight ? _screenSize1.Y * Vector2.One : _screenSize1;
-                        Vector2 target = _scaleByHeight ? _screenSize2.Y * Vector2.One : _screenSize2;
-                        group.ScaleResolution(target / start);
+                        group.ScaleResolution(new(_mX, _mY), _positionOnly);
                     }
                 }
                 
