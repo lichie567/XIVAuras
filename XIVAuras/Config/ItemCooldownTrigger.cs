@@ -36,7 +36,7 @@ namespace XIVAuras.Config
                 data.Value = 10;
                 data.Stacks = 1;
                 data.MaxStacks = 1;
-                data.Icon = this.TriggerData.FirstOrDefault().Icon;
+                data.Icon = this.TriggerData.FirstOrDefault()?.Icon ?? 0;
                 return true;
             }
 

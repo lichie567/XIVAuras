@@ -21,7 +21,7 @@ namespace XIVAuras.Helpers
         public StatusHelpers()
         {
             _statusMap = new Dictionary<TriggerSource, Dictionary<uint, List<DalamudStatus>>>(4);
-            foreach(var source in _sourceKeys)
+            foreach (var source in _sourceKeys)
             {
                 _statusMap.Add(source, new Dictionary<uint, List<DalamudStatus>>(30));
             }

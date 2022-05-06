@@ -52,22 +52,22 @@ namespace XIVAuras.Config
         public override bool IsTriggered(bool preview, out DataSource data)
         {
             data = new DataSource();
-            if (!this.TriggerData.Any())
-            {
-                return false;
-            }
-
             if (preview)
             {
                 data.Value = 10;
                 data.Stacks = 2;
                 data.MaxStacks = 2;
-                data.Icon = this.TriggerData.FirstOrDefault().Icon;
+                data.Icon = this.TriggerData.FirstOrDefault()?.Icon ?? 0;
                 return true;
+            }
+            
+            TriggerData? actionTrigger = this.TriggerData.First(t => t.CombatType == this.CombatType);
+            if (actionTrigger is null)
+            {
+                return false;
             }
 
             ActionHelpers helper = Singletons.Get<ActionHelpers>();
-            TriggerData actionTrigger = this.TriggerData.First(t => t.CombatType == this.CombatType);
             uint actionId = this.Adjust ? helper.GetAdjustedActionId(actionTrigger.Id) : actionTrigger.Id;
             helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
 
@@ -145,7 +145,10 @@ namespace XIVAuras.Config
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    ActionHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
+                    foreach (var triggerData in ActionHelpers.FindActionEntries(_triggerNameInput))
+                    {
+                        AddTriggerData(triggerData);
+                    }
                 }
 
                 _triggerNameInput = this.TriggerName;
@@ -293,8 +296,8 @@ namespace XIVAuras.Config
         private void AddTriggerData(TriggerData triggerData)
         {
             this.TriggerName = triggerData.Name.ToString();
-            _triggerNameInput = this.TriggerName;
             this.TriggerData.Add(triggerData);
+            _triggerNameInput = this.TriggerName;
         }
     }
 }

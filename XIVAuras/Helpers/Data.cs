@@ -12,7 +12,7 @@ namespace XIVAuras.Helpers
         [FieldOffset(0x04)] public uint Action;
     }
 
-    public struct TriggerData
+    public class TriggerData
     {
         public string Name;
         public uint Id;

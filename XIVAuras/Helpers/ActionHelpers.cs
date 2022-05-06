@@ -221,16 +221,8 @@ namespace XIVAuras.Helpers
             if (!string.IsNullOrEmpty(input))
             {
                 actionList.AddRange(FindEntriesFromActionSheet(input));
-
-                if (!actionList.Any())
-                {
-                    actionList.AddRange(FindEntriesFromActionIndirectionSheet(input));
-                }
-
-                if (!actionList.Any())
-                {
-                    actionList.AddRange(FindEntriesFromGeneralActionSheet(input));
-                }
+                actionList.AddRange(FindEntriesFromActionIndirectionSheet(input));
+                actionList.AddRange(FindEntriesFromGeneralActionSheet(input));
             }
 
             return actionList;
@@ -252,8 +244,7 @@ namespace XIVAuras.Helpers
                 if (value > 0)
                 {
                     LuminaAction? action = actionSheet.GetRow(value);
-                    if (action is not null &&
-                        (action.IsPlayerAction || action.IsRoleAction))
+                    if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
                     {
                         actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                     }
@@ -265,8 +256,7 @@ namespace XIVAuras.Helpers
             {
                 foreach(LuminaAction action in actionSheet)
                 {
-                    if (input.ToLower().Equals(action.Name.ToString().ToLower()) &&
-                        (action.IsPlayerAction || action.IsRoleAction))
+                    if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
                     {
                         actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                     }
