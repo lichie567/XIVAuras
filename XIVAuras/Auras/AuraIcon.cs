@@ -265,13 +265,14 @@ namespace XIVAuras.Auras
             this.IconStyleConfig.Position *= scaleFactor;
 
             if (!positionOnly)
-            {
                 this.IconStyleConfig.Size *= scaleFactor;
-                foreach (var condition in this.StyleConditions.Conditions)
-                {
-                    condition.Style.Position *= scaleFactor;
+                
+            foreach (var condition in this.StyleConditions.Conditions)
+            {
+                condition.Style.Position *= scaleFactor;
+                
+                if (!positionOnly)
                     condition.Style.Size *= scaleFactor;
-                }
             }
         }
 
