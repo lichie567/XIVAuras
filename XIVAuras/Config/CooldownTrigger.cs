@@ -61,7 +61,7 @@ namespace XIVAuras.Config
                 return true;
             }
             
-            TriggerData? actionTrigger = this.TriggerData.First(t => t.CombatType == this.CombatType);
+            TriggerData? actionTrigger = this.TriggerData.FirstOrDefault(t => t.CombatType == this.CombatType);
             if (actionTrigger is null)
             {
                 return false;
