@@ -58,6 +58,8 @@ namespace XIVAuras.Auras
                     this.TriggerConfig = newPage;
                     break;
                 case StyleConditions<IconStyleConfig> newPage:
+                    newPage.UpdateTriggerCount(0);
+                    newPage.UpdateDefaultStyle(this.IconStyleConfig);
                     this.StyleConditions = newPage;
                     break;
                 case VisibilityConfig newPage:

@@ -17,6 +17,8 @@ namespace XIVAuras.Config
         public string Name => "Visibility";
 
         public bool AlwaysHide = false;
+        public bool HideInPvP = false;
+        public bool HideOutsidePvP = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
         public bool HideOutsideDuty = false;
@@ -37,6 +39,16 @@ namespace XIVAuras.Config
         public bool IsVisible(bool parentVisible)
         {
             if (this.AlwaysHide)
+            {
+                return false;
+            }
+
+            if (this.HideInPvP && CharacterState.IsInPvP())
+            {
+                return false;
+            }
+
+            if (this.HideOutsidePvP && !CharacterState.IsInPvP())
             {
                 return false;
             }
@@ -85,6 +97,8 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
+                ImGui.Checkbox("Hide In PvP", ref this.HideInPvP);
+                ImGui.Checkbox("Hide Outside Pvp", ref this.HideOutsidePvP);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
                 ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
@@ -142,7 +156,7 @@ namespace XIVAuras.Config
                         this.CustomJobList = jobList;
                     }
                 }
-
+                
                 ImGui.EndChild();
             }
         }

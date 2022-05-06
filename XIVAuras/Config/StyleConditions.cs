@@ -106,7 +106,7 @@ namespace XIVAuras.Config
 
         public void UpdateTriggerCount(int count)
         {
-            if (count < _triggerCount)
+            if (count < _triggerCount || count == 0)
             {
                 foreach (var condition in this.Conditions)
                 {
