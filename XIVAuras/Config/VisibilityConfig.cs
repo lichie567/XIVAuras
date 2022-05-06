@@ -98,7 +98,7 @@ namespace XIVAuras.Config
             {
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
                 ImGui.Checkbox("Hide In PvP", ref this.HideInPvP);
-                ImGui.Checkbox("Hide Outside Pvp", ref this.HideOutsidePvP);
+                ImGui.Checkbox("Hide Outside PvP", ref this.HideOutsidePvP);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
                 ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
