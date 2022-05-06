@@ -1,9 +1,10 @@
 # Version 0.2.3.0
 - Added PvP Action cooldown support
 - Added Item cooldown tracking
-- Added ability to resize all Icons in a group under Group settings
+- Added ability to resize all icons in a group under Group settings
 - Added Visibility options for root XIVAuras group
 - Added Window Clipping option in root Visibility options
+- Added ability to select specific trigger for each condition row
 - Lots of bug fixes and performance improvements
 
 # Version 0.2.2.1
