@@ -76,6 +76,7 @@ namespace XIVAuras
             Singletons.Register(new TexturesCache(pluginInterface));
             Singletons.Register(new ActionHelpers(sigScanner));
             Singletons.Register(new StatusHelpers());
+            Singletons.Register(new ClipRectsHelper());
 
             // Load Icon
             Plugin.IconTexture = LoadIconTexture(pluginInterface.UiBuilder);

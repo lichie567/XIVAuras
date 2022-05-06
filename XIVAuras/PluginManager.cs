@@ -83,6 +83,7 @@ namespace XIVAuras
             ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
             ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+
             try
             {
                 if (ImGui.Begin("XIVAuras_Root", _mainWindowFlags))
@@ -90,6 +91,7 @@ namespace XIVAuras
                     if (this.Config.VisibilityConfig.IsVisible(true))
                     {
                         Singletons.Get<StatusHelpers>().GenerateStatusMap();
+                        Singletons.Get<ClipRectsHelper>().Update();
                         foreach (AuraListItem aura in this.Config.AuraList.Auras)
                         {
                             aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
@@ -117,6 +119,11 @@ namespace XIVAuras
         public bool IsConfigurableOpen(IConfigurable configurable)
         {
             return this.ConfigRoot.IsConfigurableOpen(configurable);
+        }
+
+        public bool ShouldClip()
+        {
+            return this.Config.VisibilityConfig.Clip;
         }
 
         private void OpenConfigUi()

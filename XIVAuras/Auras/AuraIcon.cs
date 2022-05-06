@@ -87,6 +87,13 @@ namespace XIVAuras.Auras
 
             Vector2 localPos = pos + style.Position;
             Vector2 size = style.Size;
+            
+            if (Singletons.Get<PluginManager>().ShouldClip())
+            {
+                ClipRect? clipRect = Singletons.Get<ClipRectsHelper>().GetClipRectForArea(localPos, size);
+                if (clipRect.HasValue)
+                    return;
+            }
 
             if (triggered || this.Preview)
             {

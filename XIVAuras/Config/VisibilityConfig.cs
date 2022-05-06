@@ -25,6 +25,7 @@ namespace XIVAuras.Config
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
         public bool HideWhenSheathed = false;
+        public bool Clip = false;
 
         public bool HideIfLevel = false;
         public TriggerDataOp HideIfLevelOp = TriggerDataOp.LessThan;
@@ -155,6 +156,12 @@ namespace XIVAuras.Config
                         this.CustomJobString = _customJobInput;
                         this.CustomJobList = jobList;
                     }
+                }
+
+                if (parent is XIVAurasConfig)
+                {
+                    DrawHelpers.DrawSpacing();
+                    ImGui.Checkbox("Enable Window Clipping", ref this.Clip);
                 }
                 
                 ImGui.EndChild();
