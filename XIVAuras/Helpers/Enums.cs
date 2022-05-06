@@ -1,5 +1,11 @@
 namespace XIVAuras.Helpers
 {
+    public enum CombatType
+    {
+        PvE,
+        PvP
+    }
+
     public enum AuraType
     {
         Icon,
@@ -12,7 +18,8 @@ namespace XIVAuras.Helpers
     {
         Status,
         Cooldown,
-        CharacterState
+        CharacterState,
+        ItemCooldown
     }
 
     public enum TriggerSource
@@ -39,7 +46,8 @@ namespace XIVAuras.Helpers
         MP,
         CP,
         GP,
-        Level
+        Level,
+        Distance
     }
 
     public enum TriggerDataOp

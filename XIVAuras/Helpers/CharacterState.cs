@@ -23,7 +23,9 @@ namespace XIVAuras.Helpers
                 condition[ConditionFlag.CreatingCharacter] ||
                 condition[ConditionFlag.BetweenAreas] ||
                 condition[ConditionFlag.BetweenAreas51] ||
-                condition[ConditionFlag.OccupiedSummoningBell];
+                condition[ConditionFlag.OccupiedSummoningBell] ||
+                condition[ConditionFlag.OccupiedInEvent] ||
+                condition[ConditionFlag.OccupiedInQuestEvent];
         }
 
         public static bool IsInCombat()
@@ -42,6 +44,12 @@ namespace XIVAuras.Helpers
         {
             Condition condition = Singletons.Get<Condition>();
             return condition[ConditionFlag.Performing];
+        }
+
+        public static bool IsInPvP()
+        {
+            var clientState = Singletons.Get<ClientState>();
+            return clientState.IsPvP || clientState.TerritoryType == 250;
         }
 
         public static bool IsInGoldenSaucer()
@@ -76,7 +84,7 @@ namespace XIVAuras.Helpers
 
         public static unsafe bool ShouldBeVisible()
         {
-            if (Singletons.Get<ClientState>().LocalPlayer == null)
+            if (Singletons.Get<ClientState>().LocalPlayer == null || IsCharacterBusy())
             {
                 return false;
             }

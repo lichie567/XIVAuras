@@ -9,7 +9,8 @@ namespace XIVAuras.Auras
 {
     public class AuraLabel : AuraListItem
     {
-        [JsonIgnore] private DataSource? _data;
+        [JsonIgnore] private DataSource[]? _data;
+        [JsonIgnore] private int _dataIndex;
 
         public override AuraType Type => AuraType.Label;
 
@@ -62,10 +63,10 @@ namespace XIVAuras.Auras
             Vector2 size = parentSize.HasValue ? parentSize.Value : ImGui.GetMainViewport().Size;
             pos = parentSize.HasValue ? pos : Vector2.Zero;
 
-            LabelStyleConfig style = this.StyleConditions.GetStyle(_data) ?? this.LabelStyleConfig;
+            LabelStyleConfig style = this.StyleConditions.GetStyle(_data, _dataIndex) ?? this.LabelStyleConfig;
 
-            string text = _data is not null
-                ? _data.GetFormattedString(style.TextFormat, "N", style.Rounding)
+            string text = _data is not null && _dataIndex < _data.Length && _data[_dataIndex] is not null
+                ? _data[_dataIndex].GetFormattedString(style.TextFormat, "N", style.Rounding)
                 : style.TextFormat;
 
             using (FontsManager.PushFont(style.FontKey))
@@ -83,9 +84,11 @@ namespace XIVAuras.Auras
             }
         }
 
-        public void SetData(DataSource data)
+        public void SetData(DataSource[] data, int index)
         {
             _data = data;
+            _dataIndex = index;
+            this.StyleConditions.UpdateTriggerCount(data.Length);
         }
     }
 }

@@ -7,6 +7,6 @@ namespace XIVAuras.Config
         string Name { get; }
 
         IConfigPage GetDefault();
-        void DrawConfig(Vector2 size, float padX, float padY);
+        void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY);
     }
 }

@@ -27,7 +27,7 @@ namespace XIVAuras
 
         private XIVAurasConfig Config { get; init; }
 
-        private readonly Vector2 _configSize = new Vector2(550, 600);
+        private readonly Vector2 _configSize = new Vector2(600, 650);
 
         private readonly ImGuiWindowFlags _mainWindowFlags = 
             ImGuiWindowFlags.NoTitleBar |
@@ -80,15 +80,30 @@ namespace XIVAuras
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
             ImGui.SetNextWindowSize(viewPortSize);
-            if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+
+            try
             {
-                foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                if (ImGui.Begin("XIVAuras_Root", _mainWindowFlags))
                 {
-                    aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                    if (this.Config.VisibilityConfig.IsVisible(true))
+                    {
+                        Singletons.Get<StatusHelpers>().GenerateStatusMap();
+                        Singletons.Get<ClipRectsHelper>().Update();
+                        foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                        {
+                            aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                        }
+                    }
                 }
             }
-
-            ImGui.End();
+            finally
+            {
+                ImGui.End();
+                ImGui.PopStyleVar(3);
+            }
         }
 
         public void Edit(IConfigurable config)
@@ -96,7 +111,20 @@ namespace XIVAuras
             this.ConfigRoot.PushConfig(config);
         }
 
-        public bool IsConfigOpen() => this.ConfigRoot.IsOpen;
+        public bool IsConfigOpen()
+        {
+            return this.ConfigRoot.IsOpen;
+        }
+
+        public bool IsConfigurableOpen(IConfigurable configurable)
+        {
+            return this.ConfigRoot.IsConfigurableOpen(configurable);
+        }
+
+        public bool ShouldClip()
+        {
+            return this.Config.VisibilityConfig.Clip;
+        }
 
         private void OpenConfigUi()
         {

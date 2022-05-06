@@ -10,7 +10,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new AboutPage();
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##AboutPage", new Vector2(size.X, size.Y), true))
             {

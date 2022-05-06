@@ -32,7 +32,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new AuraListConfig();
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             this.DrawCreateMenu(size, padX);
             this.DrawAuraTable(size.AddY(-padY), padX);

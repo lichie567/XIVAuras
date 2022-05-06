@@ -47,6 +47,16 @@ namespace XIVAuras.Windows
             this.IsOpen = true;
         }
 
+        public bool IsConfigurableOpen(IConfigurable configurable)
+        {
+            if (!this.IsOpen || !_configStack.Any())
+            {
+                return false;
+            }
+
+            return object.ReferenceEquals(_configStack.Peek(), configurable);
+        }
+
         public override void PreDraw()
         {
             if (_configStack.Any())
@@ -82,7 +92,7 @@ namespace XIVAuras.Windows
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
                         openPage = page;
-                        page.DrawConfig(size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
+                        page.DrawConfig(configItem, size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
                         ImGui.EndTabItem();
                     }
                 }

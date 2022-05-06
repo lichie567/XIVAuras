@@ -17,12 +17,15 @@ namespace XIVAuras.Config
         public string Name => "Visibility";
 
         public bool AlwaysHide = false;
+        public bool HideInPvP = false;
+        public bool HideOutsidePvP = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
         public bool HideOutsideDuty = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
         public bool HideWhenSheathed = false;
+        public bool Clip = false;
 
         public bool HideIfLevel = false;
         public TriggerDataOp HideIfLevelOp = TriggerDataOp.LessThan;
@@ -37,6 +40,16 @@ namespace XIVAuras.Config
         public bool IsVisible(bool parentVisible)
         {
             if (this.AlwaysHide)
+            {
+                return false;
+            }
+
+            if (this.HideInPvP && CharacterState.IsInPvP())
+            {
+                return false;
+            }
+
+            if (this.HideOutsidePvP && !CharacterState.IsInPvP())
             {
                 return false;
             }
@@ -80,11 +93,13 @@ namespace XIVAuras.Config
             return parentVisible && CharacterState.IsJobType(CharacterState.GetCharacterJob(), this.ShowForJobTypes, this.CustomJobList);
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
+                ImGui.Checkbox("Hide In PvP", ref this.HideInPvP);
+                ImGui.Checkbox("Hide Outside PvP", ref this.HideOutsidePvP);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
                 ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
@@ -143,6 +158,12 @@ namespace XIVAuras.Config
                     }
                 }
 
+                if (parent is XIVAurasConfig)
+                {
+                    DrawHelpers.DrawSpacing();
+                    ImGui.Checkbox("Enable Window Clipping", ref this.Clip);
+                }
+                
                 ImGui.EndChild();
             }
         }

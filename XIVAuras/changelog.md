@@ -1,8 +1,23 @@
+# Version 0.2.3.0
+- Added PvP Action cooldown support
+- Added Item cooldown tracking
+- Added ability to resize all icons in a group under Group settings
+- Added Visibility options for root XIVAuras group
+- Added Window Clipping option in root Visibility options
+- Added ability to select specific trigger for each condition row
+- Lots of bug fixes and performance improvements
+
 # Version 0.2.2.1
-- Updated for patch 6.11
+- Updated plugin for patch 6.1
 
 # Version 0.2.2.0
-- Updated for patch 6.1
+- Updated plugin for patch 6.1
+
+# Version 0.2.1.1
+- Fixed issue where auras would show during some cutscenes and quest dialogue
+- Added option to select the trigger source for individual conditions
+- Conditional appearances are now previewed while being edited
+- When a new condition is created, the conditional appearance will copy the current icon configuration
 
 # Version 0.2.1.0
 - Added Visibility option 'Hide While Weapon Sheathed'

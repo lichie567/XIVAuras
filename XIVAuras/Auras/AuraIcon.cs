@@ -35,6 +35,11 @@ namespace XIVAuras.Auras
             yield return this.IconStyleConfig;
             yield return this.LabelListConfig;
             yield return this.TriggerConfig;
+
+            // ugly hack
+            this.StyleConditions.UpdateTriggerCount(this.TriggerConfig.TriggerOptions.Count);
+            this.StyleConditions.UpdateDefaultStyle(this.IconStyleConfig);
+
             yield return this.StyleConditions;
             yield return this.VisibilityConfig;
         }
@@ -53,6 +58,8 @@ namespace XIVAuras.Auras
                     this.TriggerConfig = newPage;
                     break;
                 case StyleConditions<IconStyleConfig> newPage:
+                    newPage.UpdateTriggerCount(0);
+                    newPage.UpdateDefaultStyle(this.IconStyleConfig);
                     this.StyleConditions = newPage;
                     break;
                 case VisibilityConfig newPage:
@@ -74,11 +81,19 @@ namespace XIVAuras.Auras
                 return;
             }
 
-            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource data);
-            IconStyleConfig style = this.StyleConditions.GetStyle(data) ?? this.IconStyleConfig;
+            bool triggered = this.TriggerConfig.IsTriggered(this.Preview, out DataSource[] datas, out int triggeredIndex);
+            DataSource data = datas[triggeredIndex];
+            IconStyleConfig style = this.StyleConditions.GetStyle(datas, triggeredIndex) ?? this.IconStyleConfig;
 
             Vector2 localPos = pos + style.Position;
             Vector2 size = style.Size;
+            
+            if (Singletons.Get<PluginManager>().ShouldClip())
+            {
+                ClipRect? clipRect = Singletons.Get<ClipRectsHelper>().GetClipRectForArea(localPos, size);
+                if (clipRect.HasValue)
+                    return;
+            }
 
             if (triggered || this.Preview)
             {
@@ -128,7 +143,7 @@ namespace XIVAuras.Auras
                     {
                         if (style.GcdSwipe && (data.Value == 0 || data.MaxValue == 0 || style.GcdSwipeOnly))
                         {
-                            SpellHelpers.GetGCDInfo(out var recastInfo);
+                            ActionHelpers.GetGCDInfo(out var recastInfo);
                             DrawProgressSwipe(style, localPos, size, recastInfo.RecastTime - recastInfo.RecastTimeElapsed, recastInfo.RecastTime, alpha, drawList);
                         }
                         else
@@ -172,7 +187,7 @@ namespace XIVAuras.Auras
 
                 if (triggered || label.Preview)
                 {
-                    label.SetData(data);
+                    label.SetData(datas, triggeredIndex);
                     label.Draw(localPos, size, visible);
                 }
             }
@@ -237,6 +252,35 @@ namespace XIVAuras.Auras
             DrawHelpers.DrawSegmentedLineVertical(drawList, c2.AddX(-thickness), thickness, size.Y, prog, segments, col1, col2);
             DrawHelpers.DrawSegmentedLineHorizontal(drawList, c3.AddY(-thickness), -size.X, thickness, prog, segments, col1, col2);
             DrawHelpers.DrawSegmentedLineVertical(drawList, c4, thickness, -size.Y, prog, segments, col1, col2);
+        }
+
+        public void Resize(Vector2 size, bool conditions)
+        {
+            this.IconStyleConfig.Size = size;
+
+            if (conditions)
+            {
+                foreach (var condition in this.StyleConditions.Conditions)
+                {
+                    condition.Style.Size = size;
+                }
+            }
+        }
+
+        public void ScaleResolution(Vector2 scaleFactor, bool positionOnly)
+        {
+            this.IconStyleConfig.Position *= scaleFactor;
+
+            if (!positionOnly)
+                this.IconStyleConfig.Size *= scaleFactor;
+                
+            foreach (var condition in this.StyleConditions.Conditions)
+            {
+                condition.Style.Position *= scaleFactor;
+                
+                if (!positionOnly)
+                    condition.Style.Size *= scaleFactor;
+            }
         }
 
         public static AuraIcon GetDefaultAuraIcon(string name)

@@ -12,6 +12,7 @@ namespace XIVAuras.Config
 {
     public class StyleCondition<T> : IConfigurable where T : class?, IConfigPage, new()
     {
+        public int TriggerDataSourceIndex = 0;
         public TriggerDataSource Source = TriggerDataSource.Value;
         public TriggerDataOp Op = TriggerDataOp.GreaterThan;
         public float Value = 0;
@@ -25,6 +26,13 @@ namespace XIVAuras.Config
         }
 
         public override string ToString() => $"Condition [{this.Name}]";
+
+        public StyleCondition() {}
+
+        public StyleCondition(T? defaultStyle)
+        {
+            this.Style = ConfigHelpers.SerializedClone<T>(defaultStyle) ?? new T();
+        }
 
         public IEnumerable<IConfigPage> GetConfigPages()
         {
@@ -52,7 +60,7 @@ namespace XIVAuras.Config
                 TriggerDataOp.LessThanEq => value <= this.Value,
                 TriggerDataOp.GreaterThanEq => value >= this.Value,
                 _ => false
-            };
+            } || Singletons.Get<PluginManager>().IsConfigurableOpen(this);
         }
     }
 
@@ -62,16 +70,19 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _operatorOptions = new string[] { "==", "!=", "<", ">", "<=", ">=" };
         [JsonIgnore] private static readonly string _text = $"Add Conditions below to specify alternate appearance configurations under certain conditions.";
         [JsonIgnore] private static readonly float _yOffset = ImGui.CalcTextSize(_text).Y;
+        [JsonIgnore] private static string[] _triggerOptions = new string[0];
         [JsonIgnore] private string _styleConditionValueInput = string.Empty;
         [JsonIgnore] private int _swapX = -1;
         [JsonIgnore] private int _swapY = -1;
+        [JsonIgnore] private int _triggerCount = 0;
+        [JsonIgnore] private T? _defaultStyle;
 
         public string Name => "Conditions";
         public IConfigPage GetDefault() => new StyleConditions<T>();
       
         public List<StyleCondition<T>> Conditions { get; set; } = new List<StyleCondition<T>>();
 
-        public T? GetStyle(DataSource? data)
+        public T? GetStyle(DataSource[]? data, int triggeredIndex)
         {
             if (!this.Conditions.Any() || data is null)
             {
@@ -80,7 +91,11 @@ namespace XIVAuras.Config
 
             foreach (var condition in this.Conditions)
             {
-                if (condition.GetResult(data))
+                int index = condition.TriggerDataSourceIndex == 0
+                    ? triggeredIndex
+                    : condition.TriggerDataSourceIndex - 1;
+
+                if (condition.GetResult(data[index]))
                 {
                     return condition.Style;
                 }
@@ -89,7 +104,35 @@ namespace XIVAuras.Config
             return null;
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void UpdateTriggerCount(int count)
+        {
+            if (count < _triggerCount || count == 0)
+            {
+                foreach (var condition in this.Conditions)
+                {
+                    condition.TriggerDataSourceIndex = Math.Clamp(condition.TriggerDataSourceIndex, 0, count);
+                }
+            }
+
+            if (count + 1 > _triggerOptions.Length)
+            {
+                _triggerOptions = new string[count + 1];
+                _triggerOptions[0] = "Dynamic";
+                for (int i = 1; i < _triggerOptions.Length; i++)
+                {
+                    _triggerOptions[i] = $"Trigger {i}";
+                }
+            }
+
+            _triggerCount = count;
+        }
+
+        public void UpdateDefaultStyle(T style)
+        {
+            _defaultStyle = style;
+        }
+
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             ImGui.Text(_text);
             size = size.AddY(-(_yOffset + padY));
@@ -103,16 +146,17 @@ namespace XIVAuras.Config
                     ImGuiTableFlags.ScrollY |
                     ImGuiTableFlags.NoSavedSettings;
 
-                if (ImGui.BeginTable("##Conditions_Table", 5, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
+                if (ImGui.BeginTable("##Conditions_Table", 6, tableFlags, new Vector2(size.X - padX * 2, size.Y - ImGui.GetCursorPosY() - padY * 2)))
                 {
                     Vector2 buttonSize = new(30, 0);
                     int buttonCount = this.Conditions.Count > 1 ? 4 : 2;
                     float actionsWidth = buttonSize.X * buttonCount + padX * (buttonCount - 1);
-                    ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 60, 0);
+                    ImGui.TableSetupColumn("Condition", ImGuiTableColumnFlags.WidthFixed, 55, 0);
                     ImGui.TableSetupColumn("Data Source", ImGuiTableColumnFlags.WidthFixed, 90, 1);
-                    ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 80, 2);
-                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 3);
-                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 4);
+                    ImGui.TableSetupColumn("Data", ImGuiTableColumnFlags.WidthFixed, 90, 2);
+                    ImGui.TableSetupColumn("Operator", ImGuiTableColumnFlags.WidthFixed, 55, 3);
+                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 0, 4);
+                    ImGui.TableSetupColumn("Actions", ImGuiTableColumnFlags.WidthFixed, actionsWidth, 5);
 
                     ImGui.TableSetupScrollFreeze(0, 1);
                     ImGui.TableHeadersRow();
@@ -127,8 +171,8 @@ namespace XIVAuras.Config
                     
                     ImGui.PushID(this.Conditions.Count.ToString());
                     ImGui.TableNextRow(ImGuiTableRowFlags.None, 28);
-                    ImGui.TableSetColumnIndex(4);
-                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => this.Conditions.Add(new StyleCondition<T>()), "New Condition", buttonSize);
+                    ImGui.TableSetColumnIndex(5);
+                    DrawHelpers.DrawButton(string.Empty, FontAwesomeIcon.Plus, () => this.Conditions.Add(new StyleCondition<T>(_defaultStyle)), "New Condition", buttonSize);
                 }
 
                 ImGui.EndTable();
@@ -171,7 +215,7 @@ namespace XIVAuras.Config
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref condition.Source), _sourceOptions, _sourceOptions.Length);
+                ImGui.Combo("##TriggerCombo", ref condition.TriggerDataSourceIndex, _triggerOptions, _triggerCount + 1);
                 ImGui.PopItemWidth();
             }
 
@@ -179,11 +223,19 @@ namespace XIVAuras.Config
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
-                ImGui.Combo("##OpCombo", ref Unsafe.As<TriggerDataOp, int>(ref condition.Op), _operatorOptions, _operatorOptions.Length);
+                ImGui.Combo("##SourceCombo", ref Unsafe.As<TriggerDataSource, int>(ref condition.Source), _sourceOptions, _sourceOptions.Length);
                 ImGui.PopItemWidth();
             }
 
             if (ImGui.TableSetColumnIndex(3))
+            {
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
+                ImGui.PushItemWidth(ImGui.GetColumnWidth());
+                ImGui.Combo("##OpCombo", ref Unsafe.As<TriggerDataOp, int>(ref condition.Op), _operatorOptions, _operatorOptions.Length);
+                ImGui.PopItemWidth();
+            }
+
+            if (ImGui.TableSetColumnIndex(4))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 ImGui.PushItemWidth(ImGui.GetColumnWidth());
@@ -198,7 +250,7 @@ namespace XIVAuras.Config
                 ImGui.PopItemWidth();
             }
 
-            if (ImGui.TableSetColumnIndex(4))
+            if (ImGui.TableSetColumnIndex(5))
             {
                 ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 1f);
                 Vector2 buttonSize = new(30, 0);

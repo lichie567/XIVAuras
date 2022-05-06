@@ -33,40 +33,33 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new TriggerConfig();
 
-        public bool IsTriggered(bool preview, out DataSource data)
+        public bool IsTriggered(bool preview, out DataSource[] data, out int triggeredIndex)
         {
-            data = new DataSource();
+            data = new DataSource[this.TriggerOptions.Count];
+            triggeredIndex = this.DataTrigger == 0 ? 0 : this.DataTrigger - 1;
             if (!this.TriggerOptions.Any())
             {
                 return false;
             }
 
-            DataSource currentData;
-            bool triggered = this.TriggerOptions[0].IsTriggered(preview, out currentData);
+            bool triggered = this.TriggerOptions[0].IsTriggered(preview, out data[0]);
             bool anyTriggered = triggered;
-            if (triggered && this.DataTrigger <= 1)
+            for (int i = 1; i < data.Length; i++)
             {
-                data = currentData;
-            }
-
-            for (int i = 1; i < this.TriggerOptions.Count; i++)
-            {
-                TriggerOptions current = this.TriggerOptions[i];
-                bool currentTriggered = current.IsTriggered(preview, out currentData);
-
-                if (!anyTriggered && currentTriggered && this.DataTrigger == 0 ||
-                    this.DataTrigger - 1 == i)
-                {
-                    data = currentData;
-                }
-
-                triggered = current.Condition switch
+                var trigger = this.TriggerOptions[i];
+                bool currentTriggered = this.TriggerOptions[i].IsTriggered(preview, out data[i]);
+                triggered = trigger.Condition switch
                 {
                     TriggerCond.And => triggered && currentTriggered,
                     TriggerCond.Or => triggered || currentTriggered,
                     TriggerCond.Xor => triggered ^ currentTriggered,
                     _ => false
                 };
+
+                if (!anyTriggered && currentTriggered && this.DataTrigger == 0)
+                {
+                    triggeredIndex = i;
+                }
 
                 anyTriggered |= currentTriggered;
             }
@@ -86,7 +79,7 @@ namespace XIVAuras.Config
             return options;
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (!this.TriggerOptions.Any())
             {
@@ -166,6 +159,7 @@ namespace XIVAuras.Config
                             TriggerType.Status          => new StatusTrigger(),
                             TriggerType.Cooldown        => new CooldownTrigger(),
                             TriggerType.CharacterState  => new CharacterStateTrigger(),
+                            TriggerType.ItemCooldown    => new ItemCooldownTrigger(),
                         _                               => new StatusTrigger()
                         };
                         this.TriggerOptions[_selectedIndex].Condition = oldCond;
