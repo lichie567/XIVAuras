@@ -21,11 +21,14 @@ namespace XIVAuras.Config
         public bool HideOutsidePvP = false;
         public bool HideInCombat = false;
         public bool HideOutsideCombat = false;
+        public bool ShowWhenWeaponDrawn = false;
+        public bool ShowInDuty = false;
         public bool HideOutsideDuty = false;
         public bool HideWhilePerforming = false;
         public bool HideInGoldenSaucer = false;
         public bool HideWhenSheathed = false;
         public bool Clip = false;
+        public bool HideOutsideEureka = false;
 
         public bool HideIfLevel = false;
         public TriggerDataOp HideIfLevelOp = TriggerDataOp.LessThan;
@@ -66,6 +69,14 @@ namespace XIVAuras.Config
 
             if (this.HideOutsideDuty && !CharacterState.IsInDuty())
             {
+                if (this.ShowWhenWeaponDrawn && CharacterState.IsWeaponDrawn())
+                {
+                    return true;
+                }
+                if (this.ShowInDuty && CharacterState.IsInDuty())
+                {
+                    return true;
+                }
                 return false;
             }
 
@@ -75,6 +86,11 @@ namespace XIVAuras.Config
             }
 
             if (this.HideInGoldenSaucer && CharacterState.IsInGoldenSaucer())
+            {
+                return false;
+            }
+
+            if (this.HideOutsideEureka && !CharacterState.IsInEureka())
             {
                 return false;
             }
@@ -98,14 +114,23 @@ namespace XIVAuras.Config
             if (ImGui.BeginChild("##VisibilityConfig", new Vector2(size.X, size.Y), true))
             {
                 ImGui.Checkbox("Always Hide", ref this.AlwaysHide);
-                ImGui.Checkbox("Hide In PvP", ref this.HideInPvP);
-                ImGui.Checkbox("Hide Outside PvP", ref this.HideOutsidePvP);
                 ImGui.Checkbox("Hide In Combat", ref this.HideInCombat);
                 ImGui.Checkbox("Hide Outside Combat", ref this.HideOutsideCombat);
+                if (this.HideOutsideCombat) {
+                    DrawHelpers.DrawNestIndicator(1);
+                    ImGui.Checkbox("Show When Weapon Is Drawn", ref this.ShowWhenWeaponDrawn);
+                    DrawHelpers.DrawNestIndicator(1);
+                    ImGui.Checkbox("Show In Duty", ref this.ShowInDuty);
+                }
                 ImGui.Checkbox("Hide Outside Duty", ref this.HideOutsideDuty);
                 ImGui.Checkbox("Hide While Performing", ref this.HideWhilePerforming);
-                ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
                 ImGui.Checkbox("Hide While Weapon Sheathed", ref this.HideWhenSheathed);
+                
+                DrawHelpers.DrawSpacing();
+                ImGui.Checkbox("Hide In PvP", ref this.HideInPvP);
+                ImGui.Checkbox("Hide Outside PvP", ref this.HideOutsidePvP);
+                ImGui.Checkbox("Hide In Golden Saucer", ref this.HideInGoldenSaucer);
+                ImGui.Checkbox("Hide Outside Eureka", ref this.HideOutsideEureka);
 
                 DrawHelpers.DrawSpacing();
                 ImGui.Checkbox("Hide if Level", ref this.HideIfLevel);
