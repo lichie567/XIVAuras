@@ -62,12 +62,28 @@ namespace XIVAuras.Config
             {
                 return false;
             }
+            
+            GameObject? actor = this.Source switch
+            {
+                TriggerSource.Player => player,
+                TriggerSource.Target => Utils.FindTarget(),
+                TriggerSource.TargetOfTarget => Utils.FindTargetOfTarget(),
+                TriggerSource.FocusTarget => Singletons.Get<TargetManager>().FocusTarget,
+                _ => null
+            };
+            if (actor is null)
+            {
+                return false;
+            }
+            
 
             bool active = false;
+            data.Icon = TriggerData.First().Icon;
             StatusHelpers helper = Singletons.Get<StatusHelpers>();
             foreach(TriggerData trigger in this.TriggerData)
             {
-                foreach (var status in helper.GetStatus(this.Source, trigger.Id))
+                var statusList = helper.GetStatusList(this.Source, trigger.Id);
+                foreach (var status in statusList)
                 {
                     if (status is not null &&
                         (status.SourceID == player.ObjectId || !this.OnlyMine))

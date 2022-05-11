@@ -27,23 +27,15 @@ namespace XIVAuras.Helpers
             }
         }
         
-        public List<DalamudStatus> GetStatus(TriggerSource source, uint statusId)
+        public List<DalamudStatus> GetStatusList(TriggerSource source, uint statusId)
         {
             var dict = _statusMap[source];
-            if (dict.ContainsKey(statusId))
+            if (dict.TryGetValue(statusId, out var result))
             {
-                return dict[statusId];
+                return result;
             }
 
-            return new List<DalamudStatus>(0);
-        }
-
-        private void ClearStatusMap()
-        {
-            foreach (var dict in _statusMap.Values)
-            {
-                dict.Clear();
-            }
+            return new();
         }
 
         public void GenerateStatusMap()
@@ -72,7 +64,7 @@ namespace XIVAuras.Helpers
 
                 if (actor is not BattleChara chara)
                 {
-                    return;
+                    continue;
                 }
 
                 if (_statusMap.ContainsKey(source))
