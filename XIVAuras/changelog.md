@@ -1,3 +1,7 @@
+# Version 0.2.3.1
+- Fixed issue with auras tracking status on Target of Target or Focus Target
+- Fixed issue with status Icons not showing in certain conditions
+
 # Version 0.2.3.0
 - Added PvP Action cooldown support
 - Added Item cooldown tracking
