@@ -29,6 +29,12 @@ namespace XIVAuras.Helpers
         TargetOfTarget,
         FocusTarget
     }
+
+    public enum TriggerSourceType {
+        Any,
+        Friendly,
+        Enemy
+    }
     
     public enum TriggerCond
     {
