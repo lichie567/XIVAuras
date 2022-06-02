@@ -49,7 +49,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new IconStyleConfig();
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##IconStyleConfig", new Vector2(size.X, size.Y), true))
             {
@@ -94,8 +94,9 @@ namespace XIVAuras.Config
                         }
                         else if (!string.IsNullOrEmpty(_iconSearchInput))
                         {
-                            _iconSearchResults.AddRange(SpellHelpers.FindActionEntries(_iconSearchInput));
-                            _iconSearchResults.AddRange(SpellHelpers.FindStatusEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(ActionHelpers.FindActionEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(StatusHelpers.FindStatusEntries(_iconSearchInput));
+                            _iconSearchResults.AddRange(ActionHelpers.FindItemEntries(_iconSearchInput));
                         }
                     }
                     ImGui.PopItemWidth();

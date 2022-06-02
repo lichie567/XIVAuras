@@ -59,7 +59,7 @@ namespace XIVAuras.Config
             return new LabelListConfig(valueLabel, stacksLabel);
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             this.DrawLabelTable(size, padX);
         }

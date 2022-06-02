@@ -15,6 +15,7 @@ namespace XIVAuras.Config
         [JsonIgnore] private static readonly string[] _usableOptions = new[] { "Usable", "Not Usable" };
         [JsonIgnore] private static readonly string[] _rangeOptions = new[] { "In Range", "Not in Range" };
         [JsonIgnore] private static readonly string[] _losOptions = new[] { "In LoS", "Not in LoS" };
+        [JsonIgnore] private static readonly string[] _combatTypeOptions = new[] { "PvE", "PvP" };
         
         [JsonIgnore] private string _triggerNameInput = string.Empty;
         [JsonIgnore] private string _cooldownValueInput = string.Empty;
@@ -22,6 +23,7 @@ namespace XIVAuras.Config
 
         public string TriggerName = string.Empty;
 
+        public CombatType CombatType = CombatType.PvE;
         public bool Adjust = false;
 
         public bool Cooldown = false;
@@ -50,22 +52,22 @@ namespace XIVAuras.Config
         public override bool IsTriggered(bool preview, out DataSource data)
         {
             data = new DataSource();
-            if (!this.TriggerData.Any())
-            {
-                return false;
-            }
-
             if (preview)
             {
                 data.Value = 10;
                 data.Stacks = 2;
                 data.MaxStacks = 2;
-                data.Icon = this.TriggerData.FirstOrDefault().Icon;
+                data.Icon = this.TriggerData.FirstOrDefault()?.Icon ?? 0;
                 return true;
             }
+            
+            TriggerData? actionTrigger = this.TriggerData.FirstOrDefault(t => t.CombatType == this.CombatType);
+            if (actionTrigger is null)
+            {
+                return false;
+            }
 
-            SpellHelpers helper = Singletons.Get<SpellHelpers>();
-            TriggerData actionTrigger = this.TriggerData.First();
+            ActionHelpers helper = Singletons.Get<ActionHelpers>();
             uint actionId = this.Adjust ? helper.GetAdjustedActionId(actionTrigger.Id) : actionTrigger.Id;
             helper.GetAdjustedRecastInfo(actionId, out RecastInfo recastInfo);
 
@@ -121,7 +123,7 @@ namespace XIVAuras.Config
             data.MaxStacks = recastInfo.MaxCharges;
             data.Icon = this.Adjust ? helper.GetIconIdForAction(actionId) : actionTrigger.Icon;
 
-            return preview ||
+            return
                 (!this.Combo || (this.ComboValue == 0 ? comboActive : !comboActive)) &&
                 (!this.Usable || (this.UsableValue == 0 ? usable : !usable)) &&
                 (!this.RangeCheck || (this.RangeValue == 0 ? inRange : !inRange)) &&
@@ -134,18 +136,22 @@ namespace XIVAuras.Config
         {
             if (string.IsNullOrEmpty(_triggerNameInput))
             {
-                _triggerNameInput = TriggerName;
+                _triggerNameInput = this.TriggerName;
             }
 
+            ImGui.Combo("Combat Type", ref Unsafe.As<CombatType, int>(ref this.CombatType), _combatTypeOptions, _combatTypeOptions.Length);
             if (ImGui.InputTextWithHint("Action", "Action Name or ID", ref _triggerNameInput, 32, ImGuiInputTextFlags.EnterReturnsTrue))
             {
                 this.TriggerData.Clear();
                 if (!string.IsNullOrEmpty(_triggerNameInput))
                 {
-                    SpellHelpers.FindActionEntries(_triggerNameInput).ForEach(t => AddTriggerData(t));
+                    foreach (var triggerData in ActionHelpers.FindActionEntries(_triggerNameInput))
+                    {
+                        AddTriggerData(triggerData);
+                    }
                 }
 
-                _triggerNameInput = TriggerName;
+                _triggerNameInput = this.TriggerName;
             }
             ImGui.Checkbox("Use Adjusted Action", ref this.Adjust);
             if (ImGui.IsItemHovered())
@@ -279,12 +285,19 @@ namespace XIVAuras.Config
                 ImGui.PopItemWidth();
             }
         }
+
+        private void ResetTrigger()
+        {
+            this.TriggerData.Clear();
+            this.TriggerName = string.Empty;
+            this._triggerNameInput = string.Empty;
+        }
         
         private void AddTriggerData(TriggerData triggerData)
         {
             this.TriggerName = triggerData.Name.ToString();
-            _triggerNameInput = TriggerName;
             this.TriggerData.Add(triggerData);
+            _triggerNameInput = this.TriggerName;
         }
     }
 }

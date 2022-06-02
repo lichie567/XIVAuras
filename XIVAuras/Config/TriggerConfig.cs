@@ -79,7 +79,7 @@ namespace XIVAuras.Config
             return options;
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (!this.TriggerOptions.Any())
             {
@@ -159,6 +159,7 @@ namespace XIVAuras.Config
                             TriggerType.Status          => new StatusTrigger(),
                             TriggerType.Cooldown        => new CooldownTrigger(),
                             TriggerType.CharacterState  => new CharacterStateTrigger(),
+                            TriggerType.ItemCooldown    => new ItemCooldownTrigger(),
                         _                               => new StatusTrigger()
                         };
                         this.TriggerOptions[_selectedIndex].Condition = oldCond;

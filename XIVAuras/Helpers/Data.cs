@@ -12,21 +12,23 @@ namespace XIVAuras.Helpers
         [FieldOffset(0x04)] public uint Action;
     }
 
-    public struct TriggerData
+    public class TriggerData
     {
         public string Name;
         public uint Id;
         public ushort Icon;
         public byte MaxStacks;
         public uint[] ComboId;
+        public CombatType CombatType;
 
-        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint[]? comboId = null)
+        public TriggerData(string name, uint id, ushort icon, byte maxStacks = 0, uint[]? comboId = null, CombatType combatType = CombatType.PvE)
         {
             Name = name;
             Id = id;
             Icon = icon;
             MaxStacks = maxStacks;
             ComboId = comboId ?? new uint[0];
+            CombatType = combatType;
         }
     }
 

@@ -46,6 +46,12 @@ namespace XIVAuras.Helpers
             return condition[ConditionFlag.Performing];
         }
 
+        public static bool IsInPvP()
+        {
+            var clientState = Singletons.Get<ClientState>();
+            return clientState.IsPvP || clientState.TerritoryType == 250;
+        }
+
         public static bool IsInGoldenSaucer()
         {
             return _goldenSaucerIDs.Any(id => id == Singletons.Get<ClientState>().TerritoryType);

@@ -58,6 +58,8 @@ namespace XIVAuras.Auras
                     this.TriggerConfig = newPage;
                     break;
                 case StyleConditions<IconStyleConfig> newPage:
+                    newPage.UpdateTriggerCount(0);
+                    newPage.UpdateDefaultStyle(this.IconStyleConfig);
                     this.StyleConditions = newPage;
                     break;
                 case VisibilityConfig newPage:
@@ -85,6 +87,13 @@ namespace XIVAuras.Auras
 
             Vector2 localPos = pos + style.Position;
             Vector2 size = style.Size;
+            
+            if (Singletons.Get<PluginManager>().ShouldClip())
+            {
+                ClipRect? clipRect = Singletons.Get<ClipRectsHelper>().GetClipRectForArea(localPos, size);
+                if (clipRect.HasValue)
+                    return;
+            }
 
             if (triggered || this.Preview)
             {
@@ -134,7 +143,7 @@ namespace XIVAuras.Auras
                     {
                         if (style.GcdSwipe && (data.Value == 0 || data.MaxValue == 0 || style.GcdSwipeOnly))
                         {
-                            SpellHelpers.GetGCDInfo(out var recastInfo);
+                            ActionHelpers.GetGCDInfo(out var recastInfo);
                             DrawProgressSwipe(style, localPos, size, recastInfo.RecastTime - recastInfo.RecastTimeElapsed, recastInfo.RecastTime, alpha, drawList);
                         }
                         else
@@ -243,6 +252,35 @@ namespace XIVAuras.Auras
             DrawHelpers.DrawSegmentedLineVertical(drawList, c2.AddX(-thickness), thickness, size.Y, prog, segments, col1, col2);
             DrawHelpers.DrawSegmentedLineHorizontal(drawList, c3.AddY(-thickness), -size.X, thickness, prog, segments, col1, col2);
             DrawHelpers.DrawSegmentedLineVertical(drawList, c4, thickness, -size.Y, prog, segments, col1, col2);
+        }
+
+        public void Resize(Vector2 size, bool conditions)
+        {
+            this.IconStyleConfig.Size = size;
+
+            if (conditions)
+            {
+                foreach (var condition in this.StyleConditions.Conditions)
+                {
+                    condition.Style.Size = size;
+                }
+            }
+        }
+
+        public void ScaleResolution(Vector2 scaleFactor, bool positionOnly)
+        {
+            this.IconStyleConfig.Position *= scaleFactor;
+
+            if (!positionOnly)
+                this.IconStyleConfig.Size *= scaleFactor;
+                
+            foreach (var condition in this.StyleConditions.Conditions)
+            {
+                condition.Style.Position *= scaleFactor;
+                
+                if (!positionOnly)
+                    condition.Style.Size *= scaleFactor;
+            }
         }
 
         public static AuraIcon GetDefaultAuraIcon(string name)

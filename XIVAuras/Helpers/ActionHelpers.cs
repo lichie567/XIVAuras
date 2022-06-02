@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using Dalamud.Data;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+
 using LuminaAction = Lumina.Excel.GeneratedSheets.Action;
-using LuminaStatus = Lumina.Excel.GeneratedSheets.Status;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using Dalamud.Game;
 
 namespace XIVAuras.Helpers
 {
-    public class SpellHelpers
+    public class ActionHelpers
     {
         private const string CastRaySig = "48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1";
-        private const string ComboSig = "48 89 2D ?? ?? ?? ?? 85 C0";
+        private const string ComboSig = "F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 45 ?? E8";
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool CastRayNative(float* origin, float* direction, float distance, float* worldPos, int* flags);
@@ -27,7 +27,6 @@ namespace XIVAuras.Helpers
         private readonly unsafe ActionManager* _actionManager;
 
         private readonly Dictionary<uint, ushort> _actionIdToIconId;
-                
         private static readonly Dictionary<Job, uint> _jobActionIDs = new()
         {
             [Job.GNB] = 16137, // Keen Edge
@@ -66,7 +65,7 @@ namespace XIVAuras.Helpers
             [Job.BLU] = 11385  // Water Cannon
         };
 
-        public unsafe SpellHelpers(SigScanner scanner)
+        public unsafe ActionHelpers(SigScanner scanner)
         {
             _actionManager = ActionManager.Instance();
             _castRay = Marshal.GetDelegateForFunctionPointer<CastRayNative>(scanner.ScanText(CastRaySig));
@@ -130,9 +129,18 @@ namespace XIVAuras.Helpers
             return;
         }
 
-        public unsafe bool CanUseAction(uint actionId, uint targetId = 0xE000_0000)
+        public unsafe void GetItemRecastInfo(uint actionId, out RecastInfo recastInfo)
         {
-            return _actionManager->GetActionStatus(ActionType.Spell, actionId, targetId, 0, 1) == 0;
+            recastInfo = default;
+            recastInfo.RecastTime = _actionManager->GetRecastTime(ActionType.Item, actionId);
+            recastInfo.RecastTimeElapsed = _actionManager->GetRecastTimeElapsed(ActionType.Item, actionId);
+            recastInfo.MaxCharges = 1;
+            return;
+        }
+
+        public unsafe bool CanUseAction(uint actionId, ActionType type = ActionType.Spell, long targetId = 0xE000_0000)
+        {
+            return _actionManager->GetActionStatus(type, actionId, targetId, 0, 1) == 0;
         }
 
         public unsafe bool GetActionInRange(uint actionId, GameObject? player, GameObject? target)
@@ -171,36 +179,36 @@ namespace XIVAuras.Helpers
             return _combo->Action;
         }
 
-        public static List<TriggerData> FindStatusEntries(string input)
+        public static List<TriggerData> FindItemEntries(string input)
         {
-            ExcelSheet<LuminaStatus>? sheet = Singletons.Get<DataManager>().GetExcelSheet<LuminaStatus>();
+            ExcelSheet<Item>? sheet = Singletons.Get<DataManager>().GetExcelSheet<Item>();
 
             if (!string.IsNullOrEmpty(input) && sheet is not null)
             {
-                List<TriggerData> statusList = new List<TriggerData>();
+                List<TriggerData> itemList = new List<TriggerData>();
 
                 // Add by id
                 if (uint.TryParse(input, out uint value))
                 {
                     if (value > 0)
                     {
-                        LuminaStatus? status = sheet.GetRow(value);
-                        if (status is not null)
+                        Item? item = sheet.GetRow(value);
+                        if (item is not null)
                         {
-                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
+                            itemList.Add(new TriggerData(item.Name, item.RowId, item.Icon, 0));
                         }
                     }
                 }
 
                 // Add by name
-                if (statusList.Count == 0)
+                if (itemList.Count == 0)
                 {
-                    statusList.AddRange(
-                        sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
-                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
+                    itemList.AddRange(
+                        sheet.Where(item => input.ToLower().Equals(item.Name.ToString().ToLower()))
+                            .Select(item => new TriggerData(item.Name, item.RowId, item.Icon, 0)));
                 }
 
-                return statusList;
+                return itemList;
             }
 
             return new List<TriggerData>();
@@ -209,20 +217,12 @@ namespace XIVAuras.Helpers
         public static List<TriggerData> FindActionEntries(string input)
         {
             List<TriggerData> actionList = new List<TriggerData>();
-
+            
             if (!string.IsNullOrEmpty(input))
             {
                 actionList.AddRange(FindEntriesFromActionSheet(input));
-
-                if (!actionList.Any())
-                {
-                    actionList.AddRange(FindEntriesFromActionIndirectionSheet(input));
-                }
-
-                if (!actionList.Any())
-                {
-                    actionList.AddRange(FindEntriesFromGeneralActionSheet(input));
-                }
+                actionList.AddRange(FindEntriesFromActionIndirectionSheet(input));
+                actionList.AddRange(FindEntriesFromGeneralActionSheet(input));
             }
 
             return actionList;
@@ -246,7 +246,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = actionSheet.GetRow(value);
                     if (action is not null && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                     }
                 }
             }
@@ -258,7 +258,7 @@ namespace XIVAuras.Helpers
                 {
                     if (input.ToLower().Equals(action.Name.ToString().ToLower()) && (action.IsPlayerAction || action.IsRoleAction))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                     }
                 }
             }
@@ -284,7 +284,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = iAction.Name.Value;
                     if (action is not null && action.RowId == value)
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                         break;
                     }
                 }
@@ -298,7 +298,7 @@ namespace XIVAuras.Helpers
                     LuminaAction? action = indirectAction.Name.Value;
                     if (action is not null && input.ToLower().Equals(action.Name.ToString().ToLower()))
                     {
-                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action)));
+                        actionList.Add(new TriggerData(action.Name, action.RowId, action.Icon, action.MaxCharges, GetComboIds(action), action.IsPvP ? CombatType.PvP : CombatType.PvE));
                     }
                 }
             }
@@ -378,7 +378,7 @@ namespace XIVAuras.Helpers
                 return;
             }
 
-            var helper = Singletons.Get<SpellHelpers>();
+            var helper = Singletons.Get<ActionHelpers>();
             helper.GetAdjustedRecastInfo(helper.GetAdjustedActionId(actionId), out recastInfo);
         }
     }

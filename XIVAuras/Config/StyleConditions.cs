@@ -106,7 +106,7 @@ namespace XIVAuras.Config
 
         public void UpdateTriggerCount(int count)
         {
-            if (count < _triggerCount)
+            if (count < _triggerCount || count == 0)
             {
                 foreach (var condition in this.Conditions)
                 {
@@ -132,7 +132,7 @@ namespace XIVAuras.Config
             _defaultStyle = style;
         }
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             ImGui.Text(_text);
             size = size.AddY(-(_yOffset + padY));

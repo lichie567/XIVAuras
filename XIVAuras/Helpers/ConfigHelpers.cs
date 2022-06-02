@@ -251,6 +251,7 @@ namespace XIVAuras.Helpers
             typeof(FontConfig),
             typeof(FontData),
             typeof(IconStyleConfig),
+            typeof(ItemCooldownTrigger),
             typeof(LabelStyleConfig),
             typeof(StatusTrigger),
             typeof(TriggerConfig),

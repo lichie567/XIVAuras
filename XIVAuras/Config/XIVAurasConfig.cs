@@ -20,6 +20,8 @@ namespace XIVAuras.Config
 
         public GroupConfig GroupConfig { get; set; }
 
+        public VisibilityConfig VisibilityConfig { get; set; }
+
         public FontConfig FontConfig { get; set; }
 
         [JsonIgnore]
@@ -29,6 +31,7 @@ namespace XIVAuras.Config
         {
             this.AuraList = new AuraListConfig();
             this.GroupConfig = new GroupConfig();
+            this.VisibilityConfig = new VisibilityConfig();
             this.FontConfig = new FontConfig();
         }
 
@@ -52,6 +55,7 @@ namespace XIVAuras.Config
         {
             yield return this.AuraList;
             yield return this.GroupConfig;
+            yield return this.VisibilityConfig;
             yield return this.FontConfig;
             yield return this.AboutPage;
         }

@@ -92,7 +92,7 @@ namespace XIVAuras.Windows
                     if (ImGui.BeginTabItem($"{page.Name}##{this.WindowName}"))
                     {
                         openPage = page;
-                        page.DrawConfig(size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
+                        page.DrawConfig(configItem, size.AddY(-ImGui.GetCursorPosY()), spacing.X, spacing.Y);
                         ImGui.EndTabItem();
                     }
                 }

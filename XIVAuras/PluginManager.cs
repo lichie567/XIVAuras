@@ -80,15 +80,30 @@ namespace XIVAuras
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowPos(Vector2.Zero);
             ImGui.SetNextWindowSize(viewPortSize);
-            if (ImGui.Begin("XIVAuras_Root", this._mainWindowFlags))
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 0);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(0, 0));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0);
+
+            try
             {
-                foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                if (ImGui.Begin("XIVAuras_Root", _mainWindowFlags))
                 {
-                    aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                    if (this.Config.VisibilityConfig.IsVisible(true))
+                    {
+                        Singletons.Get<StatusHelpers>().GenerateStatusMap();
+                        Singletons.Get<ClipRectsHelper>().Update();
+                        foreach (AuraListItem aura in this.Config.AuraList.Auras)
+                        {
+                            aura.Draw((viewPortSize / 2) + this.Config.GroupConfig.Position);
+                        }
+                    }
                 }
             }
-
-            ImGui.End();
+            finally
+            {
+                ImGui.End();
+                ImGui.PopStyleVar(3);
+            }
         }
 
         public void Edit(IConfigurable config)
@@ -104,6 +119,11 @@ namespace XIVAuras
         public bool IsConfigurableOpen(IConfigurable configurable)
         {
             return this.ConfigRoot.IsConfigurableOpen(configurable);
+        }
+
+        public bool ShouldClip()
+        {
+            return this.Config.VisibilityConfig.Clip;
         }
 
         private void OpenConfigUi()

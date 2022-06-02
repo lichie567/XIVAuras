@@ -9,7 +9,7 @@ namespace XIVAuras.Config
 
         public IConfigPage GetDefault() => new BarStyleConfig();
 
-        public void DrawConfig(Vector2 size, float padX, float padY)
+        public void DrawConfig(IConfigurable parent, Vector2 size, float padX, float padY)
         {
             if (ImGui.BeginChild("##BarStyleConfig", new Vector2(size.X, size.Y), true))
             {
