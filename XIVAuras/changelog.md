@@ -1,3 +1,7 @@
+# Version 0.2.4.0
+- Update plug for patch 6.2
+- Target .net 6.0
+
 # Version 0.2.3.1
 - Fixed issue with auras tracking status on Target of Target or Focus Target
 - Fixed issue with status Icons not showing in certain conditions
