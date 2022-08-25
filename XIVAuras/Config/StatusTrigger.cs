@@ -86,7 +86,7 @@ namespace XIVAuras.Config
                 foreach (var status in statusList)
                 {
                     if (status is not null &&
-                        (status.SourceID == player.ObjectId || !this.OnlyMine))
+                        (status.SourceId == player.ObjectId || !this.OnlyMine))
                     {
                         active = true;
                         data.Id = status.StatusId;
