@@ -8,7 +8,7 @@
         "TestingAssemblyVersion": "0.2.4.0",
         "RepoUrl": "https://github.com/lichie567/XIVAuras",
         "ApplicableVersion": "any",
-        "DalamudApiLevel": 6,
+        "DalamudApiLevel": 7,
         "IsHide": "False",
         "IsTestingExclusive": "False",
         "DownloadCount": 0,
