@@ -140,7 +140,7 @@ namespace XIVAuras.Helpers
 
         public unsafe bool CanUseAction(uint actionId, ActionType type = ActionType.Spell, long targetId = 0xE000_0000)
         {
-            return _actionManager->GetActionStatus(type, actionId, targetId, 0, 1) == 0;
+            return _actionManager->GetActionStatus(type, actionId, targetId, false, true) == 0;
         }
 
         public unsafe bool GetActionInRange(uint actionId, GameObject? player, GameObject? target)
