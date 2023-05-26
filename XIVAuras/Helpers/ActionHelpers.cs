@@ -17,7 +17,7 @@ namespace XIVAuras.Helpers
     public class ActionHelpers
     {
         private const string CastRaySig = "48 83 EC 48 48 8B 05 ?? ?? ?? ?? 4D 8B D1";
-        private const string ComboSig = "F3 0F 11 05 ?? ?? ?? ?? F3 0F 10 45 ?? E8";
+        private const string ComboSig = "F3 0F 11 05 ?? ?? ?? ?? 48 83 C7 08";
 
         [UnmanagedFunctionPointer(CallingConvention.ThisCall)]
         private unsafe delegate bool CastRayNative(float* origin, float* direction, float distance, float* worldPos, int* flags);
