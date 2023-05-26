@@ -96,7 +96,7 @@ namespace XIVAuras.Helpers
                         LuminaStatus? status = sheet.GetRow(value);
                         if (status is not null)
                         {
-                            statusList.Add(new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks));
+                            statusList.Add(new TriggerData(status.Name, status.RowId, (ushort)status.Icon, status.MaxStacks));
                         }
                     }
                 }
@@ -106,7 +106,7 @@ namespace XIVAuras.Helpers
                 {
                     statusList.AddRange(
                         sheet.Where(status => input.ToLower().Equals(status.Name.ToString().ToLower()))
-                            .Select(status => new TriggerData(status.Name, status.RowId, status.Icon, status.MaxStacks)));
+                            .Select(status => new TriggerData(status.Name, status.RowId, (ushort)status.Icon, status.MaxStacks)));
                 }
 
                 return statusList;
